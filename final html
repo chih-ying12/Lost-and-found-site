@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Lost and Found Platform</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <nav class="navbar">
+            <div class="logo">
+                Secure Lost and Found
+            </div>
+            <div class="nav-links" id="navLinks"></div>
+        </nav>
+
+        <!-- Auth Section (Login/Register) -->
+        <div id="authContainer"></div>
+
+        <!-- Main App Section (shown after login) -->
+        <div id="appContainer" class="hidden"></div>
+    </div>
+
+    <!-- Modal for answering verification questions -->
+    <div id="answerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Answer Verification Questions</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Modal for viewing claim answers (operator only) -->
+    <div id="answersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Claimant Answers</h3>
+                <span class="close" onclick="closeAnswersModal()">&times;</span>
+            </div>
+            <div id="answersModalBody"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
