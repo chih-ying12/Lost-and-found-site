@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🔍 Lost & Found</title>
   <link rel="stylesheet" href="style.css">
-  <!-- ✅ Load Parse from unpkg (more reliable) -->
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
 </head>
 <body>
@@ -48,12 +47,16 @@
     <button id="backToHomeFromLost" style="background:#8899aa;">⬅ Back to Home</button>
   </div>
 
-  <!-- FOUND PAGE -->
+  <!-- FOUND PAGE (UPDATED CATEGORIES) -->
   <div id="foundPage" class="page hidden">
     <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
     <select id="foundType">
       <option value="electronic">📱 Electronic</option>
-      <option value="money">💵 Money related</option>
+      <option value="personal">🎒 Personal Belongings</option>
+      <option value="clothing">👕 Clothing / Accessories</option>
+      <option value="documents">🪪 Documents / IDs</option>
+      <option value="keys">🔑 Keys</option>
+      <option value="bags">👜 Bags / Luggage</option>
       <option value="other">📌 Other</option>
     </select>
     <input type="text" id="foundColor" placeholder="🎨 Color (e.g., black, silver)">
@@ -91,7 +94,6 @@
 <script src="backend.js"></script>
 <script src="login.js"></script>
 <script>
-  // ---------- UI Controller ----------
   document.addEventListener('DOMContentLoaded', () => {
     const loginPage = document.getElementById('loginPage');
     const homePage = document.getElementById('homePage');
@@ -182,13 +184,22 @@
           return;
         }
         container.innerHTML = items.map(item => {
-          const typeEmoji = item.get('type') === 'electronic' ? '📱' : (item.get('type') === 'money' ? '💵' : '📌');
+          const type = item.get('type');
+          let typeEmoji = '📌';
+          if (type === 'electronic') typeEmoji = '📱';
+          else if (type === 'personal') typeEmoji = '🎒';
+          else if (type === 'clothing') typeEmoji = '👕';
+          else if (type === 'documents') typeEmoji = '🪪';
+          else if (type === 'keys') typeEmoji = '🔑';
+          else if (type === 'bags') typeEmoji = '👜';
+          else if (type === 'other') typeEmoji = '📌';
+
           const photo = item.get('photo');
           const photoUrl = photo ? photo.url() : null;
           return `
             <div class="card">
               <div class="row" style="justify-content:space-between;">
-                <span><strong>${typeEmoji} ${item.get('type')}</strong></span>
+                <span><strong>${typeEmoji} ${type}</strong></span>
                 <span>🕒 ${item.get('timeFound')?.toLocaleString?.() || item.get('timeFound')}</span>
               </div>
               <div><span style="color:#2d4a7c;">🎨</span> ${item.get('color')} · <span style="color:#2d4a7c;">🏷️</span> ${item.get('model')}</div>
@@ -247,7 +258,7 @@
       }
     });
 
-    // Found page type change -> adjust verification question preset
+    // Found page type change – adjust verification question preset
     document.getElementById('foundType').addEventListener('change', (e) => {
       const type = e.target.value;
       const qInput = document.getElementById('foundVeriQuestion');
@@ -255,16 +266,14 @@
       if(type === 'electronic') {
         qInput.value = 'What is the wallpaper of this device?';
         qInput.placeholder = 'Wallpaper description';
-      } else if(type === 'money') {
-        qInput.value = 'What is the total amount of money inside?';
-        qInput.placeholder = 'Amount, e.g. $50';
       } else {
+        // For all other types (personal, clothing, documents, keys, bags, other) leave empty for custom question
         qInput.value = '';
         qInput.placeholder = 'Your custom verification question';
       }
       aInput.value = '';
     });
-    // trigger default
+    // trigger default on load
     document.getElementById('foundType').dispatchEvent(new Event('change'));
 
     document.getElementById('submitFoundBtn').addEventListener('click', async () => {
