@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE -->
+  <!-- LOGIN PAGE (unchanged) -->
   <div id="loginPage" class="page">
     <h2><span class="emoji-icon">🔐</span> Welcome</h2>
     <div id="loginForm">
@@ -47,7 +47,7 @@
     <button id="backToHomeFromLost" style="background:#8899aa;">⬅ Back to Home</button>
   </div>
 
-  <!-- FOUND PAGE (UPDATED CATEGORIES) -->
+  <!-- FOUND PAGE (with description field) -->
   <div id="foundPage" class="page hidden">
     <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
     <select id="foundType">
@@ -62,6 +62,7 @@
     <input type="text" id="foundColor" placeholder="🎨 Color (e.g., black, silver)">
     <input type="text" id="foundModel" placeholder="🏷️ Model/Brand (e.g., iPad Pro, Nike wallet)">
     <input type="text" id="foundAppearance" placeholder="✨ Appearance (scratches, stickers...)">
+    <textarea id="foundDescription" placeholder="📝 Additional description (optional)" rows="2" style="resize:vertical;"></textarea>
     <input type="datetime-local" id="foundTime">
     <input type="text" id="foundLocation" placeholder="📍 Location found">
     <div id="verificationSection">
@@ -78,11 +79,12 @@
     <p id="foundMessage" style="color:#2c3e50;"></p>
   </div>
 
-  <!-- VERIFY POPUP (hidden) -->
+  <!-- VERIFY POPUP -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verification</h3>
       <p id="verifyQuestionText"></p>
+      <p id="verifyStatusMessage" style="color:#c0392b; font-size:0.9rem;"></p>
       <input type="text" id="verifyAnswerInput" placeholder="Your answer">
       <button id="submitVerifyBtn">✅ Confirm</button>
       <button id="cancelVerifyBtn" style="background:#aaa;">Cancel</button>
@@ -192,10 +194,10 @@
           else if (type === 'documents') typeEmoji = '🪪';
           else if (type === 'keys') typeEmoji = '🔑';
           else if (type === 'bags') typeEmoji = '👜';
-          else if (type === 'other') typeEmoji = '📌';
 
           const photo = item.get('photo');
           const photoUrl = photo ? photo.url() : null;
+          const description = item.get('description') || '';
           return `
             <div class="card">
               <div class="row" style="justify-content:space-between;">
@@ -204,6 +206,7 @@
               </div>
               <div><span style="color:#2d4a7c;">🎨</span> ${item.get('color')} · <span style="color:#2d4a7c;">🏷️</span> ${item.get('model')}</div>
               <div>✨ ${item.get('appearance')}</div>
+              ${description ? `<div style="color:#4a5568; font-style:italic;">📝 ${description}</div>` : ''}
               <div>📍 ${item.get('locationFound')}</div>
               ${photoUrl ? `<img src="${photoUrl}" class="item-photo" alt="item">` : ''}
               <button class="verify-btn" data-id="${item.id}">🔐 Verify it's yours</button>
@@ -222,14 +225,51 @@
     }
 
     async function openVerifyPopup(itemId) {
+      const statusEl = document.getElementById('verifyStatusMessage');
+      const answerInput = document.getElementById('verifyAnswerInput');
+      const questionEl = document.getElementById('verifyQuestionText');
+      const msgEl = document.getElementById('verifyMessage');
+      statusEl.textContent = '';
+      msgEl.textContent = '';
+      answerInput.value = '';
+      answerInput.disabled = false;
+      document.getElementById('submitVerifyBtn').disabled = false;
+
       try {
+        // Fetch the item to check its status beforehand
+        const query = new Parse.Query(Parse.Object.extend("LostItem"));
+        const item = await query.get(itemId);
+        if (item.get("verificationBlocked")) {
+          statusEl.textContent = '⛔ This item is permanently blocked from verification.';
+          answerInput.disabled = true;
+          document.getElementById('submitVerifyBtn').disabled = true;
+        } else {
+          const nextAllowed = item.get("nextAttemptAllowedAt");
+          if (nextAllowed && new Date() < new Date(nextAllowed)) {
+            const diffMs = new Date(nextAllowed) - new Date();
+            const hrs = Math.floor(diffMs / 3600000);
+            const mins = Math.floor((diffMs % 3600000) / 60000);
+            statusEl.textContent = `⏳ Cooldown active. Try again in ${hrs}h ${mins}m.`;
+            answerInput.disabled = true;
+            document.getElementById('submitVerifyBtn').disabled = true;
+          } else {
+            const attempts = item.get("verificationAttempts") || 0;
+            if (attempts >= 9) {
+              statusEl.textContent = 'Permanently blocked.';
+              answerInput.disabled = true;
+              document.getElementById('submitVerifyBtn').disabled = true;
+            } else if (attempts >= 6) {
+              statusEl.textContent = `⚠️ You've made ${attempts} wrong attempts. One more will lock for 5 hours.`;
+            } else if (attempts >= 3) {
+              statusEl.textContent = `⚠️ ${attempts} wrong attempts. After 3 more, 3-hour cooldown.`;
+            }
+          }
+        }
         const question = await getVerificationQuestion(itemId);
-        document.getElementById('verifyQuestionText').textContent = '🔐 ' + question;
-        document.getElementById('verifyAnswerInput').value = '';
-        document.getElementById('verifyMessage').textContent = '';
+        questionEl.textContent = '🔐 ' + (question || 'No question set');
         verifyPopup.classList.remove('hidden');
       } catch(e) {
-        alert('Could not load verification: '+e.message);
+        alert('Error loading verification: ' + e.message);
       }
     }
 
@@ -243,37 +283,51 @@
       const answer = document.getElementById('verifyAnswerInput').value.trim();
       if(!answer) return;
       try {
-        const success = await verifyItem(currentVerifyingItemId, answer);
-        if(success) {
-          document.getElementById('verifyMessage').textContent = '✅ Correct! Item marked as claimed.';
+        const result = await verifyItem(currentVerifyingItemId, answer);
+        const msgEl = document.getElementById('verifyMessage');
+        const statusEl = document.getElementById('verifyStatusMessage');
+        if (result.success) {
+          msgEl.textContent = result.message;
           setTimeout(() => {
             verifyPopup.classList.add('hidden');
             loadLostItems(document.getElementById('lostSearchInput').value);
-          }, 1200);
+          }, 1500);
         } else {
-          document.getElementById('verifyMessage').textContent = '❌ Wrong answer. Try again.';
+          // Show error message; if cooldown/blocked, update status and disable input
+          msgEl.textContent = result.message;
+          if (result.blocked) {
+            statusEl.textContent = '⛔ Verification permanently blocked.';
+            document.getElementById('verifyAnswerInput').disabled = true;
+            document.getElementById('submitVerifyBtn').disabled = true;
+          } else if (result.cooldownEnd) {
+            const diffMs = new Date(result.cooldownEnd) - new Date();
+            if (diffMs > 0) {
+              const hrs = Math.floor(diffMs / 3600000);
+              const mins = Math.floor((diffMs % 3600000) / 60000);
+              statusEl.textContent = `⏳ Cooldown: try again in ${hrs}h ${mins}m.`;
+              document.getElementById('verifyAnswerInput').disabled = true;
+              document.getElementById('submitVerifyBtn').disabled = true;
+            }
+          }
         }
       } catch(e) {
         document.getElementById('verifyMessage').textContent = 'Error: '+e.message;
       }
     });
 
-    // Found page type change – adjust verification question preset
+    // Found page type change
     document.getElementById('foundType').addEventListener('change', (e) => {
       const type = e.target.value;
       const qInput = document.getElementById('foundVeriQuestion');
-      const aInput = document.getElementById('foundVeriAnswer');
+      document.getElementById('foundVeriAnswer').value = '';
       if(type === 'electronic') {
         qInput.value = 'What is the wallpaper of this device?';
         qInput.placeholder = 'Wallpaper description';
       } else {
-        // For all other types (personal, clothing, documents, keys, bags, other) leave empty for custom question
         qInput.value = '';
         qInput.placeholder = 'Your custom verification question';
       }
-      aInput.value = '';
     });
-    // trigger default on load
     document.getElementById('foundType').dispatchEvent(new Event('change'));
 
     document.getElementById('submitFoundBtn').addEventListener('click', async () => {
@@ -281,6 +335,7 @@
       const color = document.getElementById('foundColor').value.trim();
       const model = document.getElementById('foundModel').value.trim();
       const appearance = document.getElementById('foundAppearance').value.trim();
+      const description = document.getElementById('foundDescription').value.trim();
       const time = document.getElementById('foundTime').value;
       const location = document.getElementById('foundLocation').value.trim();
       const veriQ = document.getElementById('foundVeriQuestion').value.trim();
@@ -289,7 +344,7 @@
       const msg = document.getElementById('foundMessage');
 
       if(!color || !model || !time || !location || !veriQ || !veriA) {
-        msg.textContent = '❌ Please fill all required fields (color, model, time, location, verification).';
+        msg.textContent = '❌ Please fill all required fields.';
         return;
       }
       let photoFile = null, photoName = '';
@@ -299,15 +354,16 @@
       }
       try {
         await createFoundItem({
-          type, color, model, appearance, timeFound: new Date(time), locationFound: location,
+          type, color, model, appearance, description,
+          timeFound: new Date(time), locationFound: location,
           verificationQuestion: veriQ, verificationAnswer: veriA,
           photoFile, photoName
         });
         msg.textContent = '✅ Item posted! Thank you.';
-        // reset form
         document.getElementById('foundColor').value = '';
         document.getElementById('foundModel').value = '';
         document.getElementById('foundAppearance').value = '';
+        document.getElementById('foundDescription').value = '';
         document.getElementById('foundLocation').value = '';
         document.getElementById('foundVeriAnswer').value = '';
         document.getElementById('foundPhoto').value = '';
@@ -317,7 +373,6 @@
       }
     });
 
-    // Start
     checkSession();
   });
 </script>
