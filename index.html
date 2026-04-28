@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>🔍 Lost & Found</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
@@ -36,7 +36,7 @@
     <button id="logoutFromHomeBtn" style="background:#b23b3b;"><span class="emoji-icon">🚪</span> Log out</button>
   </div>
 
-  <!-- LOST PAGE -->
+  <!-- LOST PAGE (with contact owner functionality) -->
   <div id="lostPage" class="page hidden">
     <h2><span class="emoji-icon">🔎</span> Lost Items Search</h2>
     <div class="row">
@@ -47,7 +47,7 @@
     <button id="backToHomeFromLost" style="background:#8899aa;">⬅ Back to Home</button>
   </div>
 
-  <!-- FOUND PAGE (with description) -->
+  <!-- FOUND PAGE (with contact info field) -->
   <div id="foundPage" class="page hidden">
     <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
     <select id="foundType">
@@ -69,6 +69,10 @@
       <label>🔐 Verification (will NOT be shown publicly)</label>
       <input type="text" id="foundVeriQuestion" placeholder="Question (e.g., Wallpaper description)">
       <input type="text" id="foundVeriAnswer" placeholder="Answer (secret)">
+    </div>
+    <div style="margin-top:4px;">
+      <label>📞 Your contact (optional, shared if someone forgot details)</label>
+      <input type="text" id="foundContactInfo" placeholder="Phone / email / Telegram (optional)">
     </div>
     <div class="row">
       <label>📸 Photo (cover the screen/wallet interior!)</label>
@@ -198,6 +202,7 @@
           const photo = item.get('photo');
           const photoUrl = photo ? photo.url() : null;
           const description = item.get('description') || '';
+          const contact = item.get('contactInfo') || '';
           return `
             <div class="card">
               <div class="row" style="justify-content:space-between;">
@@ -210,13 +215,30 @@
               <div>📍 ${item.get('locationFound')}</div>
               ${photoUrl ? `<img src="${photoUrl}" class="item-photo" alt="item">` : ''}
               <button class="verify-btn" data-id="${item.id}">🔐 Verify it's yours</button>
+              <button class="small-btn forgot-btn" data-contact="${contact.replace(/"/g, '&quot;')}" style="margin-top:4px;">❓ Forgot details?</button>
+              <div class="contact-info hidden" id="contact-${item.id}">
+                ${contact ? `📞 Owner contact: ${contact}` : '⚠️ No contact info provided by finder.'}
+              </div>
             </div>
           `;
         }).join('');
+
+        // Attach verify listeners
         document.querySelectorAll('.verify-btn').forEach(btn => {
           btn.addEventListener('click', (e) => {
             currentVerifyingItemId = e.target.dataset.id;
             openVerifyPopup(currentVerifyingItemId);
+          });
+        });
+
+        // Attach forgot details toggles
+        document.querySelectorAll('.forgot-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const itemId = e.target.closest('.card').querySelector('.verify-btn').dataset.id;
+            const contactDiv = document.getElementById(`contact-${itemId}`);
+            if (contactDiv) {
+              contactDiv.classList.toggle('hidden');
+            }
           });
         });
       } catch(e) {
@@ -229,7 +251,6 @@
       const answerInput = document.getElementById('verifyAnswerInput');
       const questionEl = document.getElementById('verifyQuestionText');
       const msgEl = document.getElementById('verifyMessage');
-      // Clear previous messages
       statusEl.textContent = '';
       msgEl.textContent = '';
       answerInput.value = '';
@@ -239,9 +260,8 @@
       try {
         const query = new Parse.Query(Parse.Object.extend("LostItem"));
         const item = await query.get(itemId);
-
         if (item.get("verificationBlocked")) {
-          statusEl.textContent = '⛔ This item is permanently blocked from verification.';
+          statusEl.textContent = '⛔ Permanently blocked.';
           answerInput.disabled = true;
           document.getElementById('submitVerifyBtn').disabled = true;
         } else {
@@ -250,23 +270,22 @@
             const diffMs = new Date(nextAllowed) - new Date();
             const hrs = Math.floor(diffMs / 3600000);
             const mins = Math.floor((diffMs % 3600000) / 60000);
-            statusEl.textContent = `⏳ Cooldown active. Try again in ${hrs}h ${mins}m.`;
+            statusEl.textContent = `⏳ Cooldown: ${hrs}h ${mins}m remaining.`;
             answerInput.disabled = true;
             document.getElementById('submitVerifyBtn').disabled = true;
           } else {
             const attempts = item.get("verificationAttempts") || 0;
             if (attempts >= 9) {
-              statusEl.textContent = 'Too many attempts – permanently blocked.';
+              statusEl.textContent = 'Too many attempts – blocked.';
               answerInput.disabled = true;
               document.getElementById('submitVerifyBtn').disabled = true;
             } else if (attempts >= 6) {
-              statusEl.textContent = `⚠️ ${attempts} wrong attempts. One more locks for 5h.`;
+              statusEl.textContent = `⚠️ ${attempts} wrong attempts. Next lock: 5h.`;
             } else if (attempts >= 3) {
-              statusEl.textContent = `⚠️ ${attempts} wrong attempts. After 3rd, 3‑hour cooldown.`;
+              statusEl.textContent = `⚠️ ${attempts} wrong. Cooldown after 3rd.`;
             }
           }
         }
-
         const question = await getVerificationQuestion(itemId);
         questionEl.textContent = '🔐 ' + (question || 'No question set');
         verifyPopup.classList.remove('hidden');
@@ -292,11 +311,9 @@
 
       try {
         const result = await verifyItem(currentVerifyingItemId, answer);
-        // Display message
         msgEl.textContent = result.message || '';
 
         if (result.success) {
-          // Disable further input, auto-close after short delay
           answerInput.disabled = true;
           submitBtn.disabled = true;
           setTimeout(() => {
@@ -304,7 +321,6 @@
             loadLostItems(document.getElementById('lostSearchInput').value);
           }, 1500);
         } else {
-          // On failure, update status accordingly
           if (result.blocked) {
             statusEl.textContent = '⛔ Verification permanently blocked.';
             answerInput.disabled = true;
@@ -314,29 +330,26 @@
             if (diffMs > 0) {
               const hrs = Math.floor(diffMs / 3600000);
               const mins = Math.floor((diffMs % 3600000) / 60000);
-              statusEl.textContent = `⏳ Cooldown: try again in ${hrs}h ${mins}m.`;
-            } else {
-              statusEl.textContent = 'Cooldown expired, you may try again.';
+              statusEl.textContent = `⏳ Cooldown: ${hrs}h ${mins}m.`;
             }
             answerInput.disabled = true;
             submitBtn.disabled = true;
           } else {
-            // Just a wrong answer, keep input enabled but update attempts warning
-            // Re-fetch item to get updated attempt count for status
+            // update attempt status
             try {
               const query = new Parse.Query(Parse.Object.extend("LostItem"));
               const item = await query.get(currentVerifyingItemId);
               const attempts = item.get("verificationAttempts") || 0;
               if (attempts >= 9) {
-                statusEl.textContent = 'Too many attempts – blocked.';
+                statusEl.textContent = 'Blocked.';
                 answerInput.disabled = true;
                 submitBtn.disabled = true;
               } else if (attempts >= 6) {
-                statusEl.textContent = `⚠️ ${attempts} wrong attempts. 5h cooldown soon.`;
+                statusEl.textContent = `⚠️ ${attempts} wrong. 5h lock soon.`;
               } else if (attempts >= 3) {
-                statusEl.textContent = `⚠️ ${attempts} wrong attempts. 3h cooldown after 3rd.`;
+                statusEl.textContent = `⚠️ ${attempts} wrong. 3h cooldown soon.`;
               } else {
-                statusEl.textContent = `❌ Wrong answer. ${3-attempts} attempts left before cooldown.`;
+                statusEl.textContent = `❌ Wrong. ${3-attempts} attempts left.`;
               }
             } catch(e) {}
           }
@@ -371,6 +384,7 @@
       const location = document.getElementById('foundLocation').value.trim();
       const veriQ = document.getElementById('foundVeriQuestion').value.trim();
       const veriA = document.getElementById('foundVeriAnswer').value.trim();
+      const contactInfo = document.getElementById('foundContactInfo').value.trim();
       const photoInput = document.getElementById('foundPhoto');
       const msg = document.getElementById('foundMessage');
 
@@ -388,7 +402,7 @@
           type, color, model, appearance, description,
           timeFound: new Date(time), locationFound: location,
           verificationQuestion: veriQ, verificationAnswer: veriA,
-          photoFile, photoName
+          contactInfo, photoFile, photoName
         });
         msg.textContent = '✅ Item posted! Thank you.';
         // Reset form
@@ -398,6 +412,7 @@
         document.getElementById('foundDescription').value = '';
         document.getElementById('foundLocation').value = '';
         document.getElementById('foundVeriAnswer').value = '';
+        document.getElementById('foundContactInfo').value = '';
         document.getElementById('foundPhoto').value = '';
         document.getElementById('foundType').dispatchEvent(new Event('change'));
       } catch(e) {
