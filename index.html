@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE (unchanged) -->
+  <!-- LOGIN PAGE -->
   <div id="loginPage" class="page">
     <h2><span class="emoji-icon">🔐</span> Welcome</h2>
     <div id="loginForm">
@@ -47,7 +47,7 @@
     <button id="backToHomeFromLost" style="background:#8899aa;">⬅ Back to Home</button>
   </div>
 
-  <!-- FOUND PAGE (with description field) -->
+  <!-- FOUND PAGE (with description) -->
   <div id="foundPage" class="page hidden">
     <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
     <select id="foundType">
@@ -62,7 +62,7 @@
     <input type="text" id="foundColor" placeholder="🎨 Color (e.g., black, silver)">
     <input type="text" id="foundModel" placeholder="🏷️ Model/Brand (e.g., iPad Pro, Nike wallet)">
     <input type="text" id="foundAppearance" placeholder="✨ Appearance (scratches, stickers...)">
-    <textarea id="foundDescription" placeholder="📝 Additional description (optional)" rows="2" style="resize:vertical;"></textarea>
+    <textarea id="foundDescription" placeholder="📝 Additional description (optional)" rows="2"></textarea>
     <input type="datetime-local" id="foundTime">
     <input type="text" id="foundLocation" placeholder="📍 Location found">
     <div id="verificationSection">
@@ -84,11 +84,11 @@
     <div class="popup-content">
       <h3>🔐 Verification</h3>
       <p id="verifyQuestionText"></p>
-      <p id="verifyStatusMessage" style="color:#c0392b; font-size:0.9rem;"></p>
+      <p id="verifyStatusMessage" style="color:#c0392b; font-weight:500;"></p>
       <input type="text" id="verifyAnswerInput" placeholder="Your answer">
       <button id="submitVerifyBtn">✅ Confirm</button>
       <button id="cancelVerifyBtn" style="background:#aaa;">Cancel</button>
-      <p id="verifyMessage"></p>
+      <p id="verifyMessage" style="font-weight:600;"></p>
     </div>
   </div>
 </div>
@@ -229,6 +229,7 @@
       const answerInput = document.getElementById('verifyAnswerInput');
       const questionEl = document.getElementById('verifyQuestionText');
       const msgEl = document.getElementById('verifyMessage');
+      // Clear previous messages
       statusEl.textContent = '';
       msgEl.textContent = '';
       answerInput.value = '';
@@ -236,9 +237,9 @@
       document.getElementById('submitVerifyBtn').disabled = false;
 
       try {
-        // Fetch the item to check its status beforehand
         const query = new Parse.Query(Parse.Object.extend("LostItem"));
         const item = await query.get(itemId);
+
         if (item.get("verificationBlocked")) {
           statusEl.textContent = '⛔ This item is permanently blocked from verification.';
           answerInput.disabled = true;
@@ -255,16 +256,17 @@
           } else {
             const attempts = item.get("verificationAttempts") || 0;
             if (attempts >= 9) {
-              statusEl.textContent = 'Permanently blocked.';
+              statusEl.textContent = 'Too many attempts – permanently blocked.';
               answerInput.disabled = true;
               document.getElementById('submitVerifyBtn').disabled = true;
             } else if (attempts >= 6) {
-              statusEl.textContent = `⚠️ You've made ${attempts} wrong attempts. One more will lock for 5 hours.`;
+              statusEl.textContent = `⚠️ ${attempts} wrong attempts. One more locks for 5h.`;
             } else if (attempts >= 3) {
-              statusEl.textContent = `⚠️ ${attempts} wrong attempts. After 3 more, 3-hour cooldown.`;
+              statusEl.textContent = `⚠️ ${attempts} wrong attempts. After 3rd, 3‑hour cooldown.`;
             }
           }
         }
+
         const question = await getVerificationQuestion(itemId);
         questionEl.textContent = '🔐 ' + (question || 'No question set');
         verifyPopup.classList.remove('hidden');
@@ -282,36 +284,65 @@
       if(!currentVerifyingItemId) return;
       const answer = document.getElementById('verifyAnswerInput').value.trim();
       if(!answer) return;
+
+      const statusEl = document.getElementById('verifyStatusMessage');
+      const msgEl = document.getElementById('verifyMessage');
+      const answerInput = document.getElementById('verifyAnswerInput');
+      const submitBtn = document.getElementById('submitVerifyBtn');
+
       try {
         const result = await verifyItem(currentVerifyingItemId, answer);
-        const msgEl = document.getElementById('verifyMessage');
-        const statusEl = document.getElementById('verifyStatusMessage');
+        // Display message
+        msgEl.textContent = result.message || '';
+
         if (result.success) {
-          msgEl.textContent = result.message;
+          // Disable further input, auto-close after short delay
+          answerInput.disabled = true;
+          submitBtn.disabled = true;
           setTimeout(() => {
             verifyPopup.classList.add('hidden');
             loadLostItems(document.getElementById('lostSearchInput').value);
           }, 1500);
         } else {
-          // Show error message; if cooldown/blocked, update status and disable input
-          msgEl.textContent = result.message;
+          // On failure, update status accordingly
           if (result.blocked) {
             statusEl.textContent = '⛔ Verification permanently blocked.';
-            document.getElementById('verifyAnswerInput').disabled = true;
-            document.getElementById('submitVerifyBtn').disabled = true;
+            answerInput.disabled = true;
+            submitBtn.disabled = true;
           } else if (result.cooldownEnd) {
             const diffMs = new Date(result.cooldownEnd) - new Date();
             if (diffMs > 0) {
               const hrs = Math.floor(diffMs / 3600000);
               const mins = Math.floor((diffMs % 3600000) / 60000);
               statusEl.textContent = `⏳ Cooldown: try again in ${hrs}h ${mins}m.`;
-              document.getElementById('verifyAnswerInput').disabled = true;
-              document.getElementById('submitVerifyBtn').disabled = true;
+            } else {
+              statusEl.textContent = 'Cooldown expired, you may try again.';
             }
+            answerInput.disabled = true;
+            submitBtn.disabled = true;
+          } else {
+            // Just a wrong answer, keep input enabled but update attempts warning
+            // Re-fetch item to get updated attempt count for status
+            try {
+              const query = new Parse.Query(Parse.Object.extend("LostItem"));
+              const item = await query.get(currentVerifyingItemId);
+              const attempts = item.get("verificationAttempts") || 0;
+              if (attempts >= 9) {
+                statusEl.textContent = 'Too many attempts – blocked.';
+                answerInput.disabled = true;
+                submitBtn.disabled = true;
+              } else if (attempts >= 6) {
+                statusEl.textContent = `⚠️ ${attempts} wrong attempts. 5h cooldown soon.`;
+              } else if (attempts >= 3) {
+                statusEl.textContent = `⚠️ ${attempts} wrong attempts. 3h cooldown after 3rd.`;
+              } else {
+                statusEl.textContent = `❌ Wrong answer. ${3-attempts} attempts left before cooldown.`;
+              }
+            } catch(e) {}
           }
         }
       } catch(e) {
-        document.getElementById('verifyMessage').textContent = 'Error: '+e.message;
+        msgEl.textContent = 'Error: ' + e.message;
       }
     });
 
@@ -360,6 +391,7 @@
           photoFile, photoName
         });
         msg.textContent = '✅ Item posted! Thank you.';
+        // Reset form
         document.getElementById('foundColor').value = '';
         document.getElementById('foundModel').value = '';
         document.getElementById('foundAppearance').value = '';
