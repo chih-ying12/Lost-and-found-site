@@ -4,7 +4,6 @@ Parse.serverURL = "https://parseapi.back4app.com/";
 
 const LostItem = Parse.Object.extend("LostItem");
 
-// Create found item with new fields (description, verificationAttempts, etc.)
 async function createFoundItem(data) {
   const item = new LostItem();
   item.set("type", data.type);
@@ -20,6 +19,7 @@ async function createFoundItem(data) {
   item.set("verificationAttempts", 0);
   item.set("nextAttemptAllowedAt", new Date());
   item.set("verificationBlocked", false);
+  item.set("contactInfo", data.contactInfo || "");   // NEW: owner contact
 
   if (data.photoFile) {
     const parseFile = new Parse.File(data.photoName, data.photoFile);
@@ -28,7 +28,6 @@ async function createFoundItem(data) {
   return item.save();
 }
 
-// Search lost items (now also searches description)
 async function searchLostItems(searchTerm = "") {
   const query = new Parse.Query(LostItem);
   query.equalTo("isResolved", false);
@@ -57,44 +56,34 @@ async function searchLostItems(searchTerm = "") {
   return query.find();
 }
 
-// Verification with cooldowns and block (returns object)
 async function verifyItem(itemId, userAnswer) {
   const query = new Parse.Query(LostItem);
   const item = await query.get(itemId);
   if (!item) return { success: false, message: "Item not found." };
 
   if (item.get("isResolved")) {
-    return { success: false, message: "This item has already been claimed.", blocked: false };
+    return { success: false, message: "Already claimed.", blocked: false };
   }
   if (item.get("verificationBlocked")) {
-    return {
-      success: false,
-      message: "Verification permanently disabled for this item.",
-      blocked: true
-    };
+    return { success: false, message: "Verification permanently blocked.", blocked: true };
   }
 
   const attempts = item.get("verificationAttempts") || 0;
   const nextAllowed = item.get("nextAttemptAllowedAt");
 
-  // Check cooldown
   if (nextAllowed && new Date() < new Date(nextAllowed)) {
     const diffMs = new Date(nextAllowed) - new Date();
     const hours = Math.floor(diffMs / 3600000);
     const minutes = Math.floor((diffMs % 3600000) / 60000);
     return {
       success: false,
-      message: `Too many wrong attempts. Please try again in ${hours}h ${minutes}m.`,
-      blocked: false,
+      message: `Cooldown: try again in ${hours}h ${minutes}m.`,
       cooldownEnd: nextAllowed
     };
   }
 
-  const correctAnswer = (item.get("verificationAnswer") || "").trim().toLowerCase();
-  const userAns = userAnswer.trim().toLowerCase();
-
-  if (correctAnswer === userAns) {
-    // Correct => reset and mark resolved
+  const correct = (item.get("verificationAnswer") || "").trim().toLowerCase();
+  if (correct === userAnswer.trim().toLowerCase()) {
     item.set("verificationAttempts", 0);
     item.set("nextAttemptAllowedAt", new Date());
     item.set("verificationBlocked", false);
@@ -103,7 +92,6 @@ async function verifyItem(itemId, userAnswer) {
     return { success: true, message: "✅ Correct! Item claimed." };
   }
 
-  // Wrong answer => increment attempts
   const newAttempts = attempts + 1;
   item.set("verificationAttempts", newAttempts);
 
@@ -111,43 +99,24 @@ async function verifyItem(itemId, userAnswer) {
     item.set("verificationBlocked", true);
     item.set("nextAttemptAllowedAt", null);
     await item.save();
-    return {
-      success: false,
-      message: "Too many failed attempts. Verification permanently blocked.",
-      blocked: true
-    };
+    return { success: false, message: "Too many attempts. Permanently blocked.", blocked: true };
   } else if (newAttempts >= 6) {
     const cooldown = new Date(Date.now() + 5 * 3600 * 1000);
     item.set("nextAttemptAllowedAt", cooldown);
     await item.save();
-    return {
-      success: false,
-      message: `Wrong answer. Verification locked for 5 hours.`,
-      blocked: false,
-      cooldownEnd: cooldown
-    };
+    return { success: false, message: "Wrong answer. Locked for 5 hours.", cooldownEnd: cooldown };
   } else if (newAttempts >= 3) {
     const cooldown = new Date(Date.now() + 3 * 3600 * 1000);
     item.set("nextAttemptAllowedAt", cooldown);
     await item.save();
-    return {
-      success: false,
-      message: `Wrong answer. Verification locked for 3 hours.`,
-      blocked: false,
-      cooldownEnd: cooldown
-    };
+    return { success: false, message: "Wrong answer. Locked for 3 hours.", cooldownEnd: cooldown };
   } else {
-    // No cooldown yet
     item.set("nextAttemptAllowedAt", new Date());
     await item.save();
-    return {
-      success: false,
-      message: `Wrong answer. ${3 - newAttempts} attempt(s) remaining before cooldown.`
-    };
+    return { success: false, message: `Wrong answer. ${3 - newAttempts} attempts before cooldown.` };
   }
 }
 
-// Get verification question
 async function getVerificationQuestion(itemId) {
   const query = new Parse.Query(LostItem);
   const item = await query.get(itemId);
