@@ -1,21 +1,26 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 body {
   font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
   background: linear-gradient(135deg, #e9f0f9 0%, #dce5f2 100%);
-  margin: 0;
-  padding: 20px;
   min-height: 100vh;
+  padding: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 .app-container {
   width: 100%;
-  max-width: 600px;
+  max-width: 420px;
   background: white;
   border-radius: 28px;
   box-shadow: 0 20px 35px rgba(0,0,0,0.1);
-  padding: 25px 20px;
+  padding: 25px 18px;
   position: relative;
+  margin: 10px 0;
 }
 .hidden {
   display: none !important;
@@ -23,14 +28,14 @@ body {
 .page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.2rem;
 }
 h2 {
   margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 1.7rem;
+  font-size: 1.5rem;
   color: #1e2b3c;
 }
 input, select, textarea, button {
@@ -38,9 +43,10 @@ input, select, textarea, button {
   padding: 12px 14px;
   border: 1px solid #d0d8e6;
   border-radius: 14px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   transition: 0.2s;
   background: #f9fbfd;
+  -webkit-appearance: none;
 }
 button {
   background: #2d4a7c;
@@ -54,16 +60,17 @@ button:hover {
   background: #1e3456;
 }
 .emoji-icon {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }
 .card {
   background: #f3f7fd;
   border-radius: 18px;
-  padding: 16px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+  font-size: 0.9rem;
 }
 .row {
   display: flex;
@@ -72,7 +79,7 @@ button:hover {
   align-items: center;
 }
 .item-photo {
-  max-width: 100px;
+  max-width: 80px;
   border-radius: 12px;
   border: 2px solid #e0e6f0;
 }
@@ -87,14 +94,28 @@ button:hover {
 }
 .popup-content {
   background: white;
-  padding: 25px;
+  padding: 22px;
   border-radius: 24px;
   width: 90%;
-  max-width: 380px;
+  max-width: 340px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 14px;
+  font-size: 0.95rem;
 }
 textarea {
   resize: vertical;
+}
+.small-btn {
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  background: #6b7d99;
+}
+.contact-info {
+  background: #eef3fa;
+  border-radius: 10px;
+  padding: 8px;
+  margin-top: 5px;
+  font-size: 0.85rem;
+  word-break: break-word;
 }
