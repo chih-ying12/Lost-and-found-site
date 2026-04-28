@@ -1,50 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Lost and Found Platform</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔍 Lost & Found</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <!-- Navigation -->
-        <nav class="navbar">
-            <div class="logo">
-                Secure Lost and Found
-            </div>
-            <div class="nav-links" id="navLinks"></div>
-        </nav>
-
-        <!-- Auth Section (Login/Register) -->
-        <div id="authContainer"></div>
-
-        <!-- Main App Section (shown after login) -->
-        <div id="appContainer" class="hidden"></div>
+<div class="app-container" id="appContainer">
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="page">
+    <h2><span class="emoji-icon">🔐</span> Welcome</h2>
+    <div id="loginForm">
+      <input type="text" id="loginUsername" placeholder="👤 Username" autocomplete="username">
+      <input type="password" id="loginPassword" placeholder="🔑 Password" autocomplete="current-password">
+      <button id="signInBtn">🚪 Sign In</button>
+      <button id="showSignUpBtn" style="background:#eef2f6; color:#1e2b3c;">✨ Create account</button>
     </div>
-
-    <!-- Modal for answering verification questions -->
-    <div id="answerModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Answer Verification Questions</h3>
-                <span class="close" onclick="closeModal()">&times;</span>
-            </div>
-            <div id="modalBody"></div>
-        </div>
+    <div id="signUpForm" class="hidden">
+      <input type="text" id="signUpUsername" placeholder="👤 Choose username">
+      <input type="password" id="signUpPassword" placeholder="🔑 Create password">
+      <button id="signUpSubmitBtn">📝 Sign Up</button>
+      <button id="showLoginBtn" style="background:#eef2f6; color:#1e2b3c;">⬅ Back to login</button>
     </div>
+    <p id="authMessage" style="color:#c0392b; text-align:center;"></p>
+  </div>
 
-    <!-- Modal for viewing claim answers (operator only) -->
-    <div id="answersModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Claimant Answers</h3>
-                <span class="close" onclick="closeAnswersModal()">&times;</span>
-            </div>
-            <div id="answersModalBody"></div>
-        </div>
+  <!-- HOME PAGE -->
+  <div id="homePage" class="page hidden">
+    <h2><span class="emoji-icon">🏠</span> Home</h2>
+    <p style="color:#4a5568;">Welcome, <span id="displayUsername">...</span>!</p>
+    <button id="goLostBtn"><span class="emoji-icon">🔎</span> Lost something?</button>
+    <button id="goFoundBtn"><span class="emoji-icon">📦</span> I found an item</button>
+    <button id="logoutFromHomeBtn" style="background:#b23b3b;"><span class="emoji-icon">🚪</span> Log out</button>
+  </div>
+
+  <!-- LOST PAGE -->
+  <div id="lostPage" class="page hidden">
+    <h2><span class="emoji-icon">🔎</span> Lost Items Search</h2>
+    <div class="row">
+      <input type="text" id="lostSearchInput" placeholder="🔍 black water bottle, iPad, wallet..." style="flex:2;">
+      <button id="searchLostBtn" style="flex:1;">Filter</button>
     </div>
+    <div id="lostResults" style="display:flex; flex-direction:column; gap:12px;"></div>
+    <button id="backToHomeFromLost" style="background:#8899aa;">⬅ Back to Home</button>
+  </div>
 
-    <script src="script.js"></script>
+  <!-- FOUND PAGE -->
+  <div id="foundPage" class="page hidden">
+    <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
+    <select id="foundType">
+      <option value="electronic">📱 Electronic</option>
+      <option value="money">💵 Money related</option>
+      <option value="other">📌 Other</option>
+    </select>
+    <input type="text" id="foundColor" placeholder="🎨 Color (e.g., black, silver)">
+    <input type="text" id="foundModel" placeholder="🏷️ Model/Brand (e.g., iPad Pro, Nike wallet)">
+    <input type="text" id="foundAppearance" placeholder="✨ Appearance (scratches, stickers...)">
+    <input type="datetime-local" id="foundTime">
+    <input type="text" id="foundLocation" placeholder="📍 Location found">
+    <div id="verificationSection">
+      <label>🔐 Verification (will NOT be shown publicly)</label>
+      <input type="text" id="foundVeriQuestion" placeholder="Question (e.g., Wallpaper description)">
+      <input type="text" id="foundVeriAnswer" placeholder="Answer (secret)">
+    </div>
+    <div class="row">
+      <label>📸 Photo (cover the screen/wallet interior!)</label>
+      <input type="file" id="foundPhoto" accept="image/*">
+    </div>
+    <button id="submitFoundBtn">✅ Submit found item</button>
+    <button id="backToHomeFromFound" style="background:#8899aa;">⬅ Back to Home</button>
+    <p id="foundMessage" style="color:#2c3e50;"></p>
+  </div>
+
+  <!-- VERIFY POPUP (hidden) -->
+  <div id="verifyPopup" class="verify-popup hidden">
+    <div class="popup-content">
+      <h3>🔐 Verification</h3>
+      <p id="verifyQuestionText"></p>
+      <input type="text" id="verifyAnswerInput" placeholder="Your answer">
+      <button id="submitVerifyBtn">✅ Confirm</button>
+      <button id="cancelVerifyBtn" style="background:#aaa;">Cancel</button>
+      <p id="verifyMessage"></p>
+    </div>
+  </div>
+</div>
+
+<script src="backend.js"></script>
+<script src="login.js"></script>
+<script>
+  // ---------- UI Controller ----------
+  document.addEventListener('DOMContentLoaded', () => {
+    const loginPage = document.getElementById('loginPage');
+    const homePage = document.getElementById('homePage');
+    const lostPage = document.getElementById('lostPage');
+    const foundPage = document.getElementById('foundPage');
+    const verifyPopup = document.getElementById('verifyPopup');
+    const authMessage = document.getElementById('authMessage');
+    let currentVerifyingItemId = null;
+
+    function showPage(page) {
+      [loginPage, homePage, lostPage, foundPage].forEach(p => p.classList.add('hidden'));
+      page.classList.remove('hidden');
+    }
+
+    function checkSession() {
+      if (auth.getCurrentUser()) {
+        document.getElementById('displayUsername').textContent = auth.getCurrentUser().getUsername();
+        showPage(homePage);
+      } else {
+        showPage(loginPage);
+      }
+    }
+
+    // Login / SignUp toggle
+    document.getElementById('showSignUpBtn').addEventListener('click', () => {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('signUpForm').classList.remove('hidden');
+      authMessage.textContent = '';
+    });
+    document.getElementById('showLoginBtn').addEventListener('click', () => {
+      document.getElementById('signUpForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+      authMessage.textContent = '';
+    });
+
+    // Sign In
+    document.getElementById('signInBtn').addEventListener('click', async () => {
+      const u = document.getElementById('loginUsername').value.trim();
+      const p = document.getElementById('loginPassword').value;
+      if(!u || !p) return authMessage.textContent = 'Fill both fields.';
+      try {
+        await auth.logIn(u, p);
+        checkSession();
+      } catch(e) {
+        authMessage.textContent = e.message;
+      }
+    });
+
+    // Sign Up
+    document.getElementById('signUpSubmitBtn').addEventListener('click', async () => {
+      const u = document.getElementById('signUpUsername').value.trim();
+      const p = document.getElementById('signUpPassword').value;
+      if(!u || !p) return authMessage.textContent = 'Fill both fields.';
+      try {
+        await auth.signUp(u, p);
+        checkSession();
+      } catch(e) {
+        authMessage.textContent = e.message;
+      }
+    });
+
+    // Navigation
+    document.getElementById('goLostBtn').addEventListener('click', () => {
+      showPage(lostPage);
+      loadLostItems('');
+    });
+    document.getElementById('goFoundBtn').addEventListener('click', () => showPage(foundPage));
+    document.getElementById('logoutFromHomeBtn').addEventListener('click', async () => {
+      await auth.logOut();
+      checkSession();
+    });
+    document.getElementById('backToHomeFromLost').addEventListener('click', () => showPage(homePage));
+    document.getElementById('backToHomeFromFound').addEventListener('click', () => showPage(homePage));
+
+    // Lost page search
+    document.getElementById('searchLostBtn').addEventListener('click', () => {
+      const term = document.getElementById('lostSearchInput').value;
+      loadLostItems(term);
+    });
+
+    async function loadLostItems(searchTerm = '') {
+      const container = document.getElementById('lostResults');
+      container.innerHTML = '<p>⌛ Loading...</p>';
+      try {
+        const items = await searchLostItems(searchTerm);
+        if(items.length === 0) {
+          container.innerHTML = '<p>😔 No matching items found.</p>';
+          return;
+        }
+        container.innerHTML = items.map(item => {
+          const typeEmoji = item.get('type') === 'electronic' ? '📱' : (item.get('type') === 'money' ? '💵' : '📌');
+          const photo = item.get('photo');
+          const photoUrl = photo ? photo.url() : null;
+          return `
+            <div class="card">
+              <div class="row" style="justify-content:space-between;">
+                <span><strong>${typeEmoji} ${item.get('type')}</strong></span>
+                <span>🕒 ${item.get('timeFound')?.toLocaleString?.() || item.get('timeFound')}</span>
+              </div>
+              <div><span style="color:#2d4a7c;">🎨</span> ${item.get('color')} · <span style="color:#2d4a7c;">🏷️</span> ${item.get('model')}</div>
+              <div>✨ ${item.get('appearance')}</div>
+              <div>📍 ${item.get('locationFound')}</div>
+              ${photoUrl ? `<img src="${photoUrl}" class="item-photo" alt="item">` : ''}
+              <button class="verify-btn" data-id="${item.id}">🔐 Verify it's yours</button>
+            </div>
+          `;
+        }).join('');
+        document.querySelectorAll('.verify-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            currentVerifyingItemId = e.target.dataset.id;
+            openVerifyPopup(currentVerifyingItemId);
+          });
+        });
+      } catch(e) {
+        container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`;
+      }
+    }
+
+    async function openVerifyPopup(itemId) {
+      try {
+        const question = await getVerificationQuestion(itemId);
+        document.getElementById('verifyQuestionText').textContent = '🔐 ' + question;
+        document.getElementById('verifyAnswerInput').value = '';
+        document.getElementById('verifyMessage').textContent = '';
+        verifyPopup.classList.remove('hidden');
+      } catch(e) {
+        alert('Could not load verification: '+e.message);
+      }
+    }
+
+    document.getElementById('cancelVerifyBtn').addEventListener('click', () => {
+      verifyPopup.classList.add('hidden');
+      currentVerifyingItemId = null;
+    });
+
+    document.getElementById('submitVerifyBtn').addEventListener('click', async () => {
+      if(!currentVerifyingItemId) return;
+      const answer = document.getElementById('verifyAnswerInput').value.trim();
+      if(!answer) return;
+      try {
+        const success = await verifyItem(currentVerifyingItemId, answer);
+        if(success) {
+          document.getElementById('verifyMessage').textContent = '✅ Correct! Item marked as claimed.';
+          setTimeout(() => {
+            verifyPopup.classList.add('hidden');
+            loadLostItems(document.getElementById('lostSearchInput').value);
+          }, 1200);
+        } else {
+          document.getElementById('verifyMessage').textContent = '❌ Wrong answer. Try again.';
+        }
+      } catch(e) {
+        document.getElementById('verifyMessage').textContent = 'Error: '+e.message;
+      }
+    });
+
+    // Found page type change -> adjust verification question preset
+    document.getElementById('foundType').addEventListener('change', (e) => {
+      const type = e.target.value;
+      const qInput = document.getElementById('foundVeriQuestion');
+      const aInput = document.getElementById('foundVeriAnswer');
+      if(type === 'electronic') {
+        qInput.value = 'What is the wallpaper of this device?';
+        qInput.placeholder = 'Wallpaper description';
+      } else if(type === 'money') {
+        qInput.value = 'What is the total amount of money inside?';
+        qInput.placeholder = 'Amount, e.g. $50';
+      } else {
+        qInput.value = '';
+        qInput.placeholder = 'Your custom verification question';
+      }
+      aInput.value = '';
+    });
+    // trigger default
+    document.getElementById('foundType').dispatchEvent(new Event('change'));
+
+    document.getElementById('submitFoundBtn').addEventListener('click', async () => {
+      const type = document.getElementById('foundType').value;
+      const color = document.getElementById('foundColor').value.trim();
+      const model = document.getElementById('foundModel').value.trim();
+      const appearance = document.getElementById('foundAppearance').value.trim();
+      const time = document.getElementById('foundTime').value;
+      const location = document.getElementById('foundLocation').value.trim();
+      const veriQ = document.getElementById('foundVeriQuestion').value.trim();
+      const veriA = document.getElementById('foundVeriAnswer').value.trim();
+      const photoInput = document.getElementById('foundPhoto');
+      const msg = document.getElementById('foundMessage');
+
+      if(!color || !model || !time || !location || !veriQ || !veriA) {
+        msg.textContent = '❌ Please fill all required fields (color, model, time, location, verification).';
+        return;
+      }
+      let photoFile = null, photoName = '';
+      if(photoInput.files.length > 0) {
+        photoFile = photoInput.files[0];
+        photoName = photoFile.name;
+      }
+      try {
+        await createFoundItem({
+          type, color, model, appearance, timeFound: new Date(time), locationFound: location,
+          verificationQuestion: veriQ, verificationAnswer: veriA,
+          photoFile, photoName
+        });
+        msg.textContent = '✅ Item posted! Thank you.';
+        // reset form
+        document.getElementById('foundColor').value = '';
+        document.getElementById('foundModel').value = '';
+        document.getElementById('foundAppearance').value = '';
+        document.getElementById('foundLocation').value = '';
+        document.getElementById('foundVeriAnswer').value = '';
+        document.getElementById('foundPhoto').value = '';
+        document.getElementById('foundType').dispatchEvent(new Event('change'));
+      } catch(e) {
+        msg.textContent = '❌ Error: ' + e.message;
+      }
+    });
+
+    // Start
+    checkSession();
+  });
+</script>
 </body>
 </html>
