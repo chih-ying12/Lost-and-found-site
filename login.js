@@ -1,21 +1,12 @@
-// login.js – handle sign up, sign in, and session management
+// login.js – authentication functions
 const auth = {
-  async signUp(username, password) {
+  signUp: async (username, password) => {
     const user = new Parse.User();
     user.set("username", username);
     user.set("password", password);
     return user.signUp();
   },
-
-  async logIn(username, password) {
-    return Parse.User.logIn(username, password);
-  },
-
-  async logOut() {
-    await Parse.User.logOut();
-  },
-
-  getCurrentUser() {
-    return Parse.User.current();
-  }
+  logIn: async (username, password) => Parse.User.logIn(username, password),
+  logOut: async () => Parse.User.logOut(),
+  getCurrentUser: () => Parse.User.current()
 };
