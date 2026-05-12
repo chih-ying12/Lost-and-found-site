@@ -1,9 +1,19 @@
-// backend.js – Parse initialization and core data helpers
+// backend.js – Parse initialization and all data functions (COMPLETE)
 Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
 Parse.serverURL = "https://parseapi.back4app.com/";
-
 const LostItem = Parse.Object.extend("LostItem");
 
+// Helper: random 6‑character claim code
+function generateClaimCode(len = 6) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < len; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  return code;
+}
+
+// ---------- PUBLIC USER FUNCTIONS ----------
+
+// Create found item
 async function createFoundItem(data) {
   const item = new LostItem();
   item.set("type", data.type);
@@ -19,8 +29,8 @@ async function createFoundItem(data) {
   item.set("verificationAttempts", 0);
   item.set("nextAttemptAllowedAt", new Date());
   item.set("verificationBlocked", false);
-  item.set("contactInfo", data.contactInfo || "");   // NEW: owner contact
-
+  item.set("contactInfo", data.contactInfo || "");
+  item.set("claimCode", "");   // empty until verified
   if (data.photoFile) {
     const parseFile = new Parse.File(data.photoName, data.photoFile);
     item.set("photo", parseFile);
@@ -28,25 +38,19 @@ async function createFoundItem(data) {
   return item.save();
 }
 
+// Search lost items (unresolved, not blocked)
 async function searchLostItems(searchTerm = "") {
   const query = new Parse.Query(LostItem);
   query.equalTo("isResolved", false);
   query.equalTo("verificationBlocked", false);
   query.descending("createdAt");
-
   if (searchTerm.trim() !== "") {
     const term = searchTerm.toLowerCase();
-    const colorQuery = new Parse.Query(LostItem);
-    colorQuery.matches("color", new RegExp(term, "i"));
-    const modelQuery = new Parse.Query(LostItem);
-    modelQuery.matches("model", new RegExp(term, "i"));
-    const appearanceQuery = new Parse.Query(LostItem);
-    appearanceQuery.matches("appearance", new RegExp(term, "i"));
-    const typeQuery = new Parse.Query(LostItem);
-    typeQuery.matches("type", new RegExp(term, "i"));
-    const descQuery = new Parse.Query(LostItem);
-    descQuery.matches("description", new RegExp(term, "i"));
-
+    const colorQuery = new Parse.Query(LostItem).matches("color", new RegExp(term, "i"));
+    const modelQuery = new Parse.Query(LostItem).matches("model", new RegExp(term, "i"));
+    const appearanceQuery = new Parse.Query(LostItem).matches("appearance", new RegExp(term, "i"));
+    const typeQuery = new Parse.Query(LostItem).matches("type", new RegExp(term, "i"));
+    const descQuery = new Parse.Query(LostItem).matches("description", new RegExp(term, "i"));
     return Parse.Query.or(colorQuery, modelQuery, appearanceQuery, typeQuery, descQuery)
       .equalTo("isResolved", false)
       .equalTo("verificationBlocked", false)
@@ -56,45 +60,38 @@ async function searchLostItems(searchTerm = "") {
   return query.find();
 }
 
+// Verify an item → generates claim code on success
 async function verifyItem(itemId, userAnswer) {
   const query = new Parse.Query(LostItem);
   const item = await query.get(itemId);
   if (!item) return { success: false, message: "Item not found." };
-
-  if (item.get("isResolved")) {
-    return { success: false, message: "Already claimed.", blocked: false };
-  }
-  if (item.get("verificationBlocked")) {
-    return { success: false, message: "Verification permanently blocked.", blocked: true };
-  }
+  if (item.get("isResolved")) return { success: false, message: "Already claimed." };
+  if (item.get("verificationBlocked")) return { success: false, message: "Permanently blocked.", blocked: true };
 
   const attempts = item.get("verificationAttempts") || 0;
   const nextAllowed = item.get("nextAttemptAllowedAt");
-
   if (nextAllowed && new Date() < new Date(nextAllowed)) {
-    const diffMs = new Date(nextAllowed) - new Date();
-    const hours = Math.floor(diffMs / 3600000);
-    const minutes = Math.floor((diffMs % 3600000) / 60000);
-    return {
-      success: false,
-      message: `Cooldown: try again in ${hours}h ${minutes}m.`,
-      cooldownEnd: nextAllowed
-    };
+    const diff = new Date(nextAllowed) - new Date();
+    const hrs = Math.floor(diff / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    return { success: false, message: `Cooldown: try in ${hrs}h ${mins}m.`, cooldownEnd: nextAllowed };
   }
 
   const correct = (item.get("verificationAnswer") || "").trim().toLowerCase();
   if (correct === userAnswer.trim().toLowerCase()) {
+    const code = generateClaimCode();
+    item.set("claimCode", code);
     item.set("verificationAttempts", 0);
     item.set("nextAttemptAllowedAt", new Date());
     item.set("verificationBlocked", false);
     item.set("isResolved", true);
     await item.save();
-    return { success: true, message: "✅ Correct! Item claimed." };
+    return { success: true, message: `✅ Correct! Your claim code: ${code}`, claimCode: code };
   }
 
+  // Wrong answer → cooldown logic
   const newAttempts = attempts + 1;
   item.set("verificationAttempts", newAttempts);
-
   if (newAttempts >= 9) {
     item.set("verificationBlocked", true);
     item.set("nextAttemptAllowedAt", null);
@@ -117,8 +114,53 @@ async function verifyItem(itemId, userAnswer) {
   }
 }
 
+// Get verification question
 async function getVerificationQuestion(itemId) {
   const query = new Parse.Query(LostItem);
   const item = await query.get(itemId);
   return item ? item.get("verificationQuestion") || "No question set" : null;
+}
+
+// Check a claim code (used by finder)
+async function checkClaimCode(code) {
+  const query = new Parse.Query(LostItem);
+  query.equalTo("claimCode", code.trim().toUpperCase());
+  query.equalTo("isResolved", true);
+  const result = await query.find();
+  if (result.length) {
+    const item = result[0];
+    return {
+      found: true,
+      type: item.get("type"),
+      color: item.get("color"),
+      model: item.get("model"),
+      appearance: item.get("appearance"),
+      locationFound: item.get("locationFound"),
+      timeFound: item.get("timeFound")
+    };
+  }
+  return { found: false };
+}
+
+// ---------- HOST-ONLY FUNCTIONS ----------
+async function adminGetAllItems() {
+  const query = new Parse.Query(LostItem);
+  query.descending("createdAt");
+  return query.find();
+}
+
+async function adminResetAttempts(itemId) {
+  const query = new Parse.Query(LostItem);
+  const item = await query.get(itemId);
+  item.set("verificationAttempts", 0);
+  item.set("nextAttemptAllowedAt", new Date());
+  item.set("verificationBlocked", false);
+  // Do NOT change isResolved or claimCode
+  return item.save();
+}
+
+async function adminDeleteItem(itemId) {
+  const query = new Parse.Query(LostItem);
+  const item = await query.get(itemId);
+  return item.destroy();
 }
