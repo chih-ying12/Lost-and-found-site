@@ -222,7 +222,6 @@
     document.getElementById('checkCodeResult').textContent = '';
     checkCodePopup.classList.remove('hidden');
   });
-  // NEW: Back to role selection from home
   document.getElementById('backToRoleFromHome').addEventListener('click', () => showPage(roleSelectionPage));
   document.getElementById('logoutFromHomeBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
   document.getElementById('backToHomeFromLost').addEventListener('click', () => showPage(homePage));
