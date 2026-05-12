@@ -36,7 +36,7 @@
     <button id="logoutFromRoleBtn" style="background:#b91c1c;"><span class="emoji-icon">🚪</span> Log out</button>
   </div>
 
-  <!-- HOST PASSWORD -->
+  <!-- HOST PASSWORD PAGE -->
   <div id="hostPasswordPage" class="page hidden">
     <h2><span class="emoji-icon">🔐</span> Host Password</h2>
     <input type="password" id="hostPasswordInput" placeholder="Enter host password">
@@ -150,7 +150,6 @@
   const HOST_PASSWORD = "host123";
   let currentVerifyingItemId = null;
 
-  // Page navigation
   function showPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
     page.classList.remove('hidden');
@@ -267,7 +266,6 @@
 
   // ------- VERIFICATION POPUP -------
   async function openVerifyPopup(itemId) {
-    // Reset UI
     document.getElementById('claimCodeSection').style.display = 'none';
     document.getElementById('verifyAnswerInput').style.display = '';
     document.getElementById('submitVerifyBtn').style.display = '';
@@ -291,9 +289,7 @@
         const nextAllowed = item.get("nextAttemptAllowedAt");
         if (nextAllowed && new Date() < new Date(nextAllowed)) {
           const diff = new Date(nextAllowed) - new Date();
-          const hrs = Math.floor(diff/3600000);
-          const mins = Math.floor((diff%3600000)/60000);
-          document.getElementById('verifyStatusMessage').textContent = `⏳ Cooldown: ${hrs}h ${mins}m`;
+          document.getElementById('verifyStatusMessage').textContent = `⏳ Cooldown: ${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m`;
           answerInput.disabled = true;
           document.getElementById('submitVerifyBtn').disabled = true;
         } else {
@@ -446,7 +442,6 @@
   window.resetItem = async (id) => { if(confirm('Reset attempts?')) { await adminResetAttempts(id); loadAdminItems(); } };
   window.deleteItem = async (id) => { if(confirm('Delete permanently?')) { await adminDeleteItem(id); loadAdminItems(); } };
 
-  // Start
   checkSession();
 </script>
 </body>
