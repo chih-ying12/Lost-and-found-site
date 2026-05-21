@@ -64,7 +64,7 @@
       outline: none;
     }
 
-    /* ---------- login page (unchanged) ---------- */
+    /* ---------- login page ---------- */
     #loginPage {
       text-align: center;
       padding-top: 40px;
@@ -74,9 +74,6 @@
       padding: 28px 20px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.06);
       margin: 10px 0;
-      transition: all 0.2s ease;
-    }
-    #loginCard, #signUpCard {
       background: #f0f4ff;
     }
     .auth-card h3 {
@@ -91,8 +88,10 @@
     .auth-card button {
       margin-top: 8px;
     }
+
+    /* Toggle buttons – light grey fill */
     .toggle-btn {
-      background: none;
+      background: #f1f5f9;
       border: 1px solid #cbd5e1;
       color: #334155;
       font-size: 0.95rem;
@@ -105,7 +104,7 @@
       transition: background 0.15s;
     }
     .toggle-btn:hover {
-      background: #f1f5f9;
+      background: #e2e8f0;
     }
     .error-msg {
       color: #b91c1c;
@@ -114,38 +113,43 @@
       min-height: 20px;
     }
 
-    /* ---------- polished buttons for main pages ---------- */
+    /* ---------- polished buttons ---------- */
+    /* primary action buttons – soft dark blue */
     .primary-btn {
-      background: #2563eb;
+      background: #3b82f6;
       color: white;
       border: none;
-      box-shadow: 0 4px 10px rgba(37,99,235,0.15);
+      box-shadow: 0 4px 10px rgba(59,130,246,0.15);
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
     }
     .primary-btn:hover {
-      background: #1d4ed8;
+      background: #2563eb;
     }
+
+    /* outline buttons – light grey fill instead of white */
     .outline-btn {
-      background: white;
+      background: #f1f5f9;
       border: 1px solid #cbd5e1;
       color: #334155;
       box-shadow: 0 2px 6px rgba(0,0,0,0.03);
     }
     .outline-btn:hover {
-      background: #f8fafc;
+      background: #e2e8f0;
       border-color: #94a3b8;
     }
+
+    /* danger button – soft pink */
     .danger-btn {
-      background: #b91c1c;
-      color: white;
-      border: none;
-      box-shadow: 0 4px 10px rgba(185,28,28,0.15);
+      background: #fecaca;
+      color: #b91c1c;
+      border: 1px solid #fca5a5;
+      box-shadow: 0 4px 10px rgba(252,165,165,0.15);
     }
     .danger-btn:hover {
-      background: #991b1b;
+      background: #fca5a5;
     }
 
     /* ---------- card styling for list items ---------- */
@@ -195,7 +199,7 @@
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE (unchanged) -->
+  <!-- LOGIN PAGE -->
   <div id="loginPage" class="page">
     <h2 style="justify-content:center;">🔐 Lost & Found</h2>
 
@@ -226,15 +230,15 @@
       <span style="font-size:1.4rem;">👤</span>
       <span>Logged in as <strong id="roleUsername"></strong></span>
     </div>
-    <button id="goUserBtn" class="outline-btn" style="margin-bottom:10px;"><span class="emoji-icon">👤</span> Continue as User</button>
-    <button id="goHostAccessBtn" class="outline-btn" style="margin-bottom:10px;"><span class="emoji-icon">🛠️</span> Enter Host Panel</button>
-    <button id="logoutFromRoleBtn" class="danger-btn" style="margin-top:6px;"><span class="emoji-icon">🚪</span> Log out</button>
+    <button id="goUserBtn" class="outline-btn" style="margin-bottom:10px;">👤 Continue as User</button>
+    <button id="goHostAccessBtn" class="outline-btn" style="margin-bottom:10px;">🛠️ Enter Host Panel</button>
+    <button id="logoutFromRoleBtn" class="danger-btn" style="margin-top:6px;">🚪 Log out</button>
   </div>
 
   <!-- HOST PASSWORD PAGE -->
   <div id="hostPasswordPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromHost">←</button>
-    <h2><span class="emoji-icon">🔐</span> Host Password</h2>
+    <h2>🔐 Host Password</h2>
     <input type="password" id="hostPasswordInput" placeholder="Enter host password">
     <button id="submitHostPasswordBtn" class="primary-btn">🔓 Unlock Panel</button>
     <p id="hostPasswordMessage" style="color:#b91c1c; text-align:center;"></p>
@@ -243,27 +247,21 @@
   <!-- USER HOME -->
   <div id="homePage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromHome">←</button>
-    <h2><span class="emoji-icon">🏠</span> Home</h2>
+    <h2>🏠 Home</h2>
     <div class="user-welcome">
       <span style="font-size:1.4rem;">👋</span>
       <span>Welcome, <strong id="displayUsername">...</strong></span>
     </div>
-    <button id="goLostBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
-      <span class="emoji-icon">🔎</span> Lost something?
-    </button>
-    <button id="goFoundBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
-      <span class="emoji-icon">📦</span> I found an item
-    </button>
-    <button id="openCheckCodeBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
-      <span class="emoji-icon">🔑</span> Check Claim Code
-    </button>
-    <button id="logoutFromHomeBtn" class="danger-btn" style="margin-top:6px;"><span class="emoji-icon">🚪</span> Log out</button>
+    <button id="goLostBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">🔎 Lost something?</button>
+    <button id="goFoundBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">📦 I found an item</button>
+    <button id="openCheckCodeBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">🔑 Check Claim Code</button>
+    <button id="logoutFromHomeBtn" class="danger-btn" style="margin-top:6px;">🚪 Log out</button>
   </div>
 
   <!-- LOST PAGE -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
-    <h2><span class="emoji-icon">🔎</span> Lost Items</h2>
+    <h2>🔎 Lost Items</h2>
     <div class="row" style="margin-bottom:16px;">
       <input type="text" id="lostSearchInput" placeholder="🔍 search items..." style="flex:2;">
       <button id="searchLostBtn" class="primary-btn" style="flex:1;">Filter</button>
@@ -274,7 +272,7 @@
   <!-- FOUND PAGE (with required asterisks) -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
-    <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
+    <h2>📦 Report Found Item</h2>
 
     <select id="foundType" style="margin-bottom:12px;">
       <option value="electronic">📱 Electronic</option>
@@ -320,7 +318,7 @@
     <button id="submitFoundBtn" class="primary-btn" style="margin-top:12px;">✅ Submit item</button>
   </div>
 
-  <!-- popups (unchanged) -->
+  <!-- popups -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verification</h3>
@@ -328,7 +326,7 @@
       <p id="verifyStatusMessage" style="color:#b91c1c; font-weight:500;"></p>
       <input type="text" id="verifyAnswerInput" placeholder="Your answer">
       <button id="submitVerifyBtn" class="primary-btn">✅ Confirm</button>
-      <button id="cancelVerifyBtn" class="outline-btn" style="background:#aaa; border:none;">Cancel</button>
+      <button id="cancelVerifyBtn" class="outline-btn">Cancel</button>
       <p id="verifyMessage" style="font-weight:600;"></p>
       <div id="claimCodeSection" style="display:none; text-align:center; margin-top:10px;">
         <p style="font-weight:700; background:#e6f7ec; padding:12px; border-radius:14px;">
@@ -346,7 +344,7 @@
       <p>Enter the code from the owner.</p>
       <input type="text" id="checkCodeInput" placeholder="e.g. A3K9X7">
       <button id="submitCheckCodeBtn" class="primary-btn">✅ Check</button>
-      <button id="cancelCheckCodeBtn" class="outline-btn" style="background:#aaa; border:none;">Cancel</button>
+      <button id="cancelCheckCodeBtn" class="outline-btn">Cancel</button>
       <div id="checkCodeResult" style="margin-top:8px; font-size:0.9rem;"></div>
     </div>
   </div>
@@ -370,7 +368,7 @@
   <!-- HOST CONTROL PANEL -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
-    <h2><span class="emoji-icon">🛠️</span> Host Control Panel</h2>
+    <h2>🛠️ Host Control Panel</h2>
     <p style="color:#7d6608;">All items (incl. resolved & blocked)</p>
     <div id="adminResults" style="display:flex; flex-direction:column; gap:12px;"></div>
   </div>
@@ -394,7 +392,7 @@
     getCurrentUser: () => Parse.User.current()
   };
 
-  // ========== BACKEND FUNCTIONS (your exact code) ==========
+  // ========== BACKEND FUNCTIONS ==========
   const LostItem = Parse.Object.extend("LostItem");
 
   function generateClaimCode(len = 6) {
@@ -650,7 +648,7 @@
   });
   document.getElementById('logoutFromHomeBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
 
-  // Lost items rendering (using new card class)
+  // Lost items rendering
   async function loadLostItems(searchTerm) {
     const container = document.getElementById('lostResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
@@ -691,7 +689,7 @@
     } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
   }
 
-  // Verification popup (unchanged)
+  // Verification popup
   async function openVerifyPopup(itemId) {
     document.getElementById('claimCodeSection').style.display = 'none';
     document.getElementById('verifyAnswerInput').style.display = '';
