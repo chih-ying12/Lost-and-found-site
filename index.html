@@ -13,7 +13,7 @@
     }
     /* Pages that have a back arrow get extra top padding so the title isn't covered */
     .page.has-back-arrow {
-      padding-top: 50px; /* space for the arrow */
+      padding-top: 50px;
     }
     /* The back arrow inside the white card */
     .back-arrow-top {
@@ -33,11 +33,22 @@
     .back-arrow-top:hover {
       background: #e2e8f0;
     }
+    /* tiny label for required fields */
+    .required-label {
+      display: block;
+      margin: 8px 0 2px;
+      font-size: 0.85rem;
+      color: #b91c1c;
+      font-weight: 500;
+    }
+    .required-label::after {
+      content: " *";
+    }
   </style>
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE (no back arrow, no extra padding) -->
+  <!-- LOGIN PAGE (no back arrow) -->
   <div id="loginPage" class="page">
     <h2><span class="emoji-icon">🔐</span> Welcome</h2>
     <div id="loginForm">
@@ -96,10 +107,11 @@
     <div id="lostResults" style="display:flex; flex-direction:column; gap:12px;"></div>
   </div>
 
-  <!-- FOUND PAGE -->
+  <!-- FOUND PAGE (with required field indicators) -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-top" id="backToHomeFromFound">←</button>
     <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
+
     <select id="foundType">
       <option value="electronic">📱 Electronic</option>
       <option value="personal">🎒 Personal Belongings</option>
@@ -109,22 +121,43 @@
       <option value="bags">👜 Bags / Luggage</option>
       <option value="other">📌 Other</option>
     </select>
-    <input type="text" id="foundColor" placeholder="🎨 Color">
-    <input type="text" id="foundModel" placeholder="🏷️ Model / Brand">
-    <input type="text" id="foundAppearance" placeholder="✨ Appearance (scratches, stickers...)">
-    <textarea id="foundDescription" placeholder="📝 Additional description (optional)" rows="2"></textarea>
+
+    <label class="required-label" for="foundColor">🎨 Color</label>
+    <input type="text" id="foundColor" placeholder="e.g. black">
+
+    <label class="required-label" for="foundModel">🏷️ Model / Brand</label>
+    <input type="text" id="foundModel" placeholder="e.g. iPhone 13">
+
+    <label for="foundAppearance">✨ Appearance (scratches, stickers...)</label>
+    <input type="text" id="foundAppearance" placeholder="optional">
+
+    <label for="foundDescription">📝 Additional description (optional)</label>
+    <textarea id="foundDescription" placeholder="..." rows="2"></textarea>
+
+    <label class="required-label" for="foundTime">🕒 Time found</label>
     <input type="datetime-local" id="foundTime">
-    <input type="text" id="foundLocation" placeholder="📍 Location found">
+
+    <label class="required-label" for="foundLocation">📍 Location found</label>
+    <input type="text" id="foundLocation" placeholder="e.g. cafeteria">
+
     <div><label>🔐 Verification (hidden)</label></div>
-    <input type="text" id="foundVeriQuestion" placeholder="Question (e.g., wallpaper)">
-    <input type="text" id="foundVeriAnswer" placeholder="Answer (secret)">
-    <input type="text" id="foundContactInfo" placeholder="📞 Your contact (optional)">
+
+    <label class="required-label" for="foundVeriQuestion">❓ Question</label>
+    <input type="text" id="foundVeriQuestion" placeholder="e.g. What is the wallpaper?">
+
+    <label class="required-label" for="foundVeriAnswer">🔑 Answer (secret)</label>
+    <input type="text" id="foundVeriAnswer" placeholder="e.g. blue gradient">
+
+    <label for="foundContactInfo">📞 Your contact (optional)</label>
+    <input type="text" id="foundContactInfo" placeholder="phone / email">
+
     <div class="row"><label>📸 Photo</label><input type="file" id="foundPhoto" accept="image/*"></div>
+
     <button id="submitFoundBtn">✅ Submit item</button>
-    <!-- No bottom success message; success is a popup -->
+    <!-- No bottom message; errors go to popup -->
   </div>
 
-  <!-- VERIFY POPUP -->
+  <!-- VERIFY POPUP (unchanged) -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verification</h3>
@@ -144,7 +177,7 @@
     </div>
   </div>
 
-  <!-- CHECK CLAIM CODE POPUP -->
+  <!-- CHECK CLAIM CODE POPUP (unchanged) -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
@@ -162,6 +195,15 @@
       <h3 style="font-size:2rem;">✅</h3>
       <p style="font-size:1.2rem;">Item posted!</p>
       <button id="closeSuccessPopup" style="margin:0 auto;">OK</button>
+    </div>
+  </div>
+
+  <!-- ERROR POPUP (missing required fields) -->
+  <div id="errorPopup" class="verify-popup hidden">
+    <div class="popup-content" style="text-align:center;">
+      <h3 style="font-size:2rem;">⚠️</h3>
+      <p style="font-size:1.2rem;" id="errorPopupMessage">Please fill all required fields.</p>
+      <button id="closeErrorPopup" style="margin:0 auto;">OK</button>
     </div>
   </div>
 
@@ -392,10 +434,14 @@
   });
   document.getElementById('foundType').dispatchEvent(new Event('change'));
 
+  // Submit found item
   document.getElementById('submitFoundBtn').addEventListener('click', async () => {
     const fields = ['foundColor','foundModel','foundTime','foundLocation','foundVeriQuestion','foundVeriAnswer'];
-    if(fields.some(id => !document.getElementById(id).value.trim())) {
-      alert('❌ Please fill all required fields.');
+    const missing = fields.some(id => !document.getElementById(id).value.trim());
+    if(missing) {
+      // Show error popup instead of alert
+      document.getElementById('errorPopupMessage').textContent = '❌ Please fill all required fields.';
+      document.getElementById('errorPopup').classList.remove('hidden');
       return;
     }
     const data = {
@@ -421,16 +467,22 @@
       ['foundColor','foundModel','foundAppearance','foundDescription','foundLocation','foundVeriAnswer','foundContactInfo','foundPhoto'].forEach(id => document.getElementById(id).value='');
       document.getElementById('foundType').dispatchEvent(new Event('change'));
       // Show success popup
-      successPopup.classList.remove('hidden');
+      document.getElementById('successPopup').classList.remove('hidden');
     } catch(e) {
-      alert('Error: '+e.message);
+      document.getElementById('errorPopupMessage').textContent = '❌ Error: ' + e.message;
+      document.getElementById('errorPopup').classList.remove('hidden');
     }
   });
 
-  // Close success popup AND go back to Home
+  // Close success popup & go to Home
   document.getElementById('closeSuccessPopup').addEventListener('click', () => {
-    successPopup.classList.add('hidden');
+    document.getElementById('successPopup').classList.add('hidden');
     showPage(homePage);
+  });
+
+  // Close error popup
+  document.getElementById('closeErrorPopup').addEventListener('click', () => {
+    document.getElementById('errorPopup').classList.add('hidden');
   });
 
   // Check claim code
