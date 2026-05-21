@@ -4,183 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>🔍 Lost & Found</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
   <style>
-    /* ---------- basic reset & page styling ---------- */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background: #f0f4f8;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-      padding: 20px;
-    }
-    .app-container {
-      width: 100%;
-      max-width: 500px;
-      background: white;
-      border-radius: 28px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-      overflow: hidden;
-      position: relative;
-    }
-    .page {
-      padding: 24px;
-      position: relative;
-      min-height: 500px;
-    }
-    .hidden {
-      display: none !important;
-    }
-
-    /* ---------- back arrow (top left) ---------- */
-    .back-arrow {
+    /* Only added styles for the new back arrow (top‑left) */
+    .back-arrow-top {
       position: absolute;
-      top: 18px;
+      top: 16px;
       left: 16px;
       background: transparent;
       border: none;
       font-size: 24px;
-      color: #334155;
+      color: #1e293b;
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 12px;
-      transition: background 0.2s;
       line-height: 1;
+      z-index: 10;
     }
-    .back-arrow:hover {
+    .back-arrow-top:hover {
       background: #e2e8f0;
     }
-    /* add some top padding so content doesn't hide under the arrow */
-    .page {
-      padding-top: 50px;
-    }
-    /* login page doesn't need the arrow, keep normal padding */
-    #loginPage {
-      padding-top: 24px;
-    }
-
-    /* ---------- typography & inputs ---------- */
-    h2 {
-      margin: 0 0 16px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 1.6rem;
-      color: #1e293b;
-    }
-    .emoji-icon {
-      font-size: 1.5rem;
-    }
-    input, select, textarea, button {
-      width: 100%;
-      padding: 12px 14px;
-      margin: 8px 0;
-      border-radius: 14px;
-      border: 1px solid #d1d5db;
-      font-size: 1rem;
-      font-family: inherit;
-    }
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    button:hover {
-      background: #1d4ed8;
-    }
-    .row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin: 8px 0;
-    }
-    .row input {
-      margin: 0;
-    }
-    label {
-      display: block;
-      margin-top: 8px;
-      font-weight: 500;
-      color: #334155;
-    }
-
-    /* ---------- cards ---------- */
-    .card {
-      background: #f8fafc;
-      padding: 16px;
-      border-radius: 20px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-      font-size: 0.95rem;
-    }
-    .card div {
-      margin-bottom: 4px;
-    }
-    .item-photo {
-      width: 100%;
-      border-radius: 12px;
-      margin: 8px 0;
-    }
-    .verify-btn {
-      background: #10b981;
-      margin-top: 8px;
-    }
-    .forgot-btn {
-      background: #94a3b8;
-    }
-    .contact-info.hidden {
-      display: none;
-    }
-
-    /* ---------- popup / modal ---------- */
-    .verify-popup {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-    }
-    .popup-content {
-      background: white;
-      padding: 28px;
-      border-radius: 28px;
-      width: 90%;
-      max-width: 420px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-    }
-    .popup-content button {
-      margin-top: 12px;
-    }
-    .copy-btn {
-      background: #0f766e;
-    }
-
-    /* ---------- admin extras ---------- */
-    .admin-card {
-      background: #fef9c3;
-    }
-    .admin-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-    }
-    .admin-actions button {
-      flex: 1;
-    }
   </style>
-  <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
 </head>
 <body>
 <div class="app-container" id="appContainer">
@@ -204,7 +49,7 @@
 
   <!-- ROLE SELECTION -->
   <div id="roleSelectionPage" class="page hidden">
-    <button class="back-arrow" id="backToLoginFromRole">←</button>
+    <button class="back-arrow-top" id="backToLoginFromRole">←</button>
     <h2 style="justify-content:center;">👋 Choose Role</h2>
     <p style="text-align:center;">Logged in as <strong id="roleUsername"></strong></p>
     <button id="goUserBtn"><span class="emoji-icon">👤</span> Continue as User</button>
@@ -214,7 +59,7 @@
 
   <!-- HOST PASSWORD PAGE -->
   <div id="hostPasswordPage" class="page hidden">
-    <button class="back-arrow" id="backToRoleFromHost">←</button>
+    <button class="back-arrow-top" id="backToRoleFromHost">←</button>
     <h2><span class="emoji-icon">🔐</span> Host Password</h2>
     <input type="password" id="hostPasswordInput" placeholder="Enter host password">
     <button id="submitHostPasswordBtn">🔓 Unlock Panel</button>
@@ -223,7 +68,7 @@
 
   <!-- USER HOME -->
   <div id="homePage" class="page hidden">
-    <button class="back-arrow" id="backToRoleFromHome">←</button>
+    <button class="back-arrow-top" id="backToRoleFromHome">←</button>
     <h2><span class="emoji-icon">🏠</span> Home</h2>
     <p>Welcome, <span id="displayUsername">...</span>!</p>
     <button id="goLostBtn"><span class="emoji-icon">🔎</span> Lost something?</button>
@@ -234,7 +79,7 @@
 
   <!-- LOST PAGE -->
   <div id="lostPage" class="page hidden">
-    <button class="back-arrow" id="backToHomeFromLost">←</button>
+    <button class="back-arrow-top" id="backToHomeFromLost">←</button>
     <h2><span class="emoji-icon">🔎</span> Lost Items</h2>
     <div class="row">
       <input type="text" id="lostSearchInput" placeholder="🔍 search items..." style="flex:2;">
@@ -245,7 +90,7 @@
 
   <!-- FOUND PAGE -->
   <div id="foundPage" class="page hidden">
-    <button class="back-arrow" id="backToHomeFromFound">←</button>
+    <button class="back-arrow-top" id="backToHomeFromFound">←</button>
     <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
     <select id="foundType">
       <option value="electronic">📱 Electronic</option>
@@ -268,7 +113,7 @@
     <input type="text" id="foundContactInfo" placeholder="📞 Your contact (optional)">
     <div class="row"><label>📸 Photo</label><input type="file" id="foundPhoto" accept="image/*"></div>
     <button id="submitFoundBtn">✅ Submit item</button>
-    <!-- NO bottom message paragraph – success uses popup only -->
+    <!-- Removed the bottom message paragraph; success now only shows via popup -->
   </div>
 
   <!-- VERIFY POPUP -->
@@ -314,7 +159,7 @@
 
   <!-- HOST CONTROL PANEL -->
   <div id="adminPage" class="page hidden">
-    <button class="back-arrow" id="backToRoleFromAdmin">←</button>
+    <button class="back-arrow-top" id="backToRoleFromAdmin">←</button>
     <h2><span class="emoji-icon">🛠️</span> Host Control Panel</h2>
     <p style="color:#7d6608;">All items (incl. resolved & blocked)</p>
     <div id="adminResults" style="display:flex; flex-direction:column; gap:12px;"></div>
@@ -379,7 +224,7 @@
   });
   document.getElementById('logoutFromRoleBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
 
-  // Back arrows
+  // Back arrow handlers (replacing old bottom buttons)
   document.getElementById('backToLoginFromRole').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
   document.getElementById('backToRoleFromHost').addEventListener('click', () => showPage(roleSelectionPage));
   document.getElementById('backToRoleFromHome').addEventListener('click', () => showPage(roleSelectionPage));
@@ -542,7 +387,8 @@
   document.getElementById('submitFoundBtn').addEventListener('click', async () => {
     const fields = ['foundColor','foundModel','foundTime','foundLocation','foundVeriQuestion','foundVeriAnswer'];
     if(fields.some(id => !document.getElementById(id).value.trim())) {
-      alert('❌ Please fill all required fields.'); // use alert so nothing stays at bottom
+      // No bottom message; use alert for error
+      alert('❌ Please fill all required fields.');
       return;
     }
     const data = {
@@ -564,13 +410,13 @@
     }
     try {
       await createFoundItem(data);
-      // clear form
+      // Clear form
       ['foundColor','foundModel','foundAppearance','foundDescription','foundLocation','foundVeriAnswer','foundContactInfo','foundPhoto'].forEach(id => document.getElementById(id).value='');
       document.getElementById('foundType').dispatchEvent(new Event('change'));
-      // show success popup
+      // Show success popup only
       successPopup.classList.remove('hidden');
     } catch(e) {
-      alert('Error: '+e.message); // error also via alert
+      alert('Error: '+e.message);
     }
   });
   document.getElementById('closeSuccessPopup').addEventListener('click', () => successPopup.classList.add('hidden'));
