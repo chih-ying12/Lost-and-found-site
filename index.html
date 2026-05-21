@@ -7,11 +7,15 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
   <style>
-    /* Ensure the white card becomes the positioning anchor */
+    /* Make the white card the positioning anchor */
     .app-container {
       position: relative;
     }
-    /* Top‑left back arrow inside the white container */
+    /* Pages that have a back arrow get extra top padding so the title isn't covered */
+    .page.has-back-arrow {
+      padding-top: 50px; /* space for the arrow */
+    }
+    /* The back arrow inside the white card */
     .back-arrow-top {
       position: absolute;
       top: 16px;
@@ -33,7 +37,7 @@
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE -->
+  <!-- LOGIN PAGE (no back arrow, no extra padding) -->
   <div id="loginPage" class="page">
     <h2><span class="emoji-icon">🔐</span> Welcome</h2>
     <div id="loginForm">
@@ -52,7 +56,7 @@
   </div>
 
   <!-- ROLE SELECTION -->
-  <div id="roleSelectionPage" class="page hidden">
+  <div id="roleSelectionPage" class="page hidden has-back-arrow">
     <button class="back-arrow-top" id="backToLoginFromRole">←</button>
     <h2 style="justify-content:center;">👋 Choose Role</h2>
     <p style="text-align:center;">Logged in as <strong id="roleUsername"></strong></p>
@@ -62,7 +66,7 @@
   </div>
 
   <!-- HOST PASSWORD PAGE -->
-  <div id="hostPasswordPage" class="page hidden">
+  <div id="hostPasswordPage" class="page hidden has-back-arrow">
     <button class="back-arrow-top" id="backToRoleFromHost">←</button>
     <h2><span class="emoji-icon">🔐</span> Host Password</h2>
     <input type="password" id="hostPasswordInput" placeholder="Enter host password">
@@ -71,7 +75,7 @@
   </div>
 
   <!-- USER HOME -->
-  <div id="homePage" class="page hidden">
+  <div id="homePage" class="page hidden has-back-arrow">
     <button class="back-arrow-top" id="backToRoleFromHome">←</button>
     <h2><span class="emoji-icon">🏠</span> Home</h2>
     <p>Welcome, <span id="displayUsername">...</span>!</p>
@@ -82,7 +86,7 @@
   </div>
 
   <!-- LOST PAGE -->
-  <div id="lostPage" class="page hidden">
+  <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-top" id="backToHomeFromLost">←</button>
     <h2><span class="emoji-icon">🔎</span> Lost Items</h2>
     <div class="row">
@@ -93,7 +97,7 @@
   </div>
 
   <!-- FOUND PAGE -->
-  <div id="foundPage" class="page hidden">
+  <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-top" id="backToHomeFromFound">←</button>
     <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
     <select id="foundType">
@@ -117,7 +121,7 @@
     <input type="text" id="foundContactInfo" placeholder="📞 Your contact (optional)">
     <div class="row"><label>📸 Photo</label><input type="file" id="foundPhoto" accept="image/*"></div>
     <button id="submitFoundBtn">✅ Submit item</button>
-    <!-- Removed bottom success message -->
+    <!-- No bottom success message; success is a popup -->
   </div>
 
   <!-- VERIFY POPUP -->
@@ -162,7 +166,7 @@
   </div>
 
   <!-- HOST CONTROL PANEL -->
-  <div id="adminPage" class="page hidden">
+  <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-top" id="backToRoleFromAdmin">←</button>
     <h2><span class="emoji-icon">🛠️</span> Host Control Panel</h2>
     <p style="color:#7d6608;">All items (incl. resolved & blocked)</p>
@@ -228,7 +232,7 @@
   });
   document.getElementById('logoutFromRoleBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
 
-  // Back arrow handlers (the top‑left arrows)
+  // Back arrow handlers
   document.getElementById('backToLoginFromRole').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
   document.getElementById('backToRoleFromHost').addEventListener('click', () => showPage(roleSelectionPage));
   document.getElementById('backToRoleFromHome').addEventListener('click', () => showPage(roleSelectionPage));
@@ -423,7 +427,7 @@
     }
   });
 
-  // Close success popup AND return to Home
+  // Close success popup AND go back to Home
   document.getElementById('closeSuccessPopup').addEventListener('click', () => {
     successPopup.classList.add('hidden');
     showPage(homePage);
