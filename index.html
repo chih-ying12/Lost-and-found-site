@@ -7,17 +7,13 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
   <style>
-    /* Ensures the white card is the positioning anchor */
+    /* white card relative for the back button */
     .app-container {
       position: relative;
     }
-
-    /* Pages that have a back button need extra top padding so content isn’t hidden */
     .page.has-back-arrow {
-      padding-top: 55px; /* space for the circle button */
+      padding-top: 55px;
     }
-
-    /* Small circular back button – fixed top‑left inside the white card */
     .back-arrow-circle {
       position: absolute;
       top: 12px;
@@ -40,11 +36,6 @@
     .back-arrow-circle:hover {
       background: #f1f5f9;
     }
-    .back-arrow-circle:active {
-      background: #e2e8f0;
-    }
-
-    /* Required field indicator – red asterisk */
     .required-asterisk {
       color: #b91c1c;
       font-weight: bold;
@@ -54,7 +45,7 @@
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE (no back button) -->
+  <!-- LOGIN PAGE (no back arrow) -->
   <div id="loginPage" class="page">
     <h2><span class="emoji-icon">🔐</span> Welcome</h2>
     <div id="loginForm">
@@ -162,7 +153,7 @@
     <button id="submitFoundBtn">✅ Submit item</button>
   </div>
 
-  <!-- VERIFY POPUP -->
+  <!-- all popups -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verification</h3>
@@ -182,7 +173,6 @@
     </div>
   </div>
 
-  <!-- CHECK CLAIM CODE POPUP -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
@@ -194,7 +184,6 @@
     </div>
   </div>
 
-  <!-- SUCCESS POPUP -->
   <div id="successPopup" class="verify-popup hidden">
     <div class="popup-content" style="text-align:center;">
       <h3 style="font-size:2rem;">✅</h3>
@@ -203,7 +192,6 @@
     </div>
   </div>
 
-  <!-- ERROR POPUP (missing fields) -->
   <div id="errorPopup" class="verify-popup hidden">
     <div class="popup-content" style="text-align:center;">
       <h3 style="font-size:2rem;">⚠️</h3>
@@ -221,9 +209,178 @@
   </div>
 </div>
 
-<script src="backend.js"></script>
-<script src="login.js"></script>
 <script>
+  // ========== PARSE INITIALIZATION (YOUR REAL KEYS) ==========
+  Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
+  Parse.serverURL = "https://parseapi.back4app.com/";
+
+  // ========== AUTH FUNCTIONS (login.js) ==========
+  const auth = {
+    signUp: async (username, password) => {
+      const user = new Parse.User();
+      user.set("username", username);
+      user.set("password", password);
+      return user.signUp();
+    },
+    logIn: async (username, password) => Parse.User.logIn(username, password),
+    logOut: async () => Parse.User.logOut(),
+    getCurrentUser: () => Parse.User.current()
+  };
+
+  // ========== BACKEND FUNCTIONS (your exact backend.js) ==========
+  const LostItem = Parse.Object.extend("LostItem");
+
+  function generateClaimCode(len = 6) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < len; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    return code;
+  }
+
+  async function createFoundItem(data) {
+    const item = new LostItem();
+    item.set("type", data.type);
+    item.set("color", data.color);
+    item.set("model", data.model);
+    item.set("appearance", data.appearance);
+    item.set("description", data.description || "");
+    item.set("timeFound", data.timeFound);
+    item.set("locationFound", data.locationFound);
+    item.set("verificationQuestion", data.verificationQuestion);
+    item.set("verificationAnswer", data.verificationAnswer);
+    item.set("isResolved", false);
+    item.set("verificationAttempts", 0);
+    item.set("nextAttemptAllowedAt", new Date());
+    item.set("verificationBlocked", false);
+    item.set("contactInfo", data.contactInfo || "");
+    item.set("claimCode", "");
+    if (data.photoFile) {
+      const parseFile = new Parse.File(data.photoName, data.photoFile);
+      item.set("photo", parseFile);
+    }
+    return item.save();
+  }
+
+  async function searchLostItems(searchTerm = "") {
+    let query = new Parse.Query(LostItem);
+    query.equalTo("isResolved", false);
+    query.equalTo("verificationBlocked", false);
+    query.descending("createdAt");
+    if (searchTerm.trim() !== "") {
+      const term = searchTerm.toLowerCase();
+      const colorQuery = new Parse.Query(LostItem).matches("color", new RegExp(term, "i"));
+      const modelQuery = new Parse.Query(LostItem).matches("model", new RegExp(term, "i"));
+      const appearanceQuery = new Parse.Query(LostItem).matches("appearance", new RegExp(term, "i"));
+      const typeQuery = new Parse.Query(LostItem).matches("type", new RegExp(term, "i"));
+      const descQuery = new Parse.Query(LostItem).matches("description", new RegExp(term, "i"));
+      query = Parse.Query.or(colorQuery, modelQuery, appearanceQuery, typeQuery, descQuery);
+      query.equalTo("isResolved", false);
+      query.equalTo("verificationBlocked", false);
+      query.descending("createdAt");
+    }
+    return query.find();
+  }
+
+  async function verifyItem(itemId, userAnswer) {
+    const query = new Parse.Query(LostItem);
+    const item = await query.get(itemId);
+    if (!item) return { success: false, message: "Item not found." };
+    if (item.get("isResolved")) return { success: false, message: "Already claimed." };
+    if (item.get("verificationBlocked")) return { success: false, message: "Permanently blocked.", blocked: true };
+
+    const attempts = item.get("verificationAttempts") || 0;
+    const nextAllowed = item.get("nextAttemptAllowedAt");
+    if (nextAllowed && new Date() < new Date(nextAllowed)) {
+      const diff = new Date(nextAllowed) - new Date();
+      const hrs = Math.floor(diff / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      return { success: false, message: `Cooldown: try in ${hrs}h ${mins}m.`, cooldownEnd: nextAllowed };
+    }
+
+    const correct = (item.get("verificationAnswer") || "").trim().toLowerCase();
+    if (correct === userAnswer.trim().toLowerCase()) {
+      const code = generateClaimCode();
+      item.set("claimCode", code);
+      item.set("verificationAttempts", 0);
+      item.set("nextAttemptAllowedAt", new Date());
+      item.set("verificationBlocked", false);
+      item.set("isResolved", true);
+      await item.save();
+      return { success: true, message: `✅ Correct! Your claim code: ${code}`, claimCode: code };
+    }
+
+    const newAttempts = attempts + 1;
+    item.set("verificationAttempts", newAttempts);
+    if (newAttempts >= 9) {
+      item.set("verificationBlocked", true);
+      item.set("nextAttemptAllowedAt", null);
+      await item.save();
+      return { success: false, message: "Too many attempts. Permanently blocked.", blocked: true };
+    } else if (newAttempts >= 6) {
+      const cooldown = new Date(Date.now() + 5 * 3600 * 1000);
+      item.set("nextAttemptAllowedAt", cooldown);
+      await item.save();
+      return { success: false, message: "Wrong answer. Locked for 5 hours.", cooldownEnd: cooldown };
+    } else if (newAttempts >= 3) {
+      const cooldown = new Date(Date.now() + 3 * 3600 * 1000);
+      item.set("nextAttemptAllowedAt", cooldown);
+      await item.save();
+      return { success: false, message: "Wrong answer. Locked for 3 hours.", cooldownEnd: cooldown };
+    } else {
+      item.set("nextAttemptAllowedAt", new Date());
+      await item.save();
+      return { success: false, message: `Wrong answer. ${3 - newAttempts} attempts before cooldown.` };
+    }
+  }
+
+  async function getVerificationQuestion(itemId) {
+    const query = new Parse.Query(LostItem);
+    const item = await query.get(itemId);
+    return item ? item.get("verificationQuestion") || "No question set" : null;
+  }
+
+  async function checkClaimCode(code) {
+    const query = new Parse.Query(LostItem);
+    query.equalTo("claimCode", code.trim().toUpperCase());
+    query.equalTo("isResolved", true);
+    const result = await query.find();
+    if (result.length) {
+      const item = result[0];
+      return {
+        found: true,
+        type: item.get("type"),
+        color: item.get("color"),
+        model: item.get("model"),
+        appearance: item.get("appearance"),
+        locationFound: item.get("locationFound"),
+        timeFound: item.get("timeFound")
+      };
+    }
+    return { found: false };
+  }
+
+  async function adminGetAllItems() {
+    const query = new Parse.Query(LostItem);
+    query.descending("createdAt");
+    return query.find();
+  }
+
+  async function adminResetAttempts(itemId) {
+    const query = new Parse.Query(LostItem);
+    const item = await query.get(itemId);
+    item.set("verificationAttempts", 0);
+    item.set("nextAttemptAllowedAt", new Date());
+    item.set("verificationBlocked", false);
+    return item.save();
+  }
+
+  async function adminDeleteItem(itemId) {
+    const query = new Parse.Query(LostItem);
+    const item = await query.get(itemId);
+    return item.destroy();
+  }
+
+  // ========== UI LOGIC (unchanged, but now references the real functions) ==========
   const HOST_PASSWORD = "host123";
   let currentVerifyingItemId = null;
 
@@ -242,7 +399,7 @@
     }
   }
 
-  // ------- LOGIN / SIGNUP -------
+  // ----- LOGIN / SIGNUP -----
   document.getElementById('showSignUpBtn').addEventListener('click', () => {
     document.getElementById('loginForm').classList.add('hidden');
     document.getElementById('signUpForm').classList.remove('hidden');
@@ -267,7 +424,7 @@
     catch(e) { document.getElementById('authMessage').textContent = e.message; }
   });
 
-  // ------- ROLE SELECTION -------
+  // ----- ROLE SELECTION -----
   document.getElementById('goUserBtn').addEventListener('click', () => {
     document.getElementById('displayUsername').textContent = auth.getCurrentUser().getUsername();
     showPage(document.getElementById('homePage'));
@@ -279,7 +436,7 @@
   });
   document.getElementById('logoutFromRoleBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
 
-  // Back arrow circle handlers
+  // Back arrows
   document.getElementById('backToLoginFromRole').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
   document.getElementById('backToRoleFromHost').addEventListener('click', () => showPage(roleSelectionPage));
   document.getElementById('backToRoleFromHome').addEventListener('click', () => showPage(roleSelectionPage));
@@ -297,7 +454,7 @@
     }
   });
 
-  // ------- USER HOME NAVIGATION -------
+  // ----- USER HOME NAVIGATION -----
   document.getElementById('goLostBtn').addEventListener('click', () => { showPage(lostPage); loadLostItems(''); });
   document.getElementById('goFoundBtn').addEventListener('click', () => showPage(foundPage));
   document.getElementById('openCheckCodeBtn').addEventListener('click', () => {
@@ -307,7 +464,7 @@
   });
   document.getElementById('logoutFromHomeBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
 
-  // ------- LOST PAGE -------
+  // ----- LOST PAGE -----
   async function loadLostItems(searchTerm) {
     const container = document.getElementById('lostResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
@@ -345,7 +502,7 @@
     } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
   }
 
-  // ------- VERIFICATION POPUP -------
+  // ----- VERIFICATION POPUP -----
   async function openVerifyPopup(itemId) {
     document.getElementById('claimCodeSection').style.display = 'none';
     document.getElementById('verifyAnswerInput').style.display = '';
@@ -360,7 +517,7 @@
     document.getElementById('submitVerifyBtn').disabled = false;
 
     try {
-      const query = new Parse.Query(Parse.Object.extend("LostItem"));
+      const query = new Parse.Query(LostItem);
       const item = await query.get(itemId);
       if (item.get("verificationBlocked")) {
         document.getElementById('verifyStatusMessage').textContent = '⛔ Permanently blocked.';
@@ -418,20 +575,16 @@
     } catch(e) { document.getElementById('verifyMessage').textContent = e.message; }
   });
 
-  // Copy claim code
   document.getElementById('copyClaimCodeBtn').addEventListener('click', () => {
     const code = document.getElementById('claimCodeText').textContent;
-    navigator.clipboard.writeText(code).then(() => {
-      alert('Claim code copied!');
-    }).catch(() => alert('Could not copy.'));
+    navigator.clipboard.writeText(code).then(() => alert('Claim code copied!')).catch(() => alert('Could not copy.'));
   });
-
   document.getElementById('closeClaimCodeBtn').addEventListener('click', () => {
     verifyPopup.classList.add('hidden');
     loadLostItems(document.getElementById('lostSearchInput').value);
   });
 
-  // ------- FOUND PAGE -------
+  // ----- FOUND PAGE -----
   document.getElementById('foundType').addEventListener('change', e => {
     const q = document.getElementById('foundVeriQuestion');
     if(e.target.value === 'electronic') q.value = 'What is the wallpaper of this device?';
@@ -443,7 +596,6 @@
     const fields = ['foundColor','foundModel','foundTime','foundLocation','foundVeriQuestion','foundVeriAnswer'];
     const missing = fields.some(id => !document.getElementById(id).value.trim());
     if(missing) {
-      // Show error popup instead of alert
       document.getElementById('errorPopupMessage').textContent = '❌ Please fill all required fields.';
       document.getElementById('errorPopup').classList.remove('hidden');
       return;
@@ -467,10 +619,8 @@
     }
     try {
       await createFoundItem(data);
-      // Clear form
       ['foundColor','foundModel','foundAppearance','foundDescription','foundLocation','foundVeriAnswer','foundContactInfo','foundPhoto'].forEach(id => document.getElementById(id).value='');
       document.getElementById('foundType').dispatchEvent(new Event('change'));
-      // Show success popup
       document.getElementById('successPopup').classList.remove('hidden');
     } catch(e) {
       document.getElementById('errorPopupMessage').textContent = '❌ Error: ' + e.message;
@@ -478,13 +628,10 @@
     }
   });
 
-  // Close success popup & go to Home
   document.getElementById('closeSuccessPopup').addEventListener('click', () => {
     document.getElementById('successPopup').classList.add('hidden');
     showPage(homePage);
   });
-
-  // Close error popup
   document.getElementById('closeErrorPopup').addEventListener('click', () => {
     document.getElementById('errorPopup').classList.add('hidden');
   });
@@ -510,7 +657,7 @@
     } catch(e) { document.getElementById('checkCodeResult').innerHTML = 'Error: '+e.message; }
   });
 
-  // Host admin panel
+  // Admin
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
@@ -519,52 +666,28 @@
       if(!items.length) { container.innerHTML = '<p>No items in database.</p>'; return; }
       container.innerHTML = items.map(item => `
         <div class="card admin-card">
-          <div><strong>${item.get('.get('type')type')}</strong}</strong> ${> ${item.getitem.get('is('isResolvedResolved')?'')?'✅':'✅':'❌❌'} ${item.get'} ${('item.getver('verificationBlockificationBlocked')ed')?'?'⛔⛔':''':''}</div}</div>
-         >
-          <div <div>>🎨 ${🎨 ${item.getitem.get('color('color')}')} · · 🏷️ ${ 🏷️ ${item.getitem.get('model('model')}</')}</divdiv>
-         >
-          <div> <div>✨ ${✨ ${item.getitem.get('app('appearance')}</divearance')}</div>
-         >
-          <div <div>>📝 ${📝 ${item.getitem.get('description('description')||')||'-''-'}</div}</div>
-         >
-          <div <div>📍>📍 ${item ${item.get('.get('locationFound')}locationFound')} · · 🕒 🕒 ${item ${item.get('.get('timeFoundtimeFound')?.')?.toLocaletoLocaleString?.String?.()}</()}</div>
-          <div>🔐div>
-          <div>🔐 Q: ${item Q: ${item.get('.get('verificationverificationQuestion')Question')||''||''}</div}</div>
-         >
-          <div <div>>🔑 A🔑 A: ${: ${item.getitem.get('ver('verificationAnswerificationAnswer')||''}</div')||''}</div>
->
-                   <div> <div>📞📞 ${item ${item.get('.get('contactInfocontactInfo')||')||'none'none'}</'}</divdiv>
-         >
-          <div> <div>🎫🎫 Claim Code Claim Code:: ${ ${item.get('claimitem.get('claimCode')Code')||'||'none'none'}</div}</div>
-         >
-          <div <div>>🚫 Attempt🚫 Attempts:s: ${item ${item.get('.get('verificationverificationAttemptsAttempts')||')||0}</0}</divdiv>
-         >
-          <div class <div class="admin="admin-actions-actions">
-           ">
-            <button <button onclick=" onclick="window.resetwindow.resetItem('Item('${item${item.id}.id}')">')">🔄🔄 Reset</ Reset</buttonbutton>
-           >
-            <button onclick <button onclick="window="window.deleteItem.deleteItem('${('${item.iditem.id}')}')" style" style="background="background:#b:#b91c91c1c1c;">;">🗑️🗑️ Delete</ Delete</buttonbutton>
-          </>
-          </divdiv>
-        </>
-        </divdiv>
-      `>
-      `).join).join('');
-('');
-       } catch } catch(e)(e) { container.innerHTML = { container.innerHTML = `<p `<p style=" style="color:color:red;">red;">Error:Error: ${e ${e.message}</p>`.message}</p>`;; }
+          <div><strong>${item.get('type')}</strong> ${item.get('isResolved')?'✅':'❌'} ${item.get('verificationBlocked')?'⛔':''}</div>
+          <div>🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
+          <div>✨ ${item.get('appearance')}</div>
+          <div>📝 ${item.get('description')||'-'}</div>
+          <div>📍 ${item.get('locationFound')} · 🕒 ${item.get('timeFound')?.toLocaleString?.()}</div>
+          <div>🔐 Q: ${item.get('verificationQuestion')||''}</div>
+          <div>🔑 A: ${item.get('verificationAnswer')||''}</div>
+          <div>📞 ${item.get('contactInfo')||'none'}</div>
+          <div>🎫 Claim Code: ${item.get('claimCode')||'none'}</div>
+          <div>🚫 Attempts: ${item.get('verificationAttempts')||0}</div>
+          <div class="admin-actions">
+            <button onclick="window.resetItem('${item.id}')">🔄 Reset</button>
+            <button onclick="window.deleteItem('${item.id}')" style="background:#b91c1c;">🗑️ Delete</button>
+          </div>
+        </div>
+      `).join('');
+    } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
   }
-  }
-  window }
-  window.resetItem.resetItem = async (id = async (id) =>) => { if { if(confirm(confirm('Reset('Reset attempts?' attempts?')) {)) { await admin await adminResetAttemptResetAttempts(ids(id); load); loadAdminItemsAdminItems(); }(); } };
-  };
-  window.delete window.deleteItem =Item = async ( async (id)id) => { => { if( if(confirmconfirm('('Delete permanentlyDelete permanently?'))?')) { await { await adminDelete adminDeleteItem(id); loadItem(id); loadAdminItemsAdminItems(); }(); } };
+  window.resetItem = async (id) => { if(confirm('Reset attempts?')) { await adminResetAttempts(id); loadAdminItems(); } };
+  window.deleteItem = async (id) => { if(confirm('Delete permanently?')) { await adminDeleteItem(id); loadAdminItems(); } };
 
-  };
-
-  checkSession checkSession();
-</();
-</scriptscript>
+  checkSession();
+</script>
 </body>
-</body>
-</>
-</htmlhtml>
+</html>
