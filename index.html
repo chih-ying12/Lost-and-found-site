@@ -7,48 +7,54 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
   <style>
-    /* Make the white card the positioning anchor */
+    /* Ensures the white card is the positioning anchor */
     .app-container {
       position: relative;
     }
-    /* Pages that have a back arrow get extra top padding so the title isn't covered */
+
+    /* Pages that have a back button need extra top padding so content isn’t hidden */
     .page.has-back-arrow {
-      padding-top: 50px;
+      padding-top: 55px; /* space for the circle button */
     }
-    /* The back arrow inside the white card */
-    .back-arrow-top {
+
+    /* Small circular back button – fixed top‑left inside the white card */
+    .back-arrow-circle {
       position: absolute;
-      top: 16px;
-      left: 16px;
-      background: transparent;
-      border: none;
-      font-size: 24px;
+      top: 12px;
+      left: 12px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
       color: #1e293b;
       cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 12px;
-      line-height: 1;
       z-index: 10;
+      transition: background 0.2s;
     }
-    .back-arrow-top:hover {
+    .back-arrow-circle:hover {
+      background: #f1f5f9;
+    }
+    .back-arrow-circle:active {
       background: #e2e8f0;
     }
-    /* tiny label for required fields */
-    .required-label {
-      display: block;
-      margin: 8px 0 2px;
-      font-size: 0.85rem;
+
+    /* Required field indicator – red asterisk */
+    .required-asterisk {
       color: #b91c1c;
-      font-weight: 500;
-    }
-    .required-label::after {
-      content: " *";
+      font-weight: bold;
+      margin-left: 2px;
     }
   </style>
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE (no back arrow) -->
+  <!-- LOGIN PAGE (no back button) -->
   <div id="loginPage" class="page">
     <h2><span class="emoji-icon">🔐</span> Welcome</h2>
     <div id="loginForm">
@@ -68,7 +74,7 @@
 
   <!-- ROLE SELECTION -->
   <div id="roleSelectionPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-top" id="backToLoginFromRole">←</button>
+    <button class="back-arrow-circle" id="backToLoginFromRole">←</button>
     <h2 style="justify-content:center;">👋 Choose Role</h2>
     <p style="text-align:center;">Logged in as <strong id="roleUsername"></strong></p>
     <button id="goUserBtn"><span class="emoji-icon">👤</span> Continue as User</button>
@@ -78,7 +84,7 @@
 
   <!-- HOST PASSWORD PAGE -->
   <div id="hostPasswordPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-top" id="backToRoleFromHost">←</button>
+    <button class="back-arrow-circle" id="backToRoleFromHost">←</button>
     <h2><span class="emoji-icon">🔐</span> Host Password</h2>
     <input type="password" id="hostPasswordInput" placeholder="Enter host password">
     <button id="submitHostPasswordBtn">🔓 Unlock Panel</button>
@@ -87,7 +93,7 @@
 
   <!-- USER HOME -->
   <div id="homePage" class="page hidden has-back-arrow">
-    <button class="back-arrow-top" id="backToRoleFromHome">←</button>
+    <button class="back-arrow-circle" id="backToRoleFromHome">←</button>
     <h2><span class="emoji-icon">🏠</span> Home</h2>
     <p>Welcome, <span id="displayUsername">...</span>!</p>
     <button id="goLostBtn"><span class="emoji-icon">🔎</span> Lost something?</button>
@@ -98,7 +104,7 @@
 
   <!-- LOST PAGE -->
   <div id="lostPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-top" id="backToHomeFromLost">←</button>
+    <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
     <h2><span class="emoji-icon">🔎</span> Lost Items</h2>
     <div class="row">
       <input type="text" id="lostSearchInput" placeholder="🔍 search items..." style="flex:2;">
@@ -107,9 +113,9 @@
     <div id="lostResults" style="display:flex; flex-direction:column; gap:12px;"></div>
   </div>
 
-  <!-- FOUND PAGE (with required field indicators) -->
+  <!-- FOUND PAGE (with required asterisks) -->
   <div id="foundPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-top" id="backToHomeFromFound">←</button>
+    <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
     <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
 
     <select id="foundType">
@@ -122,42 +128,41 @@
       <option value="other">📌 Other</option>
     </select>
 
-    <label class="required-label" for="foundColor">🎨 Color</label>
+    <label for="foundColor">🎨 Color <span class="required-asterisk">*</span></label>
     <input type="text" id="foundColor" placeholder="e.g. black">
 
-    <label class="required-label" for="foundModel">🏷️ Model / Brand</label>
+    <label for="foundModel">🏷️ Model / Brand <span class="required-asterisk">*</span></label>
     <input type="text" id="foundModel" placeholder="e.g. iPhone 13">
 
-    <label for="foundAppearance">✨ Appearance (scratches, stickers...)</label>
-    <input type="text" id="foundAppearance" placeholder="optional">
+    <label for="foundAppearance">✨ Appearance (optional)</label>
+    <input type="text" id="foundAppearance" placeholder="scratches, stickers...">
 
     <label for="foundDescription">📝 Additional description (optional)</label>
     <textarea id="foundDescription" placeholder="..." rows="2"></textarea>
 
-    <label class="required-label" for="foundTime">🕒 Time found</label>
+    <label for="foundTime">🕒 Time found <span class="required-asterisk">*</span></label>
     <input type="datetime-local" id="foundTime">
 
-    <label class="required-label" for="foundLocation">📍 Location found</label>
+    <label for="foundLocation">📍 Location found <span class="required-asterisk">*</span></label>
     <input type="text" id="foundLocation" placeholder="e.g. cafeteria">
 
     <div><label>🔐 Verification (hidden)</label></div>
 
-    <label class="required-label" for="foundVeriQuestion">❓ Question</label>
+    <label for="foundVeriQuestion">❓ Question <span class="required-asterisk">*</span></label>
     <input type="text" id="foundVeriQuestion" placeholder="e.g. What is the wallpaper?">
 
-    <label class="required-label" for="foundVeriAnswer">🔑 Answer (secret)</label>
+    <label for="foundVeriAnswer">🔑 Answer (secret) <span class="required-asterisk">*</span></label>
     <input type="text" id="foundVeriAnswer" placeholder="e.g. blue gradient">
 
     <label for="foundContactInfo">📞 Your contact (optional)</label>
     <input type="text" id="foundContactInfo" placeholder="phone / email">
 
-    <div class="row"><label>📸 Photo</label><input type="file" id="foundPhoto" accept="image/*"></div>
+    <div class="row"><label>📸 Photo (optional)</label><input type="file" id="foundPhoto" accept="image/*"></div>
 
     <button id="submitFoundBtn">✅ Submit item</button>
-    <!-- No bottom message; errors go to popup -->
   </div>
 
-  <!-- VERIFY POPUP (unchanged) -->
+  <!-- VERIFY POPUP -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verification</h3>
@@ -177,7 +182,7 @@
     </div>
   </div>
 
-  <!-- CHECK CLAIM CODE POPUP (unchanged) -->
+  <!-- CHECK CLAIM CODE POPUP -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
@@ -189,7 +194,7 @@
     </div>
   </div>
 
-  <!-- SUCCESS POPUP (posting) -->
+  <!-- SUCCESS POPUP -->
   <div id="successPopup" class="verify-popup hidden">
     <div class="popup-content" style="text-align:center;">
       <h3 style="font-size:2rem;">✅</h3>
@@ -198,18 +203,18 @@
     </div>
   </div>
 
-  <!-- ERROR POPUP (missing required fields) -->
+  <!-- ERROR POPUP (missing fields) -->
   <div id="errorPopup" class="verify-popup hidden">
     <div class="popup-content" style="text-align:center;">
       <h3 style="font-size:2rem;">⚠️</h3>
-      <p style="font-size:1.2rem;" id="errorPopupMessage">Please fill all required fields.</p>
+      <p id="errorPopupMessage" style="font-size:1.2rem;">Please fill all required fields.</p>
       <button id="closeErrorPopup" style="margin:0 auto;">OK</button>
     </div>
   </div>
 
   <!-- HOST CONTROL PANEL -->
   <div id="adminPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-top" id="backToRoleFromAdmin">←</button>
+    <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2><span class="emoji-icon">🛠️</span> Host Control Panel</h2>
     <p style="color:#7d6608;">All items (incl. resolved & blocked)</p>
     <div id="adminResults" style="display:flex; flex-direction:column; gap:12px;"></div>
@@ -274,7 +279,7 @@
   });
   document.getElementById('logoutFromRoleBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
 
-  // Back arrow handlers
+  // Back arrow circle handlers
   document.getElementById('backToLoginFromRole').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
   document.getElementById('backToRoleFromHost').addEventListener('click', () => showPage(roleSelectionPage));
   document.getElementById('backToRoleFromHome').addEventListener('click', () => showPage(roleSelectionPage));
@@ -434,7 +439,6 @@
   });
   document.getElementById('foundType').dispatchEvent(new Event('change'));
 
-  // Submit found item
   document.getElementById('submitFoundBtn').addEventListener('click', async () => {
     const fields = ['foundColor','foundModel','foundTime','foundLocation','foundVeriQuestion','foundVeriAnswer'];
     const missing = fields.some(id => !document.getElementById(id).value.trim());
@@ -515,28 +519,52 @@
       if(!items.length) { container.innerHTML = '<p>No items in database.</p>'; return; }
       container.innerHTML = items.map(item => `
         <div class="card admin-card">
-          <div><strong>${item.get('type')}</strong> ${item.get('isResolved')?'✅':'❌'} ${item.get('verificationBlocked')?'⛔':''}</div>
-          <div>🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
-          <div>✨ ${item.get('appearance')}</div>
-          <div>📝 ${item.get('description')||'-'}</div>
-          <div>📍 ${item.get('locationFound')} · 🕒 ${item.get('timeFound')?.toLocaleString?.()}</div>
-          <div>🔐 Q: ${item.get('verificationQuestion')||''}</div>
-          <div>🔑 A: ${item.get('verificationAnswer')||''}</div>
-          <div>📞 ${item.get('contactInfo')||'none'}</div>
-          <div>🎫 Claim Code: ${item.get('claimCode')||'none'}</div>
-          <div>🚫 Attempts: ${item.get('verificationAttempts')||0}</div>
-          <div class="admin-actions">
-            <button onclick="window.resetItem('${item.id}')">🔄 Reset</button>
-            <button onclick="window.deleteItem('${item.id}')" style="background:#b91c1c;">🗑️ Delete</button>
-          </div>
-        </div>
-      `).join('');
-    } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
+          <div><strong>${item.get('.get('type')type')}</strong}</strong> ${> ${item.getitem.get('is('isResolvedResolved')?'')?'✅':'✅':'❌❌'} ${item.get'} ${('item.getver('verificationBlockificationBlocked')ed')?'?'⛔⛔':''':''}</div}</div>
+         >
+          <div <div>>🎨 ${🎨 ${item.getitem.get('color('color')}')} · · 🏷️ ${ 🏷️ ${item.getitem.get('model('model')}</')}</divdiv>
+         >
+          <div> <div>✨ ${✨ ${item.getitem.get('app('appearance')}</divearance')}</div>
+         >
+          <div <div>>📝 ${📝 ${item.getitem.get('description('description')||')||'-''-'}</div}</div>
+         >
+          <div <div>📍>📍 ${item ${item.get('.get('locationFound')}locationFound')} · · 🕒 🕒 ${item ${item.get('.get('timeFoundtimeFound')?.')?.toLocaletoLocaleString?.String?.()}</()}</div>
+          <div>🔐div>
+          <div>🔐 Q: ${item Q: ${item.get('.get('verificationverificationQuestion')Question')||''||''}</div}</div>
+         >
+          <div <div>>🔑 A🔑 A: ${: ${item.getitem.get('ver('verificationAnswerificationAnswer')||''}</div')||''}</div>
+>
+                   <div> <div>📞📞 ${item ${item.get('.get('contactInfocontactInfo')||')||'none'none'}</'}</divdiv>
+         >
+          <div> <div>🎫🎫 Claim Code Claim Code:: ${ ${item.get('claimitem.get('claimCode')Code')||'||'none'none'}</div}</div>
+         >
+          <div <div>>🚫 Attempt🚫 Attempts:s: ${item ${item.get('.get('verificationverificationAttemptsAttempts')||')||0}</0}</divdiv>
+         >
+          <div class <div class="admin="admin-actions-actions">
+           ">
+            <button <button onclick=" onclick="window.resetwindow.resetItem('Item('${item${item.id}.id}')">')">🔄🔄 Reset</ Reset</buttonbutton>
+           >
+            <button onclick <button onclick="window="window.deleteItem.deleteItem('${('${item.iditem.id}')}')" style" style="background="background:#b:#b91c91c1c1c;">;">🗑️🗑️ Delete</ Delete</buttonbutton>
+          </>
+          </divdiv>
+        </>
+        </divdiv>
+      `>
+      `).join).join('');
+('');
+       } catch } catch(e)(e) { container.innerHTML = { container.innerHTML = `<p `<p style=" style="color:color:red;">red;">Error:Error: ${e ${e.message}</p>`.message}</p>`;; }
   }
-  window.resetItem = async (id) => { if(confirm('Reset attempts?')) { await adminResetAttempts(id); loadAdminItems(); } };
-  window.deleteItem = async (id) => { if(confirm('Delete permanently?')) { await adminDeleteItem(id); loadAdminItems(); } };
+  }
+  window }
+  window.resetItem.resetItem = async (id = async (id) =>) => { if { if(confirm(confirm('Reset('Reset attempts?' attempts?')) {)) { await admin await adminResetAttemptResetAttempts(ids(id); load); loadAdminItemsAdminItems(); }(); } };
+  };
+  window.delete window.deleteItem =Item = async ( async (id)id) => { => { if( if(confirmconfirm('('Delete permanentlyDelete permanently?'))?')) { await { await adminDelete adminDeleteItem(id); loadItem(id); loadAdminItemsAdminItems(); }(); } };
 
-  checkSession();
-</script>
+  };
+
+  checkSession checkSession();
+</();
+</scriptscript>
 </body>
-</html>
+</body>
+</>
+</htmlhtml>
