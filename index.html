@@ -12,7 +12,7 @@
       position: relative;
     }
     .page.has-back-arrow {
-      padding-top: 60px; /* increased for bigger button */
+      padding-top: 60px;
     }
 
     /* ---------- bigger circular back button ---------- */
@@ -42,18 +42,25 @@
       transform: scale(0.95);
     }
 
-    /* ---------- nicer login page ---------- */
+    /* ---------- login page cards ---------- */
     #loginPage {
       text-align: center;
       padding-top: 40px;
     }
     .auth-card {
-      background: #ffffff;
       border-radius: 24px;
       padding: 28px 20px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.06);
       margin: 10px 0;
       transition: all 0.2s ease;
+    }
+    /* Sign In card – very light blue */
+    #loginCard {
+      background: #f0f4ff;
+    }
+    /* Sign Up card – very light green */
+    #signUpCard {
+      background: #f0fff4;
     }
     .auth-card h3 {
       margin: 0 0 16px;
@@ -61,23 +68,28 @@
       color: #1e293b;
     }
     .auth-card input {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      border: 1px solid #d1d5db;
     }
     .auth-card button {
       margin-top: 8px;
     }
-    .auth-toggle {
+    /* Toggle buttons inside cards – subtle outline style */
+    .toggle-btn {
       background: none;
-      border: none;
-      color: #2563eb;
+      border: 1px solid #cbd5e1;
+      color: #334155;
       font-size: 0.95rem;
-      margin-top: 12px;
+      margin-top: 10px;
       cursor: pointer;
       font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 12px;
+      width: 100%;
+      transition: background 0.15s;
     }
-    .auth-toggle:hover {
-      text-decoration: underline;
+    .toggle-btn:hover {
+      background: #f1f5f9;
     }
     .error-msg {
       color: #b91c1c;
@@ -96,28 +108,28 @@
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE (redesigned with separate cards) -->
+  <!-- LOGIN PAGE (two clearly separated cards) -->
   <div id="loginPage" class="page">
     <h2 style="justify-content:center;">🔐 Lost & Found</h2>
 
-    <!-- Sign In card -->
+    <!-- Sign In card (light blue) -->
     <div id="loginCard" class="auth-card">
       <h3>👤 Sign In</h3>
       <input type="text" id="loginUsername" placeholder="Username">
       <input type="password" id="loginPassword" placeholder="Password">
       <button id="signInBtn" style="width:100%;">🚪 Sign In</button>
       <p class="error-msg" id="loginError"></p>
-      <button class="auth-toggle" id="showSignUpCard">✨ Don't have an account? <strong>Sign Up</strong></button>
+      <button class="toggle-btn" id="showSignUpCard">✨ Create account</button>
     </div>
 
-    <!-- Sign Up card (hidden initially) -->
+    <!-- Sign Up card (light green) -->
     <div id="signUpCard" class="auth-card hidden">
-      <h3>✨ Create Account</h3>
+      <h3>✨ Sign Up</h3>
       <input type="text" id="signUpUsername" placeholder="Choose username">
       <input type="password" id="signUpPassword" placeholder="Create password">
       <button id="signUpSubmitBtn" style="width:100%;">📝 Sign Up</button>
       <p class="error-msg" id="signUpError"></p>
-      <button class="auth-toggle" id="showLoginCard">⬅ Already have an account? <strong>Sign In</strong></button>
+      <button class="toggle-btn" id="showLoginCard">🔙 Back to sign in</button>
     </div>
   </div>
 
@@ -457,15 +469,17 @@
     }
   }
 
-  // ----- LOGIN PAGE CARDS TOGGLE -----
+  // ----- LOGIN PAGE CARD TOGGLES (using buttons) -----
   document.getElementById('showSignUpCard').addEventListener('click', () => {
     document.getElementById('loginCard').classList.add('hidden');
     document.getElementById('signUpCard').classList.remove('hidden');
     document.getElementById('loginError').textContent = '';
+    document.getElementById('signUpError').textContent = '';
   });
   document.getElementById('showLoginCard').addEventListener('click', () => {
     document.getElementById('signUpCard').classList.add('hidden');
     document.getElementById('loginCard').classList.remove('hidden');
+    document.getElementById('loginError').textContent = '';
     document.getElementById('signUpError').textContent = '';
   });
 
@@ -484,7 +498,6 @@
       errEl.textContent = '';
       checkSession();
     } catch(e) {
-      // Show user-friendly message
       if (e.message.includes('Invalid username/password') || e.message.includes('incorrect')) {
         errEl.textContent = '❌ Incorrect username or password.';
       } else {
