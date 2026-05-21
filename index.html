@@ -49,6 +49,7 @@
       font-weight: 600;
       letter-spacing: 0.3px;
       transition: all 0.15s ease;
+      border: 1px solid transparent;
     }
     button:active {
       transform: scale(0.98);
@@ -64,7 +65,7 @@
       outline: none;
     }
 
-    /* ---------- login page (unchanged) ---------- */
+    /* ---------- login page ---------- */
     #loginPage {
       text-align: center;
       padding-top: 40px;
@@ -74,10 +75,7 @@
       padding: 28px 20px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.06);
       margin: 10px 0;
-      transition: all 0.2s ease;
-    }
-    #loginCard, #signUpCard {
-      background: #f0f4ff;
+      background: #f0f4ff; /* both cards light blue */
     }
     .auth-card h3 {
       margin: 0 0 16px;
@@ -91,8 +89,21 @@
     .auth-card button {
       margin-top: 8px;
     }
+    /* Sign In / Sign Up submit buttons – light blue fill */
+    .auth-submit-btn {
+      background: #bfdbfe;
+      color: #1e3a8a;
+      border: 1px solid #93c5fd;
+      box-shadow: 0 4px 10px rgba(147,197,253,0.15);
+      width: 100%;
+    }
+    .auth-submit-btn:hover {
+      background: #93c5fd;
+    }
+
+    /* Toggle buttons inside cards – light grey fill */
     .toggle-btn {
-      background: none;
+      background: #f1f5f9;
       border: 1px solid #cbd5e1;
       color: #334155;
       font-size: 0.95rem;
@@ -105,7 +116,7 @@
       transition: background 0.15s;
     }
     .toggle-btn:hover {
-      background: #f1f5f9;
+      background: #e2e8f0;
     }
     .error-msg {
       color: #b91c1c;
@@ -115,37 +126,38 @@
     }
 
     /* ---------- polished buttons for main pages ---------- */
+    /* primary action buttons – soft blue */
     .primary-btn {
-      background: #2563eb;
-      color: white;
-      border: none;
-      box-shadow: 0 4px 10px rgba(37,99,235,0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
+      background: #bfdbfe;
+      color: #1e3a8a;
+      border: 1px solid #93c5fd;
+      box-shadow: 0 4px 10px rgba(147,197,253,0.15);
     }
     .primary-btn:hover {
-      background: #1d4ed8;
+      background: #93c5fd;
     }
+
+    /* outline buttons – light grey fill instead of white */
     .outline-btn {
-      background: white;
+      background: #f1f5f9;
       border: 1px solid #cbd5e1;
       color: #334155;
       box-shadow: 0 2px 6px rgba(0,0,0,0.03);
     }
     .outline-btn:hover {
-      background: #f8fafc;
+      background: #e2e8f0;
       border-color: #94a3b8;
     }
+
+    /* danger button – soft pink */
     .danger-btn {
-      background: #b91c1c;
-      color: white;
-      border: none;
-      box-shadow: 0 4px 10px rgba(185,28,28,0.15);
+      background: #fecaca;
+      color: #b91c1c;
+      border: 1px solid #fca5a5;
+      box-shadow: 0 4px 10px rgba(252,165,165,0.15);
     }
     .danger-btn:hover {
-      background: #991b1b;
+      background: #fca5a5;
     }
 
     /* ---------- card styling for list items ---------- */
@@ -195,7 +207,7 @@
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE (unchanged) -->
+  <!-- LOGIN PAGE -->
   <div id="loginPage" class="page">
     <h2 style="justify-content:center;">🔐 Lost & Found</h2>
 
@@ -203,7 +215,7 @@
       <h3>👤 Sign In</h3>
       <input type="text" id="loginUsername" placeholder="Username">
       <input type="password" id="loginPassword" placeholder="Password">
-      <button id="signInBtn" class="primary-btn" style="width:100%;">🚪 Sign In</button>
+      <button id="signInBtn" class="auth-submit-btn">🚪 Sign In</button>
       <p class="error-msg" id="loginError"></p>
       <button class="toggle-btn" id="showSignUpCard">✨ Create account</button>
     </div>
@@ -212,7 +224,7 @@
       <h3>✨ Sign Up</h3>
       <input type="text" id="signUpUsername" placeholder="Choose username">
       <input type="password" id="signUpPassword" placeholder="Create password">
-      <button id="signUpSubmitBtn" class="primary-btn" style="width:100%;">📝 Sign Up</button>
+      <button id="signUpSubmitBtn" class="auth-submit-btn">📝 Sign Up</button>
       <p class="error-msg" id="signUpError"></p>
       <button class="toggle-btn" id="showLoginCard">🔙 Back to sign in</button>
     </div>
@@ -226,15 +238,15 @@
       <span style="font-size:1.4rem;">👤</span>
       <span>Logged in as <strong id="roleUsername"></strong></span>
     </div>
-    <button id="goUserBtn" class="outline-btn" style="margin-bottom:10px;"><span class="emoji-icon">👤</span> Continue as User</button>
-    <button id="goHostAccessBtn" class="outline-btn" style="margin-bottom:10px;"><span class="emoji-icon">🛠️</span> Enter Host Panel</button>
-    <button id="logoutFromRoleBtn" class="danger-btn" style="margin-top:6px;"><span class="emoji-icon">🚪</span> Log out</button>
+    <button id="goUserBtn" class="outline-btn" style="margin-bottom:10px;">👤 Continue as User</button>
+    <button id="goHostAccessBtn" class="outline-btn" style="margin-bottom:10px;">🛠️ Enter Host Panel</button>
+    <button id="logoutFromRoleBtn" class="danger-btn" style="margin-top:6px;">🚪 Log out</button>
   </div>
 
   <!-- HOST PASSWORD PAGE -->
   <div id="hostPasswordPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromHost">←</button>
-    <h2><span class="emoji-icon">🔐</span> Host Password</h2>
+    <h2>🔐 Host Password</h2>
     <input type="password" id="hostPasswordInput" placeholder="Enter host password">
     <button id="submitHostPasswordBtn" class="primary-btn">🔓 Unlock Panel</button>
     <p id="hostPasswordMessage" style="color:#b91c1c; text-align:center;"></p>
@@ -243,27 +255,21 @@
   <!-- USER HOME -->
   <div id="homePage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromHome">←</button>
-    <h2><span class="emoji-icon">🏠</span> Home</h2>
+    <h2>🏠 Home</h2>
     <div class="user-welcome">
       <span style="font-size:1.4rem;">👋</span>
       <span>Welcome, <strong id="displayUsername">...</strong></span>
     </div>
-    <button id="goLostBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
-      <span class="emoji-icon">🔎</span> Lost something?
-    </button>
-    <button id="goFoundBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
-      <span class="emoji-icon">📦</span> I found an item
-    </button>
-    <button id="openCheckCodeBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
-      <span class="emoji-icon">🔑</span> Check Claim Code
-    </button>
-    <button id="logoutFromHomeBtn" class="danger-btn" style="margin-top:6px;"><span class="emoji-icon">🚪</span> Log out</button>
+    <button id="goLostBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">🔎 Lost something?</button>
+    <button id="goFoundBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">📦 I found an item</button>
+    <button id="openCheckCodeBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">🔑 Check Claim Code</button>
+    <button id="logoutFromHomeBtn" class="danger-btn" style="margin-top:6px;">🚪 Log out</button>
   </div>
 
   <!-- LOST PAGE -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
-    <h2><span class="emoji-icon">🔎</span> Lost Items</h2>
+    <h2>🔎 Lost Items</h2>
     <div class="row" style="margin-bottom:16px;">
       <input type="text" id="lostSearchInput" placeholder="🔍 search items..." style="flex:2;">
       <button id="searchLostBtn" class="primary-btn" style="flex:1;">Filter</button>
@@ -274,7 +280,7 @@
   <!-- FOUND PAGE (with required asterisks) -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
-    <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
+    <h2>📦 Report Found Item</h2>
 
     <select id="foundType" style="margin-bottom:12px;">
       <option value="electronic">📱 Electronic</option>
@@ -320,7 +326,7 @@
     <button id="submitFoundBtn" class="primary-btn" style="margin-top:12px;">✅ Submit item</button>
   </div>
 
-  <!-- popups (unchanged) -->
+  <!-- popups -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verification</h3>
@@ -328,7 +334,7 @@
       <p id="verifyStatusMessage" style="color:#b91c1c; font-weight:500;"></p>
       <input type="text" id="verifyAnswerInput" placeholder="Your answer">
       <button id="submitVerifyBtn" class="primary-btn">✅ Confirm</button>
-      <button id="cancelVerifyBtn" class="outline-btn" style="background:#aaa; border:none;">Cancel</button>
+      <button id="cancelVerifyBtn" class="outline-btn" style="background:#e2e8f0;">Cancel</button>
       <p id="verifyMessage" style="font-weight:600;"></p>
       <div id="claimCodeSection" style="display:none; text-align:center; margin-top:10px;">
         <p style="font-weight:700; background:#e6f7ec; padding:12px; border-radius:14px;">
@@ -346,7 +352,7 @@
       <p>Enter the code from the owner.</p>
       <input type="text" id="checkCodeInput" placeholder="e.g. A3K9X7">
       <button id="submitCheckCodeBtn" class="primary-btn">✅ Check</button>
-      <button id="cancelCheckCodeBtn" class="outline-btn" style="background:#aaa; border:none;">Cancel</button>
+      <button id="cancelCheckCodeBtn" class="outline-btn" style="background:#e2e8f0;">Cancel</button>
       <div id="checkCodeResult" style="margin-top:8px; font-size:0.9rem;"></div>
     </div>
   </div>
@@ -370,7 +376,7 @@
   <!-- HOST CONTROL PANEL -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
-    <h2><span class="emoji-icon">🛠️</span> Host Control Panel</h2>
+    <h2>🛠️ Host Control Panel</h2>
     <p style="color:#7d6608;">All items (incl. resolved & blocked)</p>
     <div id="adminResults" style="display:flex; flex-direction:column; gap:12px;"></div>
   </div>
@@ -394,7 +400,7 @@
     getCurrentUser: () => Parse.User.current()
   };
 
-  // ========== BACKEND FUNCTIONS (your exact code) ==========
+  // ========== BACKEND FUNCTIONS ==========
   const LostItem = Parse.Object.extend("LostItem");
 
   function generateClaimCode(len = 6) {
@@ -587,23 +593,41 @@
     if(!u||!p) { errEl.textContent = 'Please enter both username and password.'; return; }
     try {
       await auth.logIn(u,p);
-      document.getElementById('loginPassword').value = '';
-      errEl.textContent = '';
-      checkSession();
-    } catch(e) {
-      errEl.textContent = e.message.includes('Invalid username/password') || e.message.includes('incorrect') ? '❌ Incorrect username or password.' : '❌ ' + e.message;
+      document);
+      document.getElementById('.getElementById('loginPasswordloginPassword').value').value = = '';
+      err '';
+      errEl.textEl.textContent =Content = '';
+      '';
+      checkSession checkSession();
+   ();
+    } catch } catch(e)(e) {
+      errEl {
+      errEl.textContent.textContent = e = e.message.includes.message.includes('Invalid('Invalid username/p username/password')assword') || e || e.message.includes.message.includes('inc('incorrect')orrect') ? ' ? '❌❌ Inc Incorrectorrect username or username or password.' : ' password.' : '❌❌ ' + ' + e.message;
+    e.message }
+ ;
     }
   });
 
-  document.getElementById('signUpSubmitBtn').addEventListener('click', async () => {
-    const u = document.getElementById('signUpUsername').value.trim();
-    const p = document.getElementById('signUpPassword').value;
-    const errEl = document.getElementById('signUpError');
-    if(!u||!p) { errEl.textContent = 'Please fill all fields.'; return; }
+  });
+
+  document.getElementById document.getElementById('sign('signUpSubmitUpSubmitBtn').addEventListenerBtn').addEventListener('click('click', async', async () => () => {
+    {
+    const u const u = document = document.getElementById('.getElementById('signUpsignUpUsername').Username').value.trimvalue.trim();
+   ();
+    const p const p = document = document.getElementById('.getElementById('signUpsignUpPassword').Password').value;
+    constvalue;
+    const errEl errEl = document = document.getElementById('.getElementById('signUpsignUpError');
+    ifError');
+    if(!u(!u||!||!p)p) { err { errEl.textEl.textContent =Content = 'Please fill all 'Please fill all fields fields.'; return.'; return;; }
     try {
-      await auth.signUp(u,p);
+      }
+    try {
+      await auth await auth.signUp(u,p.signUp(u,p);
+      document.getElementById('signUpPassword').value = '';
+      errEl.textContent =);
       document.getElementById('signUpPassword').value = '';
       errEl.textContent = '';
+      check '';
       checkSession();
     } catch(e) {
       errEl.textContent = e.message.includes('already taken') ? '❌ Username already taken.' : '❌ ' + e.message;
@@ -613,224 +637,450 @@
   // Role selection
   document.getElementById('goUserBtn').addEventListener('click', () => {
     document.getElementById('displayUsername').textContent = auth.getCurrentUser().getUsername();
-    showPage(document.getElementById('homePage'));
-  });
-  document.getElementById('goHostAccessBtn').addEventListener('click', () => {
-    document.getElementById('hostPasswordInput').value = '';
-    document.getElementById('hostPasswordMessage').textContent = '';
-    showPage(document.getElementById('hostPasswordPage'));
-  });
-  document.getElementById('logoutFromRoleBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
-
-  // Back arrows
-  document.getElementById('backToLoginFromRole').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
-  document.getElementById('backToRoleFromHost').addEventListener('click', () => showPage(roleSelectionPage));
-  document.getElementById('backToRoleFromHome').addEventListener('click', () => showPage(roleSelectionPage));
-  document.getElementById('backToHomeFromLost').addEventListener('click', () => showPage(homePage));
-  document.getElementById('backToHomeFromFound').addEventListener('click', () => showPage(homePage));
-  document.getElementById('backToRoleFromAdmin').addEventListener('click', () => showPage(roleSelectionPage));
-
-  // Host password
-  document.getElementById('submitHostPasswordBtn').addEventListener('click', () => {
-    if (document.getElementById('hostPasswordInput').value.trim() === HOST_PASSWORD) {
-      showPage(document.getElementById('adminPage'));
-      loadAdminItems();
-    } else {
-      document.getElementById('hostPasswordMessage').textContent = '❌ Incorrect password.';
+    showPage(document.getElementById('homeSession();
+    } catch(e) {
+      errEl.textContent = e.message.includes('already taken') ? '❌ Username already taken.' : '❌ ' + e.message;
     }
   });
 
-  // Home navigation
-  document.getElementById('goLostBtn').addEventListener('click', () => { showPage(lostPage); loadLostItems(''); });
-  document.getElementById('goFoundBtn').addEventListener('click', () => showPage(foundPage));
-  document.getElementById('openCheckCodeBtn').addEventListener('click', () => {
+  // Role selection
+  document.getElementById('goUserBtn').addEventListener('click', () => {
+    document.getElementById('displayUsername').textContent = auth.getCurrentUser().getUsername();
+    showPage(document.getElementById('homePage'));
+ Page'));
+  });
+  document });
+  document.getElementById('.getElementById('goHostgoHostAccessBtnAccessBtn').add').addEventListener('EventListener('clickclick',', () => {
+    () => document.getElementById {
+    document.getElementById('host('hostPasswordInputPasswordInput').value').value = = '';
+    document '';
+    document.getElementById('.getElementById('hostPasswordhostPasswordMessage').Message').textContenttextContent = = '';
+    show '';
+    showPage(documentPage(document.getElementById('hostPassword.getElementById('hostPasswordPagePage'));
+ '));
+  });
+  document.getElementById(' });
+  document.getElementById('logoutFromlogoutFromRoleBtnRoleBtn').').addaddEventListener('EventListener('click',click', async () async () => { => { await auth await auth.logOut.logOut(); show(); showPage(Page(loginPageloginPage);); });
+
+  // });
+
+  // Back arrows Back arrows
+ 
+  document.getElementById document.getElementById('back('backToLoginToLoginFromRoleFromRole').add').addEventListener('EventListener('click', async ()click', async () => { => { await auth await auth.logOut.logOut(); show(); showPage(Page(loginPageloginPage);); });
+  document });
+  document.getElementById('backToRoleFrom.getElementById('backToRoleFromHost').Host').addEventListeneraddEventListener('click('click', ()', () => show => showPage(Page(roleSelectionroleSelectionPagePage));
+  document));
+  document.getElementById('.getElementById('backToRoleFromHome').backToRoleFromHome').addEventListeneraddEventListener('click('click', ()', () => show => showPage(Page(roleSelectionroleSelectionPagePage));
+  document));
+  document.getElementById('.getElementById('backTobackToHomeFromHomeFromLost').Lost').addEventListener('clickaddEventListener('click', ()', () => show => showPage(hPage(homePageomePage));
+ ));
+  document.getElementById document.getElementById('back('backToHomeFromFoundToHomeFromFound').add').addEventListener('EventListener('click',click', () => showPage(home () => showPage(homePagePage));
+  document));
+  document.getElementById('.getElementById('backTobackToRoleFromRoleFromAdmin').Admin').addEventListeneraddEventListener('click('click', ()', () => show => showPage(rolePage(SelectionroleSelectionPagePage));
+
+  //));
+
+  // Host password
+  Host password document.getElementById
+  document.getElementById('submit('submitHostPasswordHostPasswordBtn').Btn').addEventListeneraddEventListener('click',('click ()', () => => {
+    if {
+    if (document (document.getElementById('.getElementById('hostPasswordInput').hostPasswordInput').value.trimvalue.trim() ===() === HOST HOST_PASSWORD_PASSWORD)) {
+      show {
+      showPage(documentPage(document.getElementById('adminPage.getElementById('adminPage'));
+     '));
+      loadAdmin loadAdminItemsItems();
+    }();
+    } else else {
+      document {
+      document.getElementById('.getElementById('hostPasswordhostPasswordMessage').textContent = 'Message').textContent = '❌❌ Incorrect Incorrect password. password.';
+   ';
+    }
+  }
+  });
+
+  });
+
+  // Home // Home navigation
+  document navigation
+  document.getElementById('.getElementById('goLostgoLostBtn').Btn').addEventListeneraddEventListener('click('click',', () () => { show => { showPagePage(lost(lostPage); loadLostItems(''); });
+  documentPage); loadLostItems(''); });
+  document.getElementById('goFoundBtn')..getElementById('goFoundBtn').addEventListener('click', ()addEventListener('click', () => showPage(found => showPage(foundPage));
+  document.getElementById('openPage));
+  document.getElementById('openCheckCodeBtn').addEventListener('clickCheckCodeBtn').addEventListener('click', () => {
+    document.getElementById('checkCodeInput').value = '';
+    document.getElementById('check', () => {
     document.getElementById('checkCodeInput').value = '';
     document.getElementById('checkCodeResult').textContent = '';
     checkCodePopup.classList.remove('hidden');
   });
-  document.getElementById('logoutFromHomeBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
+  documentCodeResult').textContent = '';
+    checkCodePopup.classList.remove('hidden');
+  });
+  document.getElementById('logoutFromHomeBtn').addEventListener('click', async ().getElementById('logoutFromHomeBtn').addEventListener('click', async () => { await auth => { await auth.logOut(); show.logOut(); showPage(Page(loginPage); });
 
-  // Lost items rendering (using new card class)
-  async function loadLostItems(searchTerm) {
-    const container = document.getElementById('lostResults');
-    container.innerHTML = '<p>⌛ Loading...</p>';
+  //login Lost itemsPage); });
+
+  // rendering Lost items
+  async rendering function load
+  asyncLostItems function loadLostItems(searchTerm(searchTerm) {
+    const) {
+    const container = container = document.getElementById document.getElementById('lost('lostResultsResults');
+    container.innerHTML =');
+    container.innerHTML = '<p '<p>>⌛ Loading...</p⌛ Loading...</p>';
+    try {
+      const items = await searchLostItems>';
     try {
       const items = await searchLostItems(searchTerm);
-      if(!items.length) { container.innerHTML = '<p>😔 No matching items.</p>'; return; }
+(searchTerm);
+           if(!items.length if(!items.length) { container.innerHTML = '<p>😔 No matching) { container.innerHTML = '<p>😔 No matching items items.</p>.</p>'; return; }
+      container'; return; }
       container.innerHTML = items.map(item => {
-        const typeEmojis = { electronic:'📱', personal:'🎒', clothing:'👕', documents:'🪪', keys:'🔑', bags:'👜', other:'📌' };
-        const typeEmoji = typeEmojis[item.get('type')] || '📌';
-        const photo = item.get('photo');
-        const desc = item.get('description') || '';
-        const contact = item.get('contactInfo') || '';
+        const typeEmoj.innerHTML = items.map(item => {
+        const typeEmojis =is = { electronic { electronic:':'📱',📱', personal:' personal:'🎒', clothing🎒', clothing:':'👕', documents:'👕', documents:'🪪',🪪', keys:' keys:'🔑🔑', bags', bags:':'👜',👜', other:' other:'📌📌' };
+' };
+        const        const typeEm typeEmoji =oji = typeEm typeEmojisojis[item[item.get('.get('type')type')] || '] ||📌 '📌';
+        const';
+        const photo = photo = item.get item.get('photo('photo');
+       ');
+        const desc = item const desc.get(' = item.get('description') ||description') || '';
+        const '';
+        const contact = contact = item.get item.get('contact('contactInfo')Info') || || '';
+        return '';
         return `
-          <div class="lost-item-card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
+          `
+          <div <div class=" class="lost-itemlost-item-card-card">
+           ">
+            <div style <div style="display="display:flex:flex; justify; justify-content:-content:space-between; alignspace-between-items:; aligncenter-items:center;">
               <strong>${typeEmoji} ${item.get('type')}</strong>
-              <span style="font-size:0.8rem; color:#64748b;">🕒 ${item.get('timeFound')?.toLocaleString?.()}</span>
-            </div>
-            <div style="margin-top:8px;">🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
-            <div>✨ ${item.get('appearance')}</div>
-            ${desc ? `<div>📝 ${desc}</div>` : ''}
-            <div>📍 ${item.get('locationFound')}</div>
-            ${photo ? `<img src="${photo.url()}" class="item-photo">` : ''}
-            <button class="primary-btn verify-btn" data-id="${item.id}" style="margin-top:8px; width:100%;">🔐 Verify it's yours</button>
-            <button class="outline-btn forgot-btn" style="margin-top:4px; width:100%;">❓ Forgot details?</button>
-            <div class="contact-info hidden" id="contact-${item.id}" style="margin-top:6px; color:#475569;">${contact ? '📞 '+contact : '⚠️ No contact provided.'}</div>
+              <span style="font-size:0.8rem; color:#647;">
+              <strong>${typeEmoji} ${item.get('type')}</strong>
+              <span style="font-size:0.8rem; color:#64748b48b;">;">🕒🕒 ${item ${item.get('.get('timeFoundtimeFound')?.')?.toLocaletoLocaleString?.String?.()}</()}</span>
+            </span>
+            </divdiv>
+           >
+            <div style <div style="margin="margin-top:-top:8px8px;">;">🎨 ${🎨 ${item.getitem.get('color('color')}')} · 🏷 · 🏷️ ${️ ${item.getitem.get('model('model')}</')}</divdiv>
+           >
+            <div> <div>✨ ${item.get✨ ${item.get('app('appearance')earance')}</}</divdiv>
+           >
+            ${desc ? ${desc ? `<div> `<div>📝📝 ${desc ${desc}</div}</div>` :>` : '' ''}
+           }
+            <div> <div>📍 ${📍 ${item.getitem.get('locationFound')('locationFound')}</div}</div>
+           >
+            ${photo ${photo ? ? `<img src `<img src="${photo="${photo.url().url()}" class}" class="item="item-photo-photo">`">` : '' : ''}
+           }
+            <button class=" <button class="primary-btnprimary-btn verify-btn verify-btn" data" data-id="${item.id-id="${item.id}" style}" style="margin="margin-top:-top:8px8px; width:100; width:100%;">%;">🔐 Verify it's yours🔐 Verify it's yours</button>
+            <button class="outline-btn forgot</button>
+            <button class="outline-btn forgot-btn" style-btn" style="margin-top:4px; width:100%;="margin-top:4px; width:100%;">">❓❓ Forgot details?</button>
+            <div Forgot details?</button>
+            <div class=" class="contact-info hidden" id="contact-${item.idcontact-info hidden" id="contact-${item.id}" style="margin-top:6px; color:#475569;">${contact ? '📞 '+contact : '}" style="margin-top:6px; color:#475569;">${contact ? '📞 '+contact : '⚠️ No contact provided.'}</div>
+          </div⚠️ No contact provided.'}</div>
           </div>
         `;
       }).join('');
-      document.querySelectorAll('.verify-btn').forEach(btn => btn.addEventListener('click', e => {
-        currentVerifyingItemId = e.target.dataset.id;
-        openVerifyPopup(currentVerifyingItemId);
+      document.querySelectorAll('.>
+        `;
+      }).join('');
+      document.querySelectorAll('.verify-btn').forEachverify-btn').forEach(btn(btn => btn => btn.addEventListener('.addEventListener('click',click', e => {
+        e => currentVer {
+        currentVerifyingItemifyingItemId =Id = e.target e.target.dataset.dataset.id.id;
+        openVerify;
+        openVerifyPopupPopup(currentVerifyingItemId(currentVerifyingItemId);
       }));
-      document.querySelectorAll('.forgot-btn').forEach(btn => btn.addEventListener('click', e => {
-        const id = e.target.closest('.lost-item-card').querySelector('.verify-btn').dataset.id;
-        document.getElementById('contact-'+id).classList.toggle('hidden');
+);
       }));
-    } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
+      document.querySelectorAll('.forgot      document.querySelectorAll('.forgot-btn').forEach(btn => btn.addEventListener('click-btn').forEach(btn => btn.addEventListener('click', e => {
+        const id = e.target.closest('.lost', e => {
+        const id = e-item-card')..target.closest('.lost-item-card').querySelector('.verify-btn').dataset.id;
+       querySelector('.verify-btn').dataset.id;
+        document.getElementById('contact-'+ document.getElementById('contact-'+id).id).classListclassList.toggle.toggle('hidden');
+     ('hidden');
+      }));
+    }));
+    } catch } catch(e)(e) { container { container.innerHTML =.innerHTML = `<p style=" `<p style="color:color:red;">red;">Error:Error: ${e ${e.message}</.message}</p>`p>`; }
+ ; }
   }
 
-  // Verification popup (unchanged)
-  async function openVerifyPopup(itemId) {
-    document.getElementById('claimCodeSection').style.display = 'none';
-    document.getElementById('verifyAnswerInput').style.display = '';
-    document.getElementById('submitVerifyBtn').style.display = '';
-    document.getElementById('cancelVerifyBtn').style.display = '';
-    document.getElementById('verifyQuestionText').style.display = '';
-    document.getElementById('verifyStatusMessage').style.display = '';
-    document.getElementById('verifyMessage').textContent = '';
-    document.getElementById('verifyStatusMessage').textContent = '';
-    const answerInput = document.getElementById('verifyAnswerInput');
-    answerInput.value = ''; answerInput.disabled = false;
-    document.getElementById('submitVerifyBtn').disabled = false;
+  // Verification pop }
 
-    try {
-      const query = new Parse.Query(LostItem);
-      const item = await query.get(itemId);
-      if (item.get("verificationBlocked")) {
-        document.getElementById('verifyStatusMessage').textContent = '⛔ Permanently blocked.';
-        answerInput.disabled = true;
-        document.getElementById('submitVerifyBtn').disabled = true;
-      } else {
-        const nextAllowed = item.get("nextAttemptAllowedAt");
-        if (nextAllowed && new Date() < new Date(nextAllowed)) {
-          const diff = new Date(nextAllowed) - new Date();
-          document.getElementById('verifyStatusMessage').textContent = `⏳ Cooldown: ${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m`;
-          answerInput.disabled = true;
-          document.getElementById('submitVerifyBtn').disabled = true;
-        } else {
-          const attempts = item.get("verificationAttempts") || 0;
-          if (attempts >= 9) {
-            document.getElementById('verifyStatusMessage').textContent = 'Blocked.';
-            answerInput.disabled = true;
-            document.getElementById('submitVerifyBtn').disabled = true;
-          } else if (attempts >= 6) document.getElementById('verifyStatusMessage').textContent = `⚠️ ${attempts} wrong. 5h lock soon.`;
-          else if (attempts >= 3) document.getElementById('verifyStatusMessage').textContent = `⚠️ ${attempts} wrong.`;
+  // Verification popupup
+  async
+  async function open function openVerifyPopupVerifyPopup(itemId(itemId)) {
+    document {
+    document.getElementById('.getElementById('claimCodeSection').style.display = 'noneclaimCodeSection').style.display = 'none';
+    document';
+    document.getElementById('.getElementById('verifyAnswerverifyAnswerInput').Input').style.displaystyle.display = = '';
+    document '';
+    document.getElementById('.getElementById('submitVerifysubmitVerifyBtn').Btn').style.displaystyle.display = = '';
+    document '';
+    document.getElementById('.getElementById('cancelVerifycancelVerifyBtn').Btn').style.displaystyle.display = '';
+    document = '';
+    document.getElementById('.getElementById('verifyQuestionverifyQuestionText').Text').style.displaystyle.display = = '';
+    document '';
+    document.getElementById('.getElementById('verifyStatusverifyStatusMessage').style.displayMessage'). =style.display = '';
+    document '';
+    document.getElementById('.getElementById('verifyMessageverifyMessage').text').textContent =Content = '';
+    '';
+    document.getElementById document.getElementById('verify('verifyStatusMessageStatusMessage').text').textContent =Content = '';
+    '';
+    const answer const answerInput =Input = document document.getElementById.getElementById('verify('verifyAnswerInputAnswerInput');
+   ');
+    answerInput.value = answerInput.value = ''; ''; answerInput answerInput.disabled.disabled = false;
+    = false;
+    document.getElementById document.getElementById('submit('submitVerifyBtnVerifyBtn').disabled').disabled = false = false;
+
+   ;
+
+    try try {
+      const query = {
+      const query = new Parse.Query(L new Parse.Query(LostItemostItem);
+      const item = await);
+      const item = await query.get query.get(itemId(itemId);
+     );
+      if ( if (item.getitem.get("ver("verificationificationBlockBlocked"))ed")) {
+        {
+        document.getElementById document.getElementById('verify('verifyStatusMessage').textStatusMessage').textContent =Content = ' '⛔⛔ Perman Permanently blockedently blocked..';
+        answer';
+        answerInput.disInput.disabled =abled = true true;
+        document;
+        document.getElementById('.getElementById('submitVerifysubmitVerifyBtn').Btn').disabled =disabled = true true;
+      };
+      } else else {
+        const {
+        const nextAllowed nextAllowed = item = item.get(".get("nextAttemptnextAttemptAllowedAtAllowedAt");
+       ");
+        if ( if (nextAllowed && newnextAllowed && new Date() Date() < new < new Date(next Date(nextAllowed)) {
+         Allowed)) const diff {
+          const diff = new = new Date(next Date(nextAllowed)Allowed) - new Date - new();
+          document Date();
+          document.getElementById('.getElementById('verifyStatusverifyStatusMessage').Message').textContenttextContent = ` = `⏳ Co⏳ Cooldownoldown: ${: ${Math.floorMath.floor(diff(diff/3600000/3600000)}h)}h ${Math ${Math.floor((.floor((diff%360000diff%3600000)/0)/6000060000)}m)}m`;
+         `;
+          answerInput.disabled answerInput.disabled = true = true;
+         ;
+          document.getElementById document.getElementById('submit('submitVerifyVerifyBtnBtn').disabled').disabled = true;
+        = true;
+        } else } else {
+          {
+          const attempts const attempts = item.get(" = item.get("verificationverificationAttemptsAttempts") ||") || 0 0;
+         ;
+          if ( if (attemptsattempts >=  >= 9)9) {
+            {
+            document.getElementById document.getElementById('verify('verifyStatusMessage').textContent =StatusMessage').textContent = 'Block 'Blocked.ed.';
+           ';
+            answerInput answerInput.disabled.disabled = true = true;
+           ;
+            document.getElementById document.getElementById('submit('submitVerifyBtnVerifyBtn').disabled').disabled = true = true;
+         ;
+          } else } else if ( if (attemptsattempts >=  >= 6)6) document.getElementById document.getElementById('verify('verifyStatusMessageStatusMessage').text').textContent =Content = `⚠ `⚠️ ${️ ${attemptsattempts} wrong. } wrong. 5h lock soon5h lock soon..`;
+          else`;
+          else if ( if (attemptsattempts >=  >= 3) document.getElementById3) document.getElementById('verify('verifyStatusMessageStatusMessage').text').textContent =Content = `⚠ `⚠️ ${️ ${attempts} wrongattempts} wrong..`;
+       `;
         }
       }
-      const question = await getVerificationQuestion(itemId);
-      document.getElementById('verifyQuestionText').textContent = '🔐 ' + (question || 'No question');
-      verifyPopup.classList.remove('hidden');
-    } catch(e) { alert('Error: '+e.message); }
+      }
+      const }
+      const question = await get question =Verification await getVerificationQuestion(itemQuestion(itemIdId);
+      document);
+      document.getElementById('.getElementById('verifyQuestionverifyQuestionText').Text').textContenttextContent = ' = '🔐🔐 ' + ' + (question (question || ' || 'No questionNo question');
+     ');
+      verifyPopup verifyPopup.classList.remove.classList.remove('hidden');
+   ('hidden');
+    } catch(e) { alert('Error } catch(e) { alert('Error: '+e.message);: '+e.message); }
+  }
   }
 
-  document.getElementById('cancelVerifyBtn').addEventListener('click', () => verifyPopup.classList.add('hidden'));
-  document.getElementById('submitVerifyBtn').addEventListener('click', async () => {
-    if(!currentVerifyingItemId) return;
-    const answer = document.getElementById('verifyAnswerInput').value.trim();
-    if(!answer) return;
-    try {
-      const result = await verifyItem(currentVerifyingItemId, answer);
-      if (result.success) {
-        document.getElementById('claimCodeText').textContent = result.claimCode;
-        document.getElementById('claimCodeSection').style.display = 'block';
-        document.getElementById('verifyQuestionText').style.display = 'none';
-        document.getElementById('verifyStatusMessage').style.display = 'none';
-        document.getElementById('verifyAnswerInput').style.display = 'none';
-        document.getElementById('submitVerifyBtn').style.display = 'none';
-        document.getElementById('cancelVerifyBtn').style.display = 'none';
-        document.getElementById('verifyMessage').textContent = '';
-      } else {
-        document.getElementById('verifyMessage').textContent = result.message;
-        if (result.blocked) {
-          document.getElementById('verifyAnswerInput').disabled = true;
-          document.getElementById('submitVerifyBtn').disabled = true;
-        } else if (result.cooldownEnd) {
-          document.getElementById('verifyAnswerInput').disabled = true;
-          document.getElementById('submitVerifyBtn').disabled = true;
+  document }
+
+  document.getElementById('cancelVerify.getElementById('Btn').cancelVerifyBtn').addEventListeneraddEventListener('click('click', ()', () => verify => verifyPopup.classListPopup.classList.add('.add('hiddenhidden'));
+  document'));
+  document.getElementById('submitVerify.getElementById('submitVerifyBtn').Btn').addaddEventListener('click', async () =>EventListener('click', async () => {
+    {
+    if(! if(!currentVercurrentVerifyingItemifyingItemId)Id) return return;
+    const;
+    const answer = answer = document.getElementById document.getElementById('verify('verifyAnswerAnswerInputInput').value').value.trim.trim();
+    if();
+    if(!answer) return(!answer) return;
+   ;
+    try try {
+      const result = {
+      const result = await verify await verifyItem(currentItem(currentVerifyingVerifyingItemIdItemId, answer, answer);
+     );
+      if ( if (result.successresult.success)) {
+        document {
+        document.getElementById('.getElementById('claimCodeclaimCodeText').Text').textContenttextContent = result = result.claim.claimCodeCode;
+        document;
+        document.getElementById('.getElementById('claimCodeSection').claimCodeSection').style.displaystyle.display = ' = 'blockblock';
+        document';
+        document.getElementById('.getElementById('verifyQuestionverifyQuestionText').Text').style.displaystyle.display = ' = 'nonenone';
+        document';
+        document.getElementById('.getElementById('verifyStatusMessage').verifyStatusMessage').style.displaystyle.display = ' = 'none';
+        documentnone';
+        document.getElementById('.getElementById('verifyAnswerverifyAnswerInput').Input').style.display = 'none';
+        documentstyle.display = 'none';
+        document.getElementById('.getElementById('submitVerifysubmitVerifyBtn').Btn').style.display = 'style.display = 'nonenone';
+        document';
+        document.getElementById('.getElementById('cancelVerifycancelVerifyBtn').Btn').style.displaystyle.display = ' = 'none';
+        documentnone';
+        document.getElementById('verifyMessage.getElementById('verifyMessage').text').textContent =Content = '';
+      '';
+      } else } else {
+        document.getElementById {
+        document.getElementById('verify('verifyMessage').Message').textContent = resulttextContent = result.message.message;
+        if;
+        if (result.blocked (result.blocked)) {
+          document {
+          document.getElementById('.getElementById('verifyAnswerverifyAnswerInput').Input').disabled =disabled = true true;
+          document;
+          document.getElementById('.getElementById('submitVerifyBtn').submitVerifyBtn').disabled =disabled = true true;
+        };
+        } else if else if (result (result.coold.cooldownEndownEnd)) {
+          document {
+          document.getElementById('.getElementById('verifyAnswerInput').disabled =verifyAnswerInput').disabled = true true;
+          document;
+          document.getElementById('.getElementById('submitVerifysubmitVerifyBtn').Btn').disabled = truedisabled = true;
+       ;
         }
       }
-    } catch(e) { document.getElementById('verifyMessage').textContent = e.message; }
+      }
+    } }
+    } catch(e catch(e) {) { document.getElementById document.getElementById('verify('verifyMessage').Message').textContenttextContent = e.message; = e.message; }
+  }
   });
 
-  document.getElementById('copyClaimCodeBtn').addEventListener('click', () => {
-    const code = document.getElementById('claimCodeText').textContent;
-    navigator.clipboard.writeText(code).then(() => alert('Claim code copied!')).catch(() => alert('Could not copy.'));
   });
-  document.getElementById('closeClaimCodeBtn').addEventListener('click', () => {
-    verifyPopup.classList.add('hidden');
-    loadLostItems(document.getElementById('lostSearchInput').value);
+
+  document.getElementById document.getElementById('copy('copyClaimCodeClaimCodeBtn').addEventListenerBtn').addEventListener('click('click', () =>', () {
+    const => {
+    const code = code = document.getElementById('claimCodeText').text document.getElementById('claimCodeText').textContentContent;
+    navig;
+    navigator.clator.clipboardipboard.writeText.writeText(code).(code).then(()then(() => alert => alert('Claim('Claim code copied!')). code copied!')).catch(()catch(() => alert => alert('Could('Could not copy not copy..'));
+ '));
   });
+  document.getElementById(' });
+  document.getElementById('closeClaimcloseClaimCodeBtnCodeBtn').add').addEventListener('click', () =>EventListener('click', () => {
+    {
+    verifyPopup verifyPopup.classList.add.classList.add('hidden('hidden');
+   ');
+    loadLost loadLostItems(documentItems(document.getElementById('lostSearch.getElementById('lostSearchInput').Input').valuevalue);
+ );
+  });
+
+  // Found form });
 
   // Found form
-  document.getElementById('foundType').addEventListener('change', e => {
-    const q = document.getElementById('foundVeriQuestion');
-    if(e.target.value === 'electronic') q.value = 'What is the wallpaper of this device?';
-    else q.value = '';
+ 
+  document.getElementById document.getElementById('found('foundType').Type').addEventListeneraddEventListener('change('change', e', e => {
+    const => {
+    const q = q = document.getElementById document.getElementById('found('foundVeriVeriQuestionQuestion');
+    if');
+    if(e.target(e.target.value ===.value === 'electronic 'electronic') q') q.value =.value = 'What 'What is the is the wallpaper of wallpaper of this device? this device?';
+    else';
+    else q.value q.value = = '';
   });
-  document.getElementById('foundType').dispatchEvent(new Event('change'));
+  document '';
+  });
+  document.getElementById('foundType.getElementById('foundType').dispatch').dispatchEvent(newEvent(new Event(' Event('change'change'));
 
-  document.getElementById('submitFoundBtn').addEventListener('click', async () => {
-    const fields = ['foundColor','foundModel','foundTime','foundLocation','foundVeriQuestion','foundVeriAnswer'];
-    const missing = fields.some(id => !document.getElementById(id).value.trim());
-    if(missing) {
-      document.getElementById('errorPopupMessage').textContent = '❌ Please fill all required fields.';
-      document.getElementById('errorPopup').classList.remove('hidden');
+ ));
+
+  document.getElementById document.getElementById('submit('submitFoundBtnFoundBtn').addEventListener('').addEventListener('click', async ()click', async () => => {
+    const {
+    const fields = fields = ['found ['foundColor','Color','foundModelfoundModel','found','foundTime','Time','foundLocationfoundLocation','found','VerifoundQuestion','VeriQuestion','foundVerfoundVeriAnsweriAnswer'];
+   '];
+    const missing const missing = fields = fields.some.some(id =>(id => !document.getElementById(id !document.getElementById(id).value).value.trim.trim());
+    if());
+    if(missing(missing)) {
+      {
+      document document.getElementById('errorPopup.getElementById('errorPopupMessage').Message').textContenttextContent = ' = '❌❌ Please fill Please fill all required all required fields. fields.';
+     ';
+      document.getElementById('error document.getElementByIdPopup').('errorPopup').classListclassList.remove('.remove('hidden');
+      returnhidden');
       return;
+   ;
     }
-    const data = {
+    const data }
+    const data = = {
+      type: document {
       type: document.getElementById('foundType').value,
-      color: document.getElementById('foundColor').value.trim(),
-      model: document.getElementById('foundModel').value.trim(),
-      appearance: document.getElementById('foundAppearance').value.trim(),
-      description: document.getElementById('foundDescription').value.trim(),
-      timeFound: new Date(document.getElementById('foundTime').value),
-      locationFound: document.getElementById('foundLocation').value.trim(),
-      verificationQuestion: document.getElementById('foundVeriQuestion').value.trim(),
-      verificationAnswer: document.getElementById('foundVeriAnswer').value.trim(),
-      contactInfo: document.getElementById('foundContactInfo').value.trim()
+      color: document.getElementById.getElementById('foundType').value,
+      color: document.getElementById('foundColor').('foundColor').value.trimvalue.trim(),
+     (),
+      model: model: document.getElementById document.getElementById('foundModel').('foundvalue.trimModel').value.trim(),
+     (),
+      appearance: appearance: document.getElementById document.getElementById('found('foundAppearance').value.trimAppearance').value.trim(),
+      description(),
+      description: document: document.getElementById('foundDescription.getElementById('foundDescription').value.trim').value.trim(),
+      timeFound:(),
+      timeFound: new Date new Date(document.getElementById(document.getElementById('found('foundTime').Time').valuevalue),
+      location),
+      locationFound: document.getElementByIdFound:('found document.getElementById('foundLocation').Location').value.trimvalue.trim(),
+      verificationQuestion: document(),
+      verificationQuestion: document.getElementById('.getElementById('foundVerfoundVeriQuestioniQuestion').value').value.trim.trim(),
+      verification(),
+      verificationAnswer: document.getElementByIdAnswer: document.getElementById('found('foundVeriVeriAnswer').Answer').value.trimvalue.trim(),
+      contactInfo(),
+      contactInfo: document: document.getElementById('.getElementById('foundContactfoundContactInfo').Info').value.trimvalue.trim()
+   ()
     };
-    const photoInput = document.getElementById('foundPhoto');
-    if(photoInput.files.length) {
-      data.photoFile = photoInput.files[0];
-      data.photoName = photoInput.files[0].name;
+    };
+    const photo const photoInput = document.getElementByIdInput = document.getElementById('foundPhoto('foundPhoto');
+    if');
+    if(photo(photoInput.fInput.files.lengthiles.length)) {
+      data {
+      data.photo.photoFile =File = photoInput photoInput.files.files[0[0];
+      data.];
+      data.photoName = photoInput.filesphotoName = photoInput.files[0].name[0].name;
+    }
+    try;
     }
     try {
-      await createFoundItem(data);
-      ['foundColor','foundModel','foundAppearance','foundDescription','foundLocation','foundVeriAnswer','foundContactInfo','foundPhoto'].forEach(id => document.getElementById(id).value='');
-      document.getElementById('foundType').dispatchEvent(new Event('change'));
-      document.getElementById('successPopup').classList.remove('hidden');
-    } catch(e) {
-      document.getElementById('errorPopupMessage').textContent = '❌ Error: ' + e.message;
-      document.getElementById('errorPopup').classList.remove('hidden');
+      await create {
+      await createFoundItemFoundItem(data);
+      ['(data);
+      ['foundColorfoundColor','found','foundModel','Model','foundAppfoundAppearance','earance','foundDescription','foundfoundDescription','foundLocation','Location','foundVerfoundVeriAnswer','foundiAnswer','foundContactInfoContactInfo','foundPhoto'].','foundPhoto'].forEach(idforEach(id => document.getElementById(id).value='');
+      document.getElementById(' => document.getElementById(id).value='');
+      document.getElementById('foundType').dispatchEventfoundType').dispatchEvent(new Event('change'));
+      document.getElementById('successPopup').class(new Event('change'));
+      document.getElementById('successPopupList.remove('hidden').classList.remove('hidden');
+   ');
+    } catch(e) } catch {
+     (e) {
+      document.getElementById document.getElementById('error('errorPopupMessagePopupMessage').text').textContent = 'Content = '❌ Error❌ Error: ': ' + e + e.message.message;
+      document.getElementById('errorPopup;
+      document.getElementById('errorPopup').classList.remove').classList.remove('hidden('hidden');
+   ');
     }
+  }
   });
 
-  document.getElementById('closeSuccessPopup').addEventListener('click', () => {
-    document.getElementById('successPopup').classList.add('hidden');
+  document.getElementById });
+
+  document.getElementById('close('closeSuccessPopupSuccessPopup').addEventListener('').addEventListener('click',click', () => () => {
+    {
+    document.getElementById document.getElementById('successPopup').('successPopup').classList.add('classList.add('hidden');
+    showPage(hhidden');
     showPage(homePage);
+ omePage });
+ );
   });
-  document.getElementById('closeErrorPopup').addEventListener('click', () => {
-    document.getElementById('errorPopup').classList.add('hidden');
+  document.getElementById document.getElementById('close('closeErrorPopupErrorPopup').add').addEventListener('EventListener('click',click', () => () => {
+    {
+    document.getElementById document.getElementById('errorPopup').('errorPopup').classList.add('classListhidden.add('hidden');
+ ');
   });
 
-  // Check claim code
-  document.getElementById('cancelCheckCodeBtn').addEventListener('click', () => checkCodePopup.classList.add('hidden'));
-  document.getElementById('submitCheckCodeBtn').addEventListener('click', async () => {
-    const code = document.getElementById('checkCodeInput').value.trim();
+  // });
+
+  // Check claim Check claim code code
+  document
+  document.getElementById('.getElementById('cancelCheckcancelCheckCodeBtnCodeBtn').addEventListener('').addEventListener('click',click', () => () => checkCode checkCodePopup.classList.addPopup.classList.add('hidden'));
+  document.getElementById('('hidden'));
+  document.getElementById('submitChecksubmitCheckCodeBtn').addCodeBtn').addEventListener('EventListener('click',click', async () async () => => {
+    const {
+    const code = code = document.getElementById document.getElementById('check('checkCodeInput').valueCodeInput').value.trim.trim();
+    if(!code();
     if(!code) return;
-    document.getElementById('checkCodeResult').innerHTML = '⌛ Checking...';
+    document.getElementById) return;
+    document.getElementById('checkCodeResult').inner('checkCodeResult').innerHTML =HTML = ' '⌛ Checking⌛ Checking...';
     try {
       const res = await checkClaimCode(code);
       document.getElementById('checkCodeResult').innerHTML = res.found ?
