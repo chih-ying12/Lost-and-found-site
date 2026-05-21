@@ -7,7 +7,11 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
   <style>
-    /* Only added styles for the new back arrow (top‑left) */
+    /* Ensure the white card becomes the positioning anchor */
+    .app-container {
+      position: relative;
+    }
+    /* Top‑left back arrow inside the white container */
     .back-arrow-top {
       position: absolute;
       top: 16px;
@@ -113,7 +117,7 @@
     <input type="text" id="foundContactInfo" placeholder="📞 Your contact (optional)">
     <div class="row"><label>📸 Photo</label><input type="file" id="foundPhoto" accept="image/*"></div>
     <button id="submitFoundBtn">✅ Submit item</button>
-    <!-- Removed the bottom message paragraph; success now only shows via popup -->
+    <!-- Removed bottom success message -->
   </div>
 
   <!-- VERIFY POPUP -->
@@ -224,7 +228,7 @@
   });
   document.getElementById('logoutFromRoleBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
 
-  // Back arrow handlers (replacing old bottom buttons)
+  // Back arrow handlers (the top‑left arrows)
   document.getElementById('backToLoginFromRole').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
   document.getElementById('backToRoleFromHost').addEventListener('click', () => showPage(roleSelectionPage));
   document.getElementById('backToRoleFromHome').addEventListener('click', () => showPage(roleSelectionPage));
@@ -387,7 +391,6 @@
   document.getElementById('submitFoundBtn').addEventListener('click', async () => {
     const fields = ['foundColor','foundModel','foundTime','foundLocation','foundVeriQuestion','foundVeriAnswer'];
     if(fields.some(id => !document.getElementById(id).value.trim())) {
-      // No bottom message; use alert for error
       alert('❌ Please fill all required fields.');
       return;
     }
@@ -413,13 +416,18 @@
       // Clear form
       ['foundColor','foundModel','foundAppearance','foundDescription','foundLocation','foundVeriAnswer','foundContactInfo','foundPhoto'].forEach(id => document.getElementById(id).value='');
       document.getElementById('foundType').dispatchEvent(new Event('change'));
-      // Show success popup only
+      // Show success popup
       successPopup.classList.remove('hidden');
     } catch(e) {
       alert('Error: '+e.message);
     }
   });
-  document.getElementById('closeSuccessPopup').addEventListener('click', () => successPopup.classList.add('hidden'));
+
+  // Close success popup AND return to Home
+  document.getElementById('closeSuccessPopup').addEventListener('click', () => {
+    successPopup.classList.add('hidden');
+    showPage(homePage);
+  });
 
   // Check claim code
   document.getElementById('cancelCheckCodeBtn').addEventListener('click', () => checkCodePopup.classList.add('hidden'));
