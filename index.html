@@ -10,6 +10,7 @@
     /* ---------- base container ---------- */
     .app-container {
       position: relative;
+      background: #ffffff;
     }
     .page.has-back-arrow {
       padding-top: 60px;
@@ -23,14 +24,14 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: #ffffff;
-      border: 1px solid #d1d5db;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 26px;
-      color: #1e293b;
+      font-size: 24px;
+      color: #334155;
       cursor: pointer;
       z-index: 10;
       transition: background 0.2s, transform 0.1s;
@@ -42,7 +43,28 @@
       transform: scale(0.95);
     }
 
-    /* ---------- login page cards ---------- */
+    /* ---------- general improvements ---------- */
+    button {
+      border-radius: 14px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      transition: all 0.15s ease;
+    }
+    button:active {
+      transform: scale(0.98);
+    }
+    input, select, textarea {
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      transition: border 0.15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #94a3b8;
+      outline: none;
+    }
+
+    /* ---------- login page (unchanged) ---------- */
     #loginPage {
       text-align: center;
       padding-top: 40px;
@@ -54,12 +76,7 @@
       margin: 10px 0;
       transition: all 0.2s ease;
     }
-    /* Sign In card – very light blue */
-    #loginCard {
-      background: #f0f4ff;
-    }
-    /* Sign Up card – very light blue */
-    #signUpCard {
+    #loginCard, #signUpCard {
       background: #f0f4ff;
     }
     .auth-card h3 {
@@ -74,7 +91,6 @@
     .auth-card button {
       margin-top: 8px;
     }
-    /* Toggle buttons inside cards – subtle outline style */
     .toggle-btn {
       background: none;
       border: 1px solid #cbd5e1;
@@ -84,7 +100,7 @@
       cursor: pointer;
       font-weight: 500;
       padding: 8px 12px;
-      border-radius: 12px;
+      border-radius: 14px;
       width: 100%;
       transition: background 0.15s;
     }
@@ -98,6 +114,77 @@
       min-height: 20px;
     }
 
+    /* ---------- polished buttons for main pages ---------- */
+    .primary-btn {
+      background: #2563eb;
+      color: white;
+      border: none;
+      box-shadow: 0 4px 10px rgba(37,99,235,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .primary-btn:hover {
+      background: #1d4ed8;
+    }
+    .outline-btn {
+      background: white;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .outline-btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+    }
+    .danger-btn {
+      background: #b91c1c;
+      color: white;
+      border: none;
+      box-shadow: 0 4px 10px rgba(185,28,28,0.15);
+    }
+    .danger-btn:hover {
+      background: #991b1b;
+    }
+
+    /* ---------- card styling for list items ---------- */
+    .lost-item-card {
+      background: #ffffff;
+      border: 1px solid #eef2f6;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s;
+    }
+    .lost-item-card:hover {
+      box-shadow: 0 6px 18px rgba(0,0,0,0.07);
+    }
+    .item-photo {
+      width: 100%;
+      border-radius: 14px;
+      margin: 10px 0;
+      object-fit: cover;
+      max-height: 200px;
+    }
+
+    /* ---------- role selection & home page ---------- */
+    .page h2 {
+      color: #0f172a;
+      font-weight: 700;
+    }
+    .user-welcome {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+
     /* ---------- required asterisk ---------- */
     .required-asterisk {
       color: #b91c1c;
@@ -108,26 +195,24 @@
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE (two clearly separated cards) -->
+  <!-- LOGIN PAGE (unchanged) -->
   <div id="loginPage" class="page">
     <h2 style="justify-content:center;">🔐 Lost & Found</h2>
 
-    <!-- Sign In card (light blue) -->
     <div id="loginCard" class="auth-card">
       <h3>👤 Sign In</h3>
       <input type="text" id="loginUsername" placeholder="Username">
       <input type="password" id="loginPassword" placeholder="Password">
-      <button id="signInBtn" style="width:100%;">🚪 Sign In</button>
+      <button id="signInBtn" class="primary-btn" style="width:100%;">🚪 Sign In</button>
       <p class="error-msg" id="loginError"></p>
       <button class="toggle-btn" id="showSignUpCard">✨ Create account</button>
     </div>
 
-    <!-- Sign Up card (light green) -->
     <div id="signUpCard" class="auth-card hidden">
       <h3>✨ Sign Up</h3>
       <input type="text" id="signUpUsername" placeholder="Choose username">
       <input type="password" id="signUpPassword" placeholder="Create password">
-      <button id="signUpSubmitBtn" style="width:100%;">📝 Sign Up</button>
+      <button id="signUpSubmitBtn" class="primary-btn" style="width:100%;">📝 Sign Up</button>
       <p class="error-msg" id="signUpError"></p>
       <button class="toggle-btn" id="showLoginCard">🔙 Back to sign in</button>
     </div>
@@ -137,10 +222,13 @@
   <div id="roleSelectionPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToLoginFromRole">←</button>
     <h2 style="justify-content:center;">👋 Choose Role</h2>
-    <p style="text-align:center;">Logged in as <strong id="roleUsername"></strong></p>
-    <button id="goUserBtn"><span class="emoji-icon">👤</span> Continue as User</button>
-    <button id="goHostAccessBtn"><span class="emoji-icon">🛠️</span> Enter Host Panel</button>
-    <button id="logoutFromRoleBtn" style="background:#b91c1c;"><span class="emoji-icon">🚪</span> Log out</button>
+    <div class="user-welcome">
+      <span style="font-size:1.4rem;">👤</span>
+      <span>Logged in as <strong id="roleUsername"></strong></span>
+    </div>
+    <button id="goUserBtn" class="outline-btn" style="margin-bottom:10px;"><span class="emoji-icon">👤</span> Continue as User</button>
+    <button id="goHostAccessBtn" class="outline-btn" style="margin-bottom:10px;"><span class="emoji-icon">🛠️</span> Enter Host Panel</button>
+    <button id="logoutFromRoleBtn" class="danger-btn" style="margin-top:6px;"><span class="emoji-icon">🚪</span> Log out</button>
   </div>
 
   <!-- HOST PASSWORD PAGE -->
@@ -148,7 +236,7 @@
     <button class="back-arrow-circle" id="backToRoleFromHost">←</button>
     <h2><span class="emoji-icon">🔐</span> Host Password</h2>
     <input type="password" id="hostPasswordInput" placeholder="Enter host password">
-    <button id="submitHostPasswordBtn">🔓 Unlock Panel</button>
+    <button id="submitHostPasswordBtn" class="primary-btn">🔓 Unlock Panel</button>
     <p id="hostPasswordMessage" style="color:#b91c1c; text-align:center;"></p>
   </div>
 
@@ -156,20 +244,29 @@
   <div id="homePage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromHome">←</button>
     <h2><span class="emoji-icon">🏠</span> Home</h2>
-    <p>Welcome, <span id="displayUsername">...</span>!</p>
-    <button id="goLostBtn"><span class="emoji-icon">🔎</span> Lost something?</button>
-    <button id="goFoundBtn"><span class="emoji-icon">📦</span> I found an item</button>
-    <button id="openCheckCodeBtn"><span class="emoji-icon">🔑</span> Check Claim Code</button>
-    <button id="logoutFromHomeBtn" style="background:#b91c1c;"><span class="emoji-icon">🚪</span> Log out</button>
+    <div class="user-welcome">
+      <span style="font-size:1.4rem;">👋</span>
+      <span>Welcome, <strong id="displayUsername">...</strong></span>
+    </div>
+    <button id="goLostBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
+      <span class="emoji-icon">🔎</span> Lost something?
+    </button>
+    <button id="goFoundBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
+      <span class="emoji-icon">📦</span> I found an item
+    </button>
+    <button id="openCheckCodeBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
+      <span class="emoji-icon">🔑</span> Check Claim Code
+    </button>
+    <button id="logoutFromHomeBtn" class="danger-btn" style="margin-top:6px;"><span class="emoji-icon">🚪</span> Log out</button>
   </div>
 
   <!-- LOST PAGE -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
     <h2><span class="emoji-icon">🔎</span> Lost Items</h2>
-    <div class="row">
+    <div class="row" style="margin-bottom:16px;">
       <input type="text" id="lostSearchInput" placeholder="🔍 search items..." style="flex:2;">
-      <button id="searchLostBtn" style="flex:1;">Filter</button>
+      <button id="searchLostBtn" class="primary-btn" style="flex:1;">Filter</button>
     </div>
     <div id="lostResults" style="display:flex; flex-direction:column; gap:12px;"></div>
   </div>
@@ -179,7 +276,7 @@
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
     <h2><span class="emoji-icon">📦</span> Report Found Item</h2>
 
-    <select id="foundType">
+    <select id="foundType" style="margin-bottom:12px;">
       <option value="electronic">📱 Electronic</option>
       <option value="personal">🎒 Personal Belongings</option>
       <option value="clothing">👕 Clothing / Accessories</option>
@@ -220,25 +317,25 @@
 
     <div class="row"><label>📸 Photo (optional)</label><input type="file" id="foundPhoto" accept="image/*"></div>
 
-    <button id="submitFoundBtn">✅ Submit item</button>
+    <button id="submitFoundBtn" class="primary-btn" style="margin-top:12px;">✅ Submit item</button>
   </div>
 
-  <!-- all popups (unchanged) -->
+  <!-- popups (unchanged) -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verification</h3>
       <p id="verifyQuestionText"></p>
       <p id="verifyStatusMessage" style="color:#b91c1c; font-weight:500;"></p>
       <input type="text" id="verifyAnswerInput" placeholder="Your answer">
-      <button id="submitVerifyBtn">✅ Confirm</button>
-      <button id="cancelVerifyBtn" style="background:#aaa;">Cancel</button>
+      <button id="submitVerifyBtn" class="primary-btn">✅ Confirm</button>
+      <button id="cancelVerifyBtn" class="outline-btn" style="background:#aaa; border:none;">Cancel</button>
       <p id="verifyMessage" style="font-weight:600;"></p>
       <div id="claimCodeSection" style="display:none; text-align:center; margin-top:10px;">
         <p style="font-weight:700; background:#e6f7ec; padding:12px; border-radius:14px;">
           🎫 Claim Code: <span id="claimCodeText" style="font-size:1.6rem; letter-spacing:2px;"></span>
         </p>
-        <button id="copyClaimCodeBtn" class="copy-btn">📋 Copy Code</button>
-        <button id="closeClaimCodeBtn" style="margin-top:8px;">Close</button>
+        <button id="copyClaimCodeBtn" class="outline-btn">📋 Copy Code</button>
+        <button id="closeClaimCodeBtn" class="outline-btn" style="margin-top:8px;">Close</button>
       </div>
     </div>
   </div>
@@ -248,8 +345,8 @@
       <h3>🔑 Check Claim Code</h3>
       <p>Enter the code from the owner.</p>
       <input type="text" id="checkCodeInput" placeholder="e.g. A3K9X7">
-      <button id="submitCheckCodeBtn">✅ Check</button>
-      <button id="cancelCheckCodeBtn" style="background:#aaa;">Cancel</button>
+      <button id="submitCheckCodeBtn" class="primary-btn">✅ Check</button>
+      <button id="cancelCheckCodeBtn" class="outline-btn" style="background:#aaa; border:none;">Cancel</button>
       <div id="checkCodeResult" style="margin-top:8px; font-size:0.9rem;"></div>
     </div>
   </div>
@@ -258,7 +355,7 @@
     <div class="popup-content" style="text-align:center;">
       <h3 style="font-size:2rem;">✅</h3>
       <p style="font-size:1.2rem;">Item posted!</p>
-      <button id="closeSuccessPopup" style="margin:0 auto;">OK</button>
+      <button id="closeSuccessPopup" class="primary-btn" style="margin:0 auto;">OK</button>
     </div>
   </div>
 
@@ -266,7 +363,7 @@
     <div class="popup-content" style="text-align:center;">
       <h3 style="font-size:2rem;">⚠️</h3>
       <p id="errorPopupMessage" style="font-size:1.2rem;">Please fill all required fields.</p>
-      <button id="closeErrorPopup" style="margin:0 auto;">OK</button>
+      <button id="closeErrorPopup" class="primary-btn" style="margin:0 auto;">OK</button>
     </div>
   </div>
 
@@ -469,7 +566,7 @@
     }
   }
 
-  // ----- LOGIN PAGE CARD TOGGLES (using buttons) -----
+  // Login toggles
   document.getElementById('showSignUpCard').addEventListener('click', () => {
     document.getElementById('loginCard').classList.add('hidden');
     document.getElementById('signUpCard').classList.remove('hidden');
@@ -483,53 +580,37 @@
     document.getElementById('signUpError').textContent = '';
   });
 
-  // ----- SIGN IN -----
   document.getElementById('signInBtn').addEventListener('click', async () => {
     const u = document.getElementById('loginUsername').value.trim();
     const p = document.getElementById('loginPassword').value;
     const errEl = document.getElementById('loginError');
-    if(!u||!p) {
-      errEl.textContent = 'Please enter both username and password.';
-      return;
-    }
+    if(!u||!p) { errEl.textContent = 'Please enter both username and password.'; return; }
     try {
       await auth.logIn(u,p);
       document.getElementById('loginPassword').value = '';
       errEl.textContent = '';
       checkSession();
     } catch(e) {
-      if (e.message.includes('Invalid username/password') || e.message.includes('incorrect')) {
-        errEl.textContent = '❌ Incorrect username or password.';
-      } else {
-        errEl.textContent = '❌ ' + e.message;
-      }
+      errEl.textContent = e.message.includes('Invalid username/password') || e.message.includes('incorrect') ? '❌ Incorrect username or password.' : '❌ ' + e.message;
     }
   });
 
-  // ----- SIGN UP -----
   document.getElementById('signUpSubmitBtn').addEventListener('click', async () => {
     const u = document.getElementById('signUpUsername').value.trim();
     const p = document.getElementById('signUpPassword').value;
     const errEl = document.getElementById('signUpError');
-    if(!u||!p) {
-      errEl.textContent = 'Please fill all fields.';
-      return;
-    }
+    if(!u||!p) { errEl.textContent = 'Please fill all fields.'; return; }
     try {
       await auth.signUp(u,p);
       document.getElementById('signUpPassword').value = '';
       errEl.textContent = '';
       checkSession();
     } catch(e) {
-      if (e.message.includes('already taken')) {
-        errEl.textContent = '❌ Username already taken.';
-      } else {
-        errEl.textContent = '❌ ' + e.message;
-      }
+      errEl.textContent = e.message.includes('already taken') ? '❌ Username already taken.' : '❌ ' + e.message;
     }
   });
 
-  // ----- ROLE SELECTION -----
+  // Role selection
   document.getElementById('goUserBtn').addEventListener('click', () => {
     document.getElementById('displayUsername').textContent = auth.getCurrentUser().getUsername();
     showPage(document.getElementById('homePage'));
@@ -559,7 +640,7 @@
     }
   });
 
-  // ----- HOME NAVIGATION -----
+  // Home navigation
   document.getElementById('goLostBtn').addEventListener('click', () => { showPage(lostPage); loadLostItems(''); });
   document.getElementById('goFoundBtn').addEventListener('click', () => showPage(foundPage));
   document.getElementById('openCheckCodeBtn').addEventListener('click', () => {
@@ -569,7 +650,7 @@
   });
   document.getElementById('logoutFromHomeBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
 
-  // ----- LOST PAGE -----
+  // Lost items rendering (using new card class)
   async function loadLostItems(searchTerm) {
     const container = document.getElementById('lostResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
@@ -583,16 +664,19 @@
         const desc = item.get('description') || '';
         const contact = item.get('contactInfo') || '';
         return `
-          <div class="card">
-            <div class="row"><strong>${typeEmoji} ${item.get('type')}</strong> <span>🕒 ${item.get('timeFound')?.toLocaleString?.()}</span></div>
-            <div>🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
+          <div class="lost-item-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>${typeEmoji} ${item.get('type')}</strong>
+              <span style="font-size:0.8rem; color:#64748b;">🕒 ${item.get('timeFound')?.toLocaleString?.()}</span>
+            </div>
+            <div style="margin-top:8px;">🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
             <div>✨ ${item.get('appearance')}</div>
             ${desc ? `<div>📝 ${desc}</div>` : ''}
             <div>📍 ${item.get('locationFound')}</div>
             ${photo ? `<img src="${photo.url()}" class="item-photo">` : ''}
-            <button class="verify-btn" data-id="${item.id}">🔐 Verify it's yours</button>
-            <button class="small-btn forgot-btn" style="margin-top:4px;">❓ Forgot details?</button>
-            <div class="contact-info hidden" id="contact-${item.id}">${contact ? '📞 '+contact : '⚠️ No contact provided.'}</div>
+            <button class="primary-btn verify-btn" data-id="${item.id}" style="margin-top:8px; width:100%;">🔐 Verify it's yours</button>
+            <button class="outline-btn forgot-btn" style="margin-top:4px; width:100%;">❓ Forgot details?</button>
+            <div class="contact-info hidden" id="contact-${item.id}" style="margin-top:6px; color:#475569;">${contact ? '📞 '+contact : '⚠️ No contact provided.'}</div>
           </div>
         `;
       }).join('');
@@ -601,13 +685,13 @@
         openVerifyPopup(currentVerifyingItemId);
       }));
       document.querySelectorAll('.forgot-btn').forEach(btn => btn.addEventListener('click', e => {
-        const id = e.target.closest('.card').querySelector('.verify-btn').dataset.id;
+        const id = e.target.closest('.lost-item-card').querySelector('.verify-btn').dataset.id;
         document.getElementById('contact-'+id).classList.toggle('hidden');
       }));
     } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
   }
 
-  // ----- VERIFICATION POPUP -----
+  // Verification popup (unchanged)
   async function openVerifyPopup(itemId) {
     document.getElementById('claimCodeSection').style.display = 'none';
     document.getElementById('verifyAnswerInput').style.display = '';
@@ -689,7 +773,7 @@
     loadLostItems(document.getElementById('lostSearchInput').value);
   });
 
-  // ----- FOUND PAGE -----
+  // Found form
   document.getElementById('foundType').addEventListener('change', e => {
     const q = document.getElementById('foundVeriQuestion');
     if(e.target.value === 'electronic') q.value = 'What is the wallpaper of this device?';
@@ -749,16 +833,9 @@
     document.getElementById('checkCodeResult').innerHTML = '⌛ Checking...';
     try {
       const res = await checkClaimCode(code);
-      if(res.found) {
-        document.getElementById('checkCodeResult').innerHTML = `
-          ✅ Valid claim code!<br>
-          Type: ${res.type}<br>
-          🎨 ${res.color} · 🏷️ ${res.model}<br>
-          📍 Found near: ${res.locationFound}
-        `;
-      } else {
-        document.getElementById('checkCodeResult').innerHTML = '❌ Invalid code.';
-      }
+      document.getElementById('checkCodeResult').innerHTML = res.found ?
+        `✅ Valid claim code!<br>Type: ${res.type}<br>🎨 ${res.color} · 🏷️ ${res.model}<br>📍 Found near: ${res.locationFound}` :
+        '❌ Invalid code.';
     } catch(e) { document.getElementById('checkCodeResult').innerHTML = 'Error: '+e.message; }
   });
 
@@ -770,7 +847,7 @@
       const items = await adminGetAllItems();
       if(!items.length) { container.innerHTML = '<p>No items in database.</p>'; return; }
       container.innerHTML = items.map(item => `
-        <div class="card admin-card">
+        <div class="lost-item-card" style="background:#fffbeb;">
           <div><strong>${item.get('type')}</strong> ${item.get('isResolved')?'✅':'❌'} ${item.get('verificationBlocked')?'⛔':''}</div>
           <div>🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
           <div>✨ ${item.get('appearance')}</div>
@@ -781,9 +858,9 @@
           <div>📞 ${item.get('contactInfo')||'none'}</div>
           <div>🎫 Claim Code: ${item.get('claimCode')||'none'}</div>
           <div>🚫 Attempts: ${item.get('verificationAttempts')||0}</div>
-          <div class="admin-actions">
-            <button onclick="window.resetItem('${item.id}')">🔄 Reset</button>
-            <button onclick="window.deleteItem('${item.id}')" style="background:#b91c1c;">🗑️ Delete</button>
+          <div class="admin-actions" style="display:flex; gap:8px; margin-top:10px;">
+            <button onclick="window.resetItem('${item.id}')" class="outline-btn" style="flex:1;">🔄 Reset</button>
+            <button onclick="window.deleteItem('${item.id}')" class="danger-btn" style="flex:1;">🗑️ Delete</button>
           </div>
         </div>
       `).join('');
