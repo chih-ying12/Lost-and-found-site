@@ -430,7 +430,7 @@
     </div>
   </div>
 
-  <!-- HOST CONTROL PANEL (fixed alignment + fast delete) -->
+  <!-- HOST CONTROL PANEL (with toggle select) -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Control Panel</h2>
@@ -981,7 +981,7 @@
     } catch(e) { resultDiv.innerHTML = 'Error: '+e.message; }
   });
 
-  // ========== ADMIN PANEL (fixed alignment + fast parallel delete) ==========
+  // ========== ADMIN PANEL (with toggle select) ==========
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
@@ -998,7 +998,6 @@
         else if (isResolved) statusBadge = '<span class="admin-badge badge-resolved">Resolved</span>';
         else statusBadge = '<span class="admin-badge badge-active">Active</span>';
 
-        // Left‑aligned row with checkbox, type text, and badge
         return `
           <div class="lost-item-card" style="background:#fffbeb;">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
@@ -1022,12 +1021,23 @@
         `;
       }).join('');
 
-      // Toolbar actions
-      document.getElementById('selectAllBtn').onclick = () => {
+      // TOGGLE SELECT ALL
+      const selectAllBtn = document.getElementById('selectAllBtn');
+      selectAllBtn.onclick = () => {
         const checks = document.querySelectorAll('.admin-checkbox');
-        checks.forEach(c => c.checked = true);
+        const allChecked = Array.from(checks).every(c => c.checked);
+        if (allChecked) {
+          // Deselect all
+          checks.forEach(c => c.checked = false);
+          selectAllBtn.textContent = '✅ Select All';
+        } else {
+          // Select all
+          checks.forEach(c => c.checked = true);
+          selectAllBtn.textContent = '❎ Deselect All';
+        }
       };
 
+      // SELECT RESOLVED
       document.getElementById('selectResolvedBtn').onclick = () => {
         const checks = document.querySelectorAll('.admin-checkbox');
         checks.forEach(c => {
@@ -1035,11 +1045,11 @@
         });
       };
 
+      // DELETE SELECTED
       document.getElementById('deleteSelectedBtn').onclick = async () => {
         const selected = [...document.querySelectorAll('.admin-checkbox:checked')].map(c => c.dataset.id);
         if (selected.length === 0) return alert('No items selected.');
         if (!confirm(`Delete ${selected.length} item(s)?`)) return;
-        // DELETE IN PARALLEL (fast!)
         await Promise.all(selected.map(id => adminDeleteItem(id).catch(e => console.error(e))));
         loadAdminItems();
       };
