@@ -213,21 +213,9 @@
       gap: 8px;
       margin-bottom: 12px;
     }
-    .admin-toolbar label {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      background: #f1f5f9;
-      padding: 6px 10px;
-      border-radius: 10px;
-      border: 1px solid #e2e8f0;
-      white-space: nowrap;
-    }
     .admin-toolbar button {
       font-size: 0.85rem;
-      padding: 6px 12px;
+      padding: 8px 12px;
       white-space: nowrap;
     }
     .admin-badge {
@@ -434,13 +422,13 @@
     </div>
   </div>
 
-  <!-- HOST CONTROL PANEL (improved toolbar) -->
+  <!-- HOST CONTROL PANEL (clean toolbar) -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Control Panel</h2>
     <div class="admin-toolbar">
-      <label><input type="checkbox" id="selectAllCheckbox"> All</label>
-      <button id="selectResolvedBtn" class="outline-btn">Select Resolved</button>
+      <button id="selectAllBtn" class="outline-btn">✅ Select All</button>
+      <button id="selectResolvedBtn" class="outline-btn">📋 Select Resolved</button>
       <button id="deleteSelectedBtn" class="danger-btn">🗑️ Delete Selected</button>
     </div>
     <p style="color:#7d6608; margin-bottom:8px;">Total items: <strong id="adminItemCount">0</strong></p>
@@ -956,7 +944,7 @@
     document.getElementById('errorPopup').classList.add('hidden');
   });
 
-  // Check claim code – updated success message
+  // Check claim code
   document.getElementById('cancelCheckCodeBtn').addEventListener('click', () => checkCodePopup.classList.add('hidden'));
   document.getElementById('submitCheckCodeBtn').addEventListener('click', async () => {
     const code = document.getElementById('checkCodeInput').value.trim();
@@ -985,7 +973,7 @@
     } catch(e) { resultDiv.innerHTML = 'Error: '+e.message; }
   });
 
-  // ========== ADMIN PANEL (select/delete) ==========
+  // ========== ADMIN PANEL (clean toolbar) ==========
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
@@ -1025,11 +1013,10 @@
         `;
       }).join('');
 
-      // Toolbar actions
-      document.getElementById('selectAllCheckbox').checked = false;
-      document.getElementById('selectAllCheckbox').onchange = function() {
+      // Toolbar buttons
+      document.getElementById('selectAllBtn').onclick = () => {
         const checks = document.querySelectorAll('.admin-checkbox');
-        checks.forEach(c => c.checked = this.checked);
+        checks.forEach(c => c.checked = true);
       };
 
       document.getElementById('selectResolvedBtn').onclick = () => {
