@@ -160,6 +160,7 @@
       padding: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04);
       transition: box-shadow 0.2s;
+      word-wrap: break-word;
     }
     .lost-item-card:hover {
       box-shadow: 0 6px 18px rgba(0,0,0,0.07);
@@ -209,14 +210,20 @@
     .admin-toolbar {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
       gap: 8px;
       margin-bottom: 12px;
+      flex-wrap: wrap;
     }
     .admin-toolbar button {
       font-size: 0.85rem;
-      padding: 8px 12px;
+      padding: 8px 14px;
       white-space: nowrap;
+    }
+    .admin-checkbox {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      flex-shrink: 0;
     }
     .admin-badge {
       display: inline-block;
@@ -225,6 +232,7 @@
       font-size: 0.75rem;
       font-weight: 600;
       margin-left: 6px;
+      vertical-align: middle;
     }
     .badge-resolved { background: #dcfce7; color: #15803d; }
     .badge-active { background: #dbeafe; color: #1d4ed8; }
@@ -422,7 +430,7 @@
     </div>
   </div>
 
-  <!-- HOST CONTROL PANEL (clean toolbar) -->
+  <!-- HOST CONTROL PANEL (left-aligned checklist) -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Control Panel</h2>
@@ -733,12 +741,29 @@
     document.getElementById('checkCodeResult').innerHTML = '';
     checkCodePopup.classList.remove('hidden');
   });
+  document.getElementById('logoutFromHomeBtn').addEventListener('click', () => { showPage(lostPage); resetFilter(); loadLostItems('', ''); });
+  document.getElementById('goFoundBtn').addEventListener('click', () => showPage(foundPage));
+  document.getElementById('openCheckCodeBtn').addEventListener('click', () => {
+    document.getElementById('checkCodeInput').value = '';
+    document.getElementById('checkCodeResult').innerHTML = '';
+    checkCodePopup.classList.remove('hidden');
+  });
   document.getElementById('logoutFromHomeBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
+
+  function resetFilter() {
+    documentEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
 
   function resetFilter() {
     document.getElementById('filterTypePanel').classList.add('hidden');
     document.getElementById('filterType').value = '';
+    filterPanelVisible = false.getElementById('filterTypePanel').classList.add('hidden');
+    document.getElementById('filterType').value = '';
     filterPanelVisible = false;
+  }
+
+  // Lost items
+  async function loadLostItems(searchTerm, filterType) {
+    const container = document.getElementById('lostResults;
   }
 
   // Lost items
@@ -746,64 +771,129 @@
     const container = document.getElementById('lostResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
     try {
+      const');
+    container.innerHTML = '<p>⌛ Loading...</p>';
+    try {
       const items = await searchLostItems(searchTerm, filterType);
-      if(!items.length) { container.innerHTML = '<p>😔 No matching items.</p>'; return; }
+      if(!items.length) { container.innerHTML = '<p items = await searchLostItems(searchTerm, filterType);
+      if(!items.length) { container.innerHTML = '<p>😔 No matching items.</p>'; return;>😔 No matching items.</p>'; return; }
       container.innerHTML = items.map(item => {
-        const typeEmojis = { electronic:'📱', personal:'🎒', clothing:'👕', documents:'🪪', keys:'🔑', bags:'👜', other:'📌' };
+        const typeEmojis = { }
+      container.innerHTML = items.map(item => {
+        const typeEmojis = { electronic:'📱', personal:'🎒', clothing electronic:'📱', personal:'🎒', clothing:'👕', documents:'🪪', keys:'🔑', bags:'👜', other:'👕', documents:'🪪', keys:'🔑', bags:'👜', other:'📌' };
+        const typeEmoji = typeEmojis[item.get('type')] || ':'📌' };
         const typeEmoji = typeEmojis[item.get('type')] || '📌';
+        const photo = item.get('photo');
+        const desc = item.get📌';
         const photo = item.get('photo');
         const desc = item.get('description') || '';
         const contact = item.get('contactInfo') || '';
+       ('description') || '';
+        const contact = item.get('contactInfo') || '';
         return `
           <div class="lost-item-card">
+            <div style="display: return `
+          <div class="lost-item-card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>${flex; justify-content:space-between; align-items:center;">
               <strong>${typeEmoji} ${item.get('type')}</strong>
+              <span style="font-size:0.8rem; color:#64748b;">🕒typeEmoji} ${item.get('type')}</strong>
               <span style="font-size:0.8rem; color:#64748b;">🕒 ${item.get('timeFound')?.toLocaleString?.()}</span>
+            </ ${item.get('timeFound')?.toLocaleString?.()}</span>
             </div>
             <div style="margin-top:8px;">🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
+            <div>✨ ${div>
+            <div style="margin-top:8px;">🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
             <div>✨ ${item.get('appearance')}</div>
+            ${desc ? `<div>item.get('appearance')}</div>
             ${desc ? `<div>📝 ${desc}</div>` : ''}
             <div>📍 ${item.get('locationFound')}</div>
+            ${photo ? `<img src="${photo.url()📝 ${desc}</div>` : ''}
+            <div>📍 ${item.get('locationFound')}</div>
             ${photo ? `<img src="${photo.url()}" class="item-photo">` : ''}
+            <button class="}" class="item-photo">` : ''}
             <button class="primary-btn verify-btn" data-id="${item.id}" style="margin-top:8px; width:100%;">🔐 Verify it's yours</button>
-            <button class="outline-btn forgot-btn" style="margin-top:4px; width:100%;">❓ Forgot details? (Contact finder)</button>
-            <div class="contact-info hidden" id="contact-${item.id}" style="margin-top:6px; color:#475569;">${contact ? '📞 '+contact : '⚠️ No contact provided.'}</div>
+            <button class="outlineprimary-btn verify-btn" data-id="${item.id}" style="margin-top:8px; width:100%;">🔐 Verify it's yours</button>
+            <button class="outline-btn forgot-btn" style="margin-top:4px-btn forgot-btn" style="margin-top:4px; width:100%;">❓ Forgot details? (Contact finder)</button>
+            <div class="contact-info hidden; width:100%;">❓ Forgot details? (Contact finder)</button>
+            <div class="contact-info hidden" id="contact-" id="contact-${item.id}" style="margin-top:6px; color:#475569;">${${item.id}" style="margin-top:6px; color:#475569;">${contact ? '📞 '+contactcontact ? '📞 '+contact : '⚠️ No contact : '⚠️ No contact provided.'}</div>
+          </div>
+        ` provided.'}</div>
           </div>
         `;
       }).join('');
-      document.querySelectorAll('.verify-btn').forEach(btn => btn.addEventListener('click', e => {
+      document;
+      }).join('');
+      document.querySelectorAll('.verify-btn.querySelectorAll('.verify-btn').forEach(btn => btn.addEventListener('click', e').forEach(btn => btn.addEventListener('click', e => {
+        currentVerifyingItemId = e.target.dataset.id;
+        openVerifyPopup(currentVerifyingItemId);
+      }));
+      document.querySelectorAll('.forgot-btn').forEach(btn => btn.addEventListener('click', e => => {
         currentVerifyingItemId = e.target.dataset.id;
         openVerifyPopup(currentVerifyingItemId);
       }));
       document.querySelectorAll('.forgot-btn').forEach(btn => btn.addEventListener('click', e => {
         const id = e.target.closest('.lost-item-card').querySelector('.verify-btn').dataset.id;
+        document.getElementById('contact- {
+        const id = e.target.closest('.lost-item-card').querySelector('.verify-btn').dataset.id;
         document.getElementById('contact-'+id).classList.toggle('hidden');
       }));
+    } catch(e) { container.innerHTML ='+id).classList.toggle('hidden');
+      }));
     } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
+  `<p style="color:red;">Error: ${e.message}</p>`; }
   }
 
+  document.getElementById('searchLostBtn').addEventListener(' }
+
   document.getElementById('searchLostBtn').addEventListener('click', () => {
+    const panel = document.getElementById('filterTypePanel');
+    if (!filterPanelVisible) {
+      panel.classList.remove('hiddenclick', () => {
     const panel = document.getElementById('filterTypePanel');
     if (!filterPanelVisible) {
       panel.classList.remove('hidden');
       filterPanelVisible = true;
     } else {
+      const term = document.getElementById('lostSearchInput').value');
+      filterPanelVisible = true;
+    } else {
       const term = document.getElementById('lostSearchInput').value;
+      const type = document;
       const type = document.getElementById('filterType').value;
       loadLostItems(term, type);
     }
   });
 
-  document.getElementById('filterType').addEventListener('change', () => {
+  document.getElementById('filterType').value;
+      loadLostItems(term, type);
+    }
+  });
+
+  document.getElementById('filterType').addEventListener('change', () =>.getElementById('filterType').addEventListener('change', () => {
+    const term = document.getElementById('lostSearchInput').value;
+    const type = document.getElementById('filterType').value;
+    loadLostItems(term, type);
+  });
+
+  document.getElementById('lost {
     const term = document.getElementById('lostSearchInput').value;
     const type = document.getElementById('filterType').value;
     loadLostItems(term, type);
   });
 
   document.getElementById('lostSearchInput').addEventListener('keypress', (e) => {
+    if (eSearchInput').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       const term = e.target.value;
+      const type.key === 'Enter') {
+      const term = e.target.value;
       const type = document.getElementById('filterType').value;
+      loadLostItems(term, type);
+    }
+  });
+
+  // = document.getElementById('filterType').value;
       loadLostItems(term, type);
     }
   });
@@ -814,157 +904,313 @@
     document.getElementById('verifyAnswerInput').style.display = '';
     document.getElementById('submitVerifyBtn').style.display = '';
     document.getElementById('cancelVerifyBtn').style.display = '';
+    document.getElementById(' Verification popup
+  async function openVerifyPopup(itemId) {
+    document.getElementById('claimCodeSection').style.display = 'none';
+    document.getElementById('verifyAnswerInput').style.display = '';
+    document.getElementById('submitVerifyBtn').style.display = '';
+    document.getElementById('cancelVerifyBtn').style.display = '';
+    document.getElementById('verifyQuestionText').style.display = '';
     document.getElementById('verifyQuestionText').style.display = '';
     document.getElementById('verifyStatusMessage').style.display = '';
+    document.getElementById('verifyMessage').textContent =verifyStatusMessage').style.display = '';
     document.getElementById('verifyMessage').textContent = '';
     document.getElementById('verifyStatusMessage').textContent = '';
+    document.getElementById('verifyStatusMessage').textContent = '';
+    const answerInput = document.getElementById('verifyAnswerInput');
+    answerInput.value = ''; answerInput.dis '';
     const answerInput = document.getElementById('verifyAnswerInput');
     answerInput.value = ''; answerInput.disabled = false;
+    document.getElementById('submitVerifyBtn').disabled = false;
+
+    tryabled = false;
     document.getElementById('submitVerifyBtn').disabled = false;
 
     try {
       const query = new Parse.Query(LostItem);
       const item = await query.get(itemId);
       if (item.get("verificationBlocked")) {
-        document.getElementById('verifyStatusMessage').textContent = '⛔ Permanently blocked.';
+        {
+      const query = new Parse.Query(LostItem);
+      const item = await query.get(itemId);
+      if (item.get("verificationBlocked")) {
+        document.getElementById('verifyStatusMessage document.getElementById('verifyStatusMessage').textContent = '⛔ Permanently blocked.';
+        answerInput.dis').textContent = '⛔ Permanently blocked.';
         answerInput.disabled = true;
+        documentabled = true;
         document.getElementById('submitVerifyBtn').disabled = true;
       } else {
+        const nextAllowed.getElementById('submitVerifyBtn').disabled = true;
+      } else {
         const nextAllowed = item.get("nextAttemptAllowedAt");
-        if (nextAllowed && new Date() < new Date(nextAllowed)) {
+        if = item.get("nextAttemptAllowedAt");
+        if (nextAllowed && new Date() < new Date(nextAllowed (nextAllowed && new Date() < new Date(nextAllowed)) {
+          const diff = new Date(nextAllowed)) {
           const diff = new Date(nextAllowed) - new Date();
-          document.getElementById('verifyStatusMessage').textContent = `⏳ Cooldown: ${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m`;
+          document.getElementById('verifyStatusMessage').textContent = `⏳ Cooldown: ${Math.floor(diff/) - new Date();
+          document.getElementById('verifyStatusMessage').textContent = `⏳ Cooldown: ${Math.floor(diff/3600000)}h ${Math.floor((diff%3603600000)}h ${Math.floor((diff%3600000)/60000)}m`;
+          answerInput.disabled = true;
+          document0000)/60000)}m`;
           answerInput.disabled = true;
           document.getElementById('submitVerifyBtn').disabled = true;
+        }.getElementById('submitVerifyBtn').disabled = true;
         } else {
+          const attempts = item.get("verificationAttempts") || 0;
+          if (attempts >= 9) {
+            document else {
           const attempts = item.get("verificationAttempts") || 0;
           if (attempts >= 9) {
             document.getElementById('verifyStatusMessage').textContent = 'Blocked.';
             answerInput.disabled = true;
+            document.getElementById('submitVerifyBtn.getElementById('verifyStatusMessage').textContent = 'Blocked.';
+            answerInput.disabled = true;
             document.getElementById('submitVerifyBtn').disabled = true;
-          } else if (attempts >= 6) document.getElementById('verifyStatusMessage').textContent = `⚠️ ${attempts} wrong. 5h lock soon.`;
-          else if (attempts >= 3) document.getElementById('verifyStatusMessage').textContent = `⚠️ ${attempts} wrong.`;
+          } else if (attempts >= 6) document.getElementById').disabled = true;
+          } else if (attempts >= 6) document.getElementById('verifyStatusMessage').textContent = `⚠️ ${('verifyStatusMessage').textContent = `⚠️ ${attempts} wrong. 5h lock soon.attempts} wrong. 5h lock soon.`;
+          else if (attempts >= 3) document.getElementById`;
+          else if (attempts >= 3) document.getElementById('verifyStatusMessage').textContent = `⚠️ ${('verifyStatusMessage').textContent = `⚠️ ${attempts} wrong.`;
+        }
+      }
+      constattempts} wrong.`;
         }
       }
       const question = await getVerificationQuestion(itemId);
+      document.getElementById('verifyQuestionText question = await getVerificationQuestion(itemId);
       document.getElementById('verifyQuestionText').textContent = '🔐 ' + (question || 'No question');
+      verify').textContent = '🔐 ' + (question || 'No question');
       verifyPopup.classList.remove('hidden');
+    } catch(e) {Popup.classList.remove('hidden');
     } catch(e) { alert('Error: '+e.message); }
   }
 
-  document.getElementById('cancelVerifyBtn').addEventListener('click', () => verifyPopup.classList.add('hidden'));
+  document.getElementById('cancelVerifyBtn alert('Error: '+e.message); }
+  }
+
+  document.getElementById('cancelVerifyBtn').addEventListener('click', () => verifyPopup.classList.add').addEventListener('click', () => verifyPopup.classList.add('hidden'));
+  document.getElementById('submitVerifyBtn').addEventListener('click', async ()('hidden'));
   document.getElementById('submitVerifyBtn').addEventListener('click', async () => {
+    if(!currentVerifyingItemId) return => {
     if(!currentVerifyingItemId) return;
     const answer = document.getElementById('verifyAnswerInput').value.trim();
     if(!answer) return;
     try {
+      const result = await;
+    const answer = document.getElementById('verifyAnswerInput').value.trim();
+    if(!answer) return;
+    try {
       const result = await verifyItem(currentVerifyingItemId, answer);
+      if verifyItem(currentVerifyingItemId, answer);
       if (result.success) {
+        document.getElementById('claimCodeText (result.success) {
         document.getElementById('claimCodeText').textContent = result.claimCode;
+        document.getElementById').textContent = result.claimCode;
         document.getElementById('claimCodeSection').style.display = 'block';
+        document.getElementById('verifyQuestionText('claimCodeSection').style.display = 'block';
         document.getElementById('verifyQuestionText').style.display = 'none';
+        document.getElementById('verify').style.display = 'none';
         document.getElementById('verifyStatusMessage').style.display = 'none';
+        document.getElementById('verifyAnswerInput').styleStatusMessage').style.display = 'none';
         document.getElementById('verifyAnswerInput').style.display = 'none';
+        document.getElementById('submitVerifyBtn.display = 'none';
         document.getElementById('submitVerifyBtn').style.display = 'none';
         document.getElementById('cancelVerifyBtn').style.display = 'none';
-        document.getElementById('verifyMessage').textContent = '';
+        document.getElementById').style.display = 'none';
+        document.getElementById('cancelVerifyBtn').style.display = 'none';
+        document.getElementById('verifyMessage').text('verifyMessage').textContent = '';
+      } else {
+        document.getElementById('verifyMessage').textContent = result.message;
+        if (resultContent = '';
       } else {
         document.getElementById('verifyMessage').textContent = result.message;
         if (result.blocked) {
+          document.getElementById('verifyAnswerInput')..blocked) {
           document.getElementById('verifyAnswerInput').disabled = true;
           document.getElementById('submitVerifyBtn').disabled = true;
+        }disabled = true;
+          document.getElementById('submitVerifyBtn').disabled = true;
         } else if (result.cooldownEnd) {
+          document else if (result.cooldownEnd) {
+          document.getElementById('verifyAnswerInput').disabled = true;
           document.getElementById('verifyAnswerInput').disabled = true;
           document.getElementById('submitVerifyBtn').disabled = true;
         }
       }
-    } catch(e) { document.getElementById('verifyMessage').textContent = e.message; }
+    } catch(e.getElementById('submitVerifyBtn').disabled = true;
+        }
+      }
+    } catch(e) { document.getElementById('verify) { document.getElementById('verifyMessage').textContent = e.message; }
   });
 
-  document.getElementById('copyClaimCodeBtn').addEventListener('click', () => {
-    const code = document.getElementById('claimCodeText').textContent;
-    navigator.clipboard.writeText(code).then(() => alert('Claim code copied!')).catch(() => alert('Could not copy.'));
+ Message').textContent = e.message; }
   });
-  document.getElementById('closeClaimCodeBtn').addEventListener('click', () => {
+
+  document.getElementById('copyClaimCodeBtn').addEventListener('click document.getElementById('copyClaimCodeBtn').addEventListener('click', () => {
+    const', () => {
+    const code = document.getElementById('claimCodeText').textContent;
+    navigator.clipboard code = document.getElementById('claimCodeText').textContent;
+    navigator.clipboard.writeText(code).then(() => alert('Claim code.writeText(code).then(() => alert('Claim code copied!')).catch(() => alert('Could not copy.'));
+  });
+  document.getElementById copied!')).catch(() => alert('Could not copy.'));
+  });
+  document.getElementById('closeClaimCodeBtn').('closeClaimCodeBtn').addEventListener('click', () => {
     verifyPopup.classList.add('hidden');
-    const term = document.getElementById('lostSearchInput')?.value || '';
+    const term = document.getElementById('lostaddEventListener('click', () => {
+    verifyPopup.classList.add('hidden');
+    const term = document.getElementById('lostSearchInput')?.value ||SearchInput')?.value || '';
+    const type = document.getElementById('filter '';
     const type = document.getElementById('filterType')?.value || '';
+    loadLostType')?.value || '';
     loadLostItems(term, type);
   });
 
   // Found form
   document.getElementById('foundType').addEventListener('change', e => {
-    const q = document.getElementById('foundVeriQuestion');
+    constItems(term, type);
+  });
+
+  // Found form
+  document.getElementById('foundType').addEventListener('change', e => {
+    const q = document.getElementById('found q = document.getElementById('foundVeriQuestion');
+    if(e.target.value === 'electronic') q.value = 'What is the wallpaper of this device?';
+    else q.value = '';
+ VeriQuestion');
     if(e.target.value === 'electronic') q.value = 'What is the wallpaper of this device?';
     else q.value = '';
   });
+  document.getElementById('foundType').dispatchEvent(new Event(' });
   document.getElementById('foundType').dispatchEvent(new Event('change'));
 
   document.getElementById('submitFoundBtn').addEventListener('click', async () => {
+    const fields = ['foundColor','foundModel','foundTime','foundLocationchange'));
+
+  document.getElementById('submitFoundBtn').addEventListener('click', async () => {
     const fields = ['foundColor','foundModel','foundTime','foundLocation','foundVeriQuestion','foundVeriAnswer'];
+    const missing = fields.some','foundVeriQuestion','foundVeriAnswer'];
     const missing = fields.some(id => !document.getElementById(id).value.trim());
     if(missing) {
-      document.getElementById('errorPopupMessage').textContent = '❌ Please fill all required fields.';
+      document.getElementById('errorPopup(id => !document.getElementById(id).value.trim());
+    if(missing) {
+      document.getElementById('errorPopupMessage').textContent = '❌ Please fillMessage').textContent = '❌ Please fill all required fields.';
+      document.getElementById(' all required fields.';
       document.getElementById('errorPopup').classList.remove('hidden');
+      return;
+    }
+    const data = {
+      type: document.getElementById('founderrorPopup').classList.remove('hidden');
       return;
     }
     const data = {
       type: document.getElementById('foundType').value,
       color: document.getElementById('foundColor').value.trim(),
       model: document.getElementById('foundModel').value.trim(),
+      appearanceType').value,
+      color: document.getElementById('foundColor').value.trim(),
+      model: document.getElementById('foundModel').value.trim(),
       appearance: document.getElementById('foundAppearance').value.trim(),
       description: document.getElementById('foundDescription').value.trim(),
-      timeFound: new Date(document.getElementById('foundTime').value),
+     : document.getElementById('foundAppearance').value.trim(),
+      description: document.getElementById('foundDescription').value.trim(),
+      timeFound: new Date(document.getElementById('foundTime').value timeFound: new Date(document.getElementById('foundTime').value),
+      locationFound: document.getElementById('foundLocation),
       locationFound: document.getElementById('foundLocation').value.trim(),
       verificationQuestion: document.getElementById('foundVeriQuestion').value.trim(),
+      verificationAnswer: document').value.trim(),
+      verificationQuestion: document.getElementById('foundVeriQuestion').value.trim(),
       verificationAnswer: document.getElementById('foundVeriAnswer').value.trim(),
+      contactInfo: document.getElementById('found.getElementById('foundVeriAnswer').value.trim(),
       contactInfo: document.getElementById('foundContactInfo').value.trim()
     };
+    const photoInput = document.getElementById('foundContactInfo').value.trim()
+    };
     const photoInput = document.getElementById('foundPhoto');
+    if(photoInput.files.length)Photo');
     if(photoInput.files.length) {
       data.photoFile = photoInput.files[0];
-      data.photoName = photoInput.files[0].name;
+      data {
+      data.photoFile = photoInput.files[0];
+      data.photoName = photoInput.photoName = photoInput.files[0].name;
     }
     try {
       await createFoundItem(data);
-      ['foundColor','foundModel','foundAppearance','foundDescription','foundLocation','foundVeriAnswer','foundContactInfo','foundPhoto'].forEach(id => document.getElementById(id).value='');
+      ['found.files[0].name;
+    }
+    try {
+      await createFoundItem(data);
+      ['foundColor','foundModel','foundColor','foundModel','foundAppearance','foundDescription','foundLocation','foundVeriAnswer','foundContactInfo','foundPhoto'].forEach(id =>Appearance','foundDescription','foundLocation','foundVeriAnswer','foundContactInfo','foundPhoto'].forEach(id => document.getElementById(id).value='');
+      document.getElementById('found document.getElementById(id).value='');
       document.getElementById('foundType').dispatchEvent(new Event('change'));
+      document.getElementById('successPopup').classListType').dispatchEvent(new Event('change'));
       document.getElementById('successPopup').classList.remove('hidden');
     } catch(e) {
+      document.getElementById('errorPopupMessage.remove('hidden');
+    } catch(e) {
       document.getElementById('errorPopupMessage').textContent = '❌ Error: ' + e.message;
+      document.getElementById('errorPopup').class').textContent = '❌ Error: ' + e.message;
       document.getElementById('errorPopup').classList.remove('hidden');
     }
   });
 
+  document.getElementById('closeList.remove('hidden');
+    }
+  });
+
   document.getElementById('closeSuccessPopup').addEventListener('click', () => {
+   SuccessPopup').addEventListener('click', () => {
     document.getElementById('successPopup').classList.add('hidden');
+    showPage(h document.getElementById('successPopup').classList.add('hidden');
     showPage(homePage);
   });
+  document.getElementById('closeErrorPopup').addEventListener('click',omePage);
+  });
   document.getElementById('closeErrorPopup').addEventListener('click', () => {
+    document.getElementById () => {
     document.getElementById('errorPopup').classList.add('hidden');
   });
 
   // Check claim code
-  document.getElementById('cancelCheckCodeBtn').addEventListener('click', () => checkCodePopup.classList.add('hidden'));
+  document.getElementById('cancel('errorPopup').classList.add('hidden');
+  });
+
+  // Check claim code
+  document.getElementById('cancelCheckCodeBtn').addEventListener('click', () => checkCheckCodeBtn').addEventListener('click', () => checkCodePopup.classList.add('hidden'));
+  document.getElementById('submitCheckCodeBtn').addEventListener('click', asyncCodePopup.classList.add('hidden'));
   document.getElementById('submitCheckCodeBtn').addEventListener('click', async () => {
     const code = document.getElementById('checkCodeInput').value.trim();
+    () => {
+    const code = document.getElementById('checkCodeInput').value.trim();
     if(!code) return;
+    const resultDiv = document.getElementById('checkCodeResult');
+    resultDiv.innerHTML = ' if(!code) return;
     const resultDiv = document.getElementById('checkCodeResult');
     resultDiv.innerHTML = '⌛ Checking...';
     try {
       const res = await checkClaimCode(code);
       if(res.found) {
+        resultDiv.innerHTML =⌛ Checking...';
+    try {
+      const res = await checkClaimCode(code);
+      if(res.found) {
         resultDiv.innerHTML = `
+          <div style="background:#e6f7ec; padding:12px; border-radius:14px `
           <div style="background:#e6f7ec; padding:12px; border-radius:14px; margin-top:8px;">
+            ✅ Valid claim; margin-top:8px;">
             ✅ Valid claim code!<br>
             Type: ${res.type}<br>
-            🎨 ${res.color} · 🏷️ ${res.model}<br>
+            🎨 code!<br>
+            Type: ${res.type}<br>
+            🎨 ${res.color} · 🏷️ ${ ${res.color} · 🏷️ ${res.model}<br>
+            📍 Found near: ${res.model}<br>
             📍 Found near: ${res.locationFound}
-            <p style="font-size:0.8rem; margin:6px 0 0;">Go collect your item.</p>
+            <p style="font-size:res.locationFound}
+            <p style="font-size:0.8rem; margin:6px 0 0;">Go collect your item0.8rem; margin:6px 0 0;">Go collect your item.</p>
+            <button id="closeCheck.</p>
             <button id="closeCheckResultBtn" class="outline-btn" style="margin-top:8px;">Close</button>
+          </divResultBtn" class="outline-btn" style="margin-top:8px;">Close</button>
           </div>
         `;
-        document.getElementById('closeCheckResultBtn').addEventListener('click', () => {
+        document>
+        `;
+        document.getElementById.getElementById('closeCheckResultBtn').addEventListener('click', () => {
           checkCodePopup.classList.add('hidden');
         });
       } else {
@@ -973,73 +1219,151 @@
     } catch(e) { resultDiv.innerHTML = 'Error: '+e.message; }
   });
 
-  // ========== ADMIN PANEL (clean toolbar) ==========
+  // ========== ADMIN PANEL (left-aligned checklist) =========('closeCheckResultBtn').addEventListener('click', () => {
+          checkCodePopup.classList.add('hidden');
+        });
+      } else {
+        resultDiv.innerHTML = '❌ Invalid code.';
+      }
+    } catch(e) { resultDiv.innerHTML = 'Error: '+e.message; }
+  });
+
+  // ========== ADMIN PANEL (left-aligned checklist) ==========
+  async function loadAdminItems() {
+    const container = document.getElementById('adminResults');
+    container.innerHTML = '<p>⌛ Loading...</p>';
+    try {
+      const items = await admin=
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
     try {
       const items = await adminGetAllItems();
       document.getElementById('adminItemCount').textContent = items.length;
+      if(!items.length) { container.innerHTML = '<pGetAllItems();
+      document.getElementById('adminItemCount').textContent = items.length;
       if(!items.length) { container.innerHTML = '<p>No items in database.</p>'; return; }
 
       container.innerHTML = items.map(item => {
+       >No items in database.</p>'; return; }
+
+      container.innerHTML = items.map(item => {
         const isResolved = item.get('isResolved');
+        const isBlocked = item.get('verificationBlock const isResolved = item.get('isResolved');
         const isBlocked = item.get('verificationBlocked');
         let statusBadge = '';
+        if (ed');
+        let statusBadge = '';
         if (isBlocked) statusBadge = '<span class="admin-badge badge-blocked">Blocked</span>';
+        else if (isResolved) statusBadge =isBlocked) statusBadge = '<span class="admin-badge badge-blocked">Blocked</span>';
         else if (isResolved) statusBadge = '<span class="admin-badge badge-resolved">Resolved</span>';
+        else '<span class="admin-badge badge-resolved">Resolved</span>';
         else statusBadge = '<span class="admin-badge badge-active">Active</span>';
 
         return `
+          <div class="lost-item-card statusBadge = '<span class="admin-badge badge-active">Active</span>';
+
+        return `
           <div class="lost-item-card" style="background:#fffbeb;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${isResolved}">
-              <strong>${item.get('type')} ${statusBadge}</strong>
+            <div" style="background:#fffbeb;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+              <input type="checkbox" class="admin style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+              <input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-res-checkbox" data-id="${item.id}" data-resolved="${isResolved}">
+              <strong style="flex:1;">${item.getolved="${isResolved}">
+              <strong style="flex:1;">${item.get('type')} ${statusBadge}</strong>
             </div>
-            <div>🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
+           ('type')} ${statusBadge}</strong>
+            </div>
+            <div>🎨 ${item.get('color')} · <div>🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
+            <div>✨ 🏷️ ${item.get('model')}</div>
             <div>✨ ${item.get('appearance')}</div>
+            <div>📝 ${item ${item.get('appearance')}</div>
             <div>📝 ${item.get('description')||'-'}</div>
-            <div>📍 ${item.get('locationFound')} · 🕒 ${item.get('timeFound')?.toLocaleString?.()}</div>
-            <div>🔐 Q: ${item.get('verificationQuestion')||''}</div>
+           .get('description')||'-'}</div>
+            <div>📍 ${item.get('locationFound')} · 🕒 ${item.get('timeFound')?.to <div>📍 ${item.get('locationFound')} · 🕒 ${item.get('timeFound')?.toLocaleString?.()}</div>
+            <div>LocaleString?.()}</div>
+            <div>🔐 Q: ${item.get('verificationQuestion')||🔐 Q: ${item.get('verificationQuestion')||''}</div>
+            <div>🔑 A:''}</div>
             <div>🔑 A: ${item.get('verificationAnswer')||''}</div>
+            <div> ${item.get('verificationAnswer')||''}</div>
             <div>📞 ${item.get('contactInfo')||'none'}</div>
-            <div>🎫 Claim Code: ${item.get('claimCode')||'none'}</div>
+            <div📞 ${item.get('contactInfo')||'none'}</div>
+            <div>🎫 Claim Code: ${item.get('claimCode>🎫 Claim Code: ${item.get('claimCode')||'none'}</div>
+            <div>🚫 Attempts: ${')||'none'}</div>
             <div>🚫 Attempts: ${item.get('verificationAttempts')||0}</div>
-            <div class="admin-actions" style="display:flex; gap:8px; margin-top:10px;">
-              <button onclick="window.resetItem('${item.id}')" class="outline-btn" style="flex:1;">🔄 Reset</button>
-              <button onclick="window.deleteItem('${item.id}')" class="danger-btn" style="flex:1;">🗑️ Delete</button>
+            <item.get('verificationAttempts')||0}</div>
+            <div class="admin-actions" style="display:flex; gap:div class="admin-actions" style="display:flex; gap:8px; margin-top:10px;">
+              <button onclick="window.resetItem('8px; margin-top:10px;">
+              <button onclick="window.resetItem('${item.id}')"${item.id}')" class="outline-btn" style="flex:1;">🔄 Reset</button class="outline-btn" style="flex:1;">🔄 Reset</button>
+>
+              <button onclick="window.deleteItem('${item.id}')" class="danger-btn" style="flex:              <button onclick="window.deleteItem('${item.id}')" class="danger-btn" style="flex:1;">🗑️ Delete</button>
+            </1;">🗑️ Delete</button>
             </div>
+          </div>
           </div>
         `;
       }).join('');
 
-      // Toolbar buttons
+      // Toolbar actions
+      document.getElementById('selectAllBtn').onclick = () => {
+        const checksdiv>
+        `;
+      }).join('');
+
+      // Toolbar actions
       document.getElementById('selectAllBtn').onclick = () => {
         const checks = document.querySelectorAll('.admin-checkbox');
+        checks.forEach = document.querySelectorAll('.admin-checkbox');
         checks.forEach(c => c.checked = true);
       };
 
+      document.getElementById('selectResolvedBtn(c => c.checked = true);
+      };
+
       document.getElementById('selectResolvedBtn').onclick = () => {
+        const checks = document.querySelectorAll('.admin-checkbox').onclick = () => {
         const checks = document.querySelectorAll('.admin-checkbox');
+        checks.forEach(c =>');
         checks.forEach(c => {
+          c.checked = c.dataset.resolved === {
           c.checked = c.dataset.resolved === 'true';
         });
       };
 
       document.getElementById('deleteSelectedBtn').onclick = async () => {
-        const selected = [...document.querySelectorAll('.admin-checkbox:checked')].map(c => c.dataset.id);
-        if (selected.length === 0) return alert('No items selected.');
+        const 'true';
+        });
+      };
+
+      document.getElementById('deleteSelectedBtn').onclick = async () => {
+        const selected = [...document.querySelectorAll('.admin-checkbox:checked selected = [...document.querySelectorAll('.admin-checkbox:checked')].map(c => c.dataset.id);
+        if')].map(c => c.dataset.id);
+        if (selected.length === 0 (selected.length === 0) return alert('No items selected.');
+        if (!confirm(`Delete ${selected.length} item(s)?`)) return;
+        for (let) return alert('No items selected.');
         if (!confirm(`Delete ${selected.length} item(s)?`)) return;
         for (let id of selected) {
+          id of selected) {
           try { await adminDeleteItem(id); } catch(e) { console.error(e); }
         }
         loadAdminItems();
       };
-    } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
+    } catch(e) { try { await adminDeleteItem(id); } catch(e) { console.error(e); }
+        }
+        loadAdminItems();
+      };
+    } catch(e) { container.innerHTML = `<p style="color: container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
+ red;">Error: ${e.message}</p>`; }
   }
 
-  window.resetItem = async (id) => { if(confirm('Reset attempts?')) { await adminResetAttempts(id); loadAdminItems(); } };
-  window.deleteItem = async (id) => { if(confirm('Delete permanently?')) { await adminDeleteItem(id); loadAdminItems(); } };
+  window.resetItem = async }
+
+  window.resetItem = async (id) => { if(confirm('Reset attempts?')) { await adminReset (id) => { if(confirm('Reset attempts?')) { await adminResetAttempts(id); loadAdminAttempts(id); loadAdminItems(); } };
+  windowItems(); } };
+  window.deleteItem = async (id) => { if(confirm('Delete permanently?')) {.deleteItem = async (id) => { if(confirm('Delete permanently?')) { await adminDeleteItem(id); loadAdminItems(); } };
+
+  checkSession();
+</script await adminDeleteItem(id); loadAdminItems(); } };
 
   checkSession();
 </script>
