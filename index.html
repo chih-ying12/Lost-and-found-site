@@ -696,6 +696,18 @@
     } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
   }
 
+  // ** Filter button & Enter key search **
+  document.getElementById('searchLostBtn').addEventListener('click', () => {
+    const term = document.getElementById('lostSearchInput').value;
+    loadLostItems(term);
+  });
+
+  document.getElementById('lostSearchInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      loadLostItems(e.target.value);
+    }
+  });
+
   // Verification popup
   async function openVerifyPopup(itemId) {
     document.getElementById('claimCodeSection').style.display = 'none';
