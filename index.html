@@ -160,6 +160,7 @@
       padding: 16px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04);
       transition: box-shadow 0.2s;
+      word-wrap: break-word;
     }
     .lost-item-card:hover {
       box-shadow: 0 6px 18px rgba(0,0,0,0.07);
@@ -209,14 +210,20 @@
     .admin-toolbar {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
+      gap: 6px;
       margin-bottom: 12px;
+      flex-wrap: nowrap;
     }
     .admin-toolbar button {
-      font-size: 0.85rem;
-      padding: 8px 12px;
+      font-size: 0.8rem;
+      padding: 7px 10px;
       white-space: nowrap;
+    }
+    .admin-checkbox {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      flex-shrink: 0;
     }
     .admin-badge {
       display: inline-block;
@@ -225,6 +232,7 @@
       font-size: 0.75rem;
       font-weight: 600;
       margin-left: 6px;
+      vertical-align: middle;
     }
     .badge-resolved { background: #dcfce7; color: #15803d; }
     .badge-active { background: #dbeafe; color: #1d4ed8; }
@@ -422,7 +430,7 @@
     </div>
   </div>
 
-  <!-- HOST CONTROL PANEL (clean toolbar) -->
+  <!-- HOST CONTROL PANEL (fixed alignment + fast delete) -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Control Panel</h2>
@@ -973,7 +981,7 @@
     } catch(e) { resultDiv.innerHTML = 'Error: '+e.message; }
   });
 
-  // ========== ADMIN PANEL (clean toolbar) ==========
+  // ========== ADMIN PANEL (fixed alignment + fast parallel delete) ==========
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
@@ -990,11 +998,12 @@
         else if (isResolved) statusBadge = '<span class="admin-badge badge-resolved">Resolved</span>';
         else statusBadge = '<span class="admin-badge badge-active">Active</span>';
 
+        // Left‑aligned row with checkbox, type text, and badge
         return `
           <div class="lost-item-card" style="background:#fffbeb;">
-            <div style="display:flex; align-items:center; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
               <input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${isResolved}">
-              <strong>${item.get('type')} ${statusBadge}</strong>
+              <span style="font-weight:bold;">${item.get('type')}</span> ${statusBadge}
             </div>
             <div>🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
             <div>✨ ${item.get('appearance')}</div>
@@ -1013,7 +1022,7 @@
         `;
       }).join('');
 
-      // Toolbar buttons
+      // Toolbar actions
       document.getElementById('selectAllBtn').onclick = () => {
         const checks = document.querySelectorAll('.admin-checkbox');
         checks.forEach(c => c.checked = true);
@@ -1030,9 +1039,8 @@
         const selected = [...document.querySelectorAll('.admin-checkbox:checked')].map(c => c.dataset.id);
         if (selected.length === 0) return alert('No items selected.');
         if (!confirm(`Delete ${selected.length} item(s)?`)) return;
-        for (let id of selected) {
-          try { await adminDeleteItem(id); } catch(e) { console.error(e); }
-        }
+        // DELETE IN PARALLEL (fast!)
+        await Promise.all(selected.map(id => adminDeleteItem(id).catch(e => console.error(e))));
         loadAdminItems();
       };
     } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
