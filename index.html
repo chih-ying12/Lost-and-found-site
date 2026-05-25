@@ -93,7 +93,7 @@
       font-size: 0.9rem;
       margin: 0;
       min-height: 0;
-      display: none; /* hidden when empty */
+      display: none;
     }
     .error-msg.show {
       display: block;
@@ -204,11 +204,32 @@
       padding: 10px;
       margin-bottom: 8px;
     }
+
+    /* ---------- admin panel improvements ---------- */
+    .admin-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .admin-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+    .badge-resolved { background: #dcfce7; color: #15803d; }
+    .badge-active { background: #dbeafe; color: #1d4ed8; }
+    .badge-blocked { background: #f1f5f9; color: #475569; }
   </style>
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE (no gaps) -->
+  <!-- LOGIN PAGE -->
   <div id="loginPage" class="page">
     <h2 style="justify-content:center;">🔐 Lost & Found</h2>
 
@@ -274,7 +295,7 @@
     <button id="logoutFromHomeBtn" class="danger-btn" style="margin-top:6px;">🚪 Log out</button>
   </div>
 
-  <!-- LOST PAGE (filter panel hidden, resets on leave) -->
+  <!-- LOST PAGE -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
     <h2>🔍 Claim a Lost Item</h2>
@@ -283,7 +304,6 @@
       <input type="text" id="lostSearchInput" placeholder="🔍 search by keyword..." style="flex:2;">
       <button id="searchLostBtn" class="primary-btn" style="flex:1;">Filter</button>
     </div>
-    <!-- Filter type panel (hidden initially) -->
     <div id="filterTypePanel" class="filter-type-panel hidden">
       <label style="font-size:0.9rem; margin-bottom:4px; display:block;">📂 Filter by type:</label>
       <select id="filterType" style="width:100%;">
@@ -300,7 +320,7 @@
     <div id="lostResults" style="display:flex; flex-direction:column; gap:12px;"></div>
   </div>
 
-  <!-- FOUND PAGE (report found item) -->
+  <!-- FOUND PAGE -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
     <h2>📦 Report Found Item</h2>
@@ -371,7 +391,6 @@
     </div>
   </div>
 
-  <!-- CHECK CLAIM CODE POPUP (wording updated) -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
@@ -399,11 +418,17 @@
     </div>
   </div>
 
-  <!-- HOST CONTROL PANEL -->
+  <!-- HOST CONTROL PANEL (improved) -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Control Panel</h2>
-    <p style="color:#7d6608;">All items (incl. resolved & blocked)</p>
+    <div class="admin-toolbar">
+      <label style="display:flex; align-items:center; gap:6px; font-size:0.9rem; cursor:pointer;">
+        <input type="checkbox" id="selectAllCheckbox"> Select All
+      </label>
+      <button id="deleteSelectedBtn" class="danger-btn" style="flex:1;">🗑️ Delete Selected</button>
+    </div>
+    <p style="color:#7d6608; margin-bottom:8px;">Total items: <strong id="adminItemCount">0</strong></p>
     <div id="adminResults" style="display:flex; flex-direction:column; gap:12px;"></div>
   </div>
 </div>
@@ -610,7 +635,6 @@
     }
   }
 
-  // Helper to show/hide error messages without space
   function setError(el, msg) {
     if (msg) {
       el.textContent = msg;
@@ -682,7 +706,6 @@
   document.getElementById('backToRoleFromHost').addEventListener('click', () => showPage(roleSelectionPage));
   document.getElementById('backToRoleFromHome').addEventListener('click', () => showPage(roleSelectionPage));
   document.getElementById('backToHomeFromLost').addEventListener('click', () => {
-    // Reset filter when leaving
     resetFilter();
     showPage(homePage);
   });
@@ -709,14 +732,13 @@
   });
   document.getElementById('logoutFromHomeBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
 
-  // Helper to reset filter
   function resetFilter() {
     document.getElementById('filterTypePanel').classList.add('hidden');
     document.getElementById('filterType').value = '';
     filterPanelVisible = false;
   }
 
-  // Lost items rendering
+  // Lost items
   async function loadLostItems(searchTerm, filterType) {
     const container = document.getElementById('lostResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
@@ -757,7 +779,6 @@
     } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
   }
 
-  // Filter button: toggle panel, then apply
   document.getElementById('searchLostBtn').addEventListener('click', () => {
     const panel = document.getElementById('filterTypePanel');
     if (!filterPanelVisible) {
@@ -770,14 +791,12 @@
     }
   });
 
-  // Type dropdown change: auto-filter
   document.getElementById('filterType').addEventListener('change', () => {
     const term = document.getElementById('lostSearchInput').value;
     const type = document.getElementById('filterType').value;
     loadLostItems(term, type);
   });
 
-  // Enter key in search
   document.getElementById('lostSearchInput').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       const term = e.target.value;
@@ -922,7 +941,7 @@
     document.getElementById('errorPopup').classList.add('hidden');
   });
 
-  // Check claim code (wording and message updated)
+  // Check claim code
   document.getElementById('cancelCheckCodeBtn').addEventListener('click', () => checkCodePopup.classList.add('hidden'));
   document.getElementById('submitCheckCodeBtn').addEventListener('click', async () => {
     const code = document.getElementById('checkCodeInput').value.trim();
@@ -951,33 +970,66 @@
     } catch(e) { resultDiv.innerHTML = 'Error: '+e.message; }
   });
 
-  // Admin
+  // ========== ADMIN PANEL (with select/delete) ==========
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = '<p>⌛ Loading...</p>';
     try {
       const items = await adminGetAllItems();
+      document.getElementById('adminItemCount').textContent = items.length;
       if(!items.length) { container.innerHTML = '<p>No items in database.</p>'; return; }
-      container.innerHTML = items.map(item => `
-        <div class="lost-item-card" style="background:#fffbeb;">
-          <div><strong>${item.get('type')}</strong> ${item.get('isResolved')?'✅':'❌'} ${item.get('verificationBlocked')?'⛔':''}</div>
-          <div>🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
-          <div>✨ ${item.get('appearance')}</div>
-          <div>📝 ${item.get('description')||'-'}</div>
-          <div>📍 ${item.get('locationFound')} · 🕒 ${item.get('timeFound')?.toLocaleString?.()}</div>
-          <div>🔐 Q: ${item.get('verificationQuestion')||''}</div>
-          <div>🔑 A: ${item.get('verificationAnswer')||''}</div>
-          <div>📞 ${item.get('contactInfo')||'none'}</div>
-          <div>🎫 Claim Code: ${item.get('claimCode')||'none'}</div>
-          <div>🚫 Attempts: ${item.get('verificationAttempts')||0}</div>
-          <div class="admin-actions" style="display:flex; gap:8px; margin-top:10px;">
-            <button onclick="window.resetItem('${item.id}')" class="outline-btn" style="flex:1;">🔄 Reset</button>
-            <button onclick="window.deleteItem('${item.id}')" class="danger-btn" style="flex:1;">🗑️ Delete</button>
+
+      container.innerHTML = items.map(item => {
+        const isResolved = item.get('isResolved');
+        const isBlocked = item.get('verificationBlocked');
+        let statusBadge = '';
+        if (isBlocked) statusBadge = '<span class="admin-badge badge-blocked">Blocked</span>';
+        else if (isResolved) statusBadge = '<span class="admin-badge badge-resolved">Resolved</span>';
+        else statusBadge = '<span class="admin-badge badge-active">Active</span>';
+
+        return `
+          <div class="lost-item-card" style="background:#fffbeb;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" class="admin-checkbox" data-id="${item.id}">
+              <strong>${item.get('type')} ${statusBadge}</strong>
+            </div>
+            <div>🎨 ${item.get('color')} · 🏷️ ${item.get('model')}</div>
+            <div>✨ ${item.get('appearance')}</div>
+            <div>📝 ${item.get('description')||'-'}</div>
+            <div>📍 ${item.get('locationFound')} · 🕒 ${item.get('timeFound')?.toLocaleString?.()}</div>
+            <div>🔐 Q: ${item.get('verificationQuestion')||''}</div>
+            <div>🔑 A: ${item.get('verificationAnswer')||''}</div>
+            <div>📞 ${item.get('contactInfo')||'none'}</div>
+            <div>🎫 Claim Code: ${item.get('claimCode')||'none'}</div>
+            <div>🚫 Attempts: ${item.get('verificationAttempts')||0}</div>
+            <div class="admin-actions" style="display:flex; gap:8px; margin-top:10px;">
+              <button onclick="window.resetItem('${item.id}')" class="outline-btn" style="flex:1;">🔄 Reset</button>
+              <button onclick="window.deleteItem('${item.id}')" class="danger-btn" style="flex:1;">🗑️ Delete</button>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+
+      // Select all logic
+      document.getElementById('selectAllCheckbox').checked = false;
+      document.getElementById('selectAllCheckbox').onchange = function() {
+        const checks = document.querySelectorAll('.admin-checkbox');
+        checks.forEach(c => c.checked = this.checked);
+      };
+
+      // Delete selected
+      document.getElementById('deleteSelectedBtn').onclick = async () => {
+        const selected = [...document.querySelectorAll('.admin-checkbox:checked')].map(c => c.dataset.id);
+        if (selected.length === 0) return alert('No items selected.');
+        if (!confirm(`Delete ${selected.length} item(s)?`)) return;
+        for (let id of selected) {
+          try { await adminDeleteItem(id); } catch(e) { console.error(e); }
+        }
+        loadAdminItems();
+      };
     } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
   }
+
   window.resetItem = async (id) => { if(confirm('Reset attempts?')) { await adminResetAttempts(id); loadAdminItems(); } };
   window.deleteItem = async (id) => { if(confirm('Delete permanently?')) { await adminDeleteItem(id); loadAdminItems(); } };
 
