@@ -241,7 +241,7 @@
     <p id="hostPasswordMessage" style="color:#b91c1c; text-align:center;"></p>
   </div>
 
-  <!-- USER HOME (improved descriptions) -->
+  <!-- USER HOME -->
   <div id="homePage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromHome">←</button>
     <h2>🏠 Home</h2>
@@ -262,7 +262,7 @@
     <button id="logoutFromHomeBtn" class="danger-btn" style="margin-top:6px;">🚪 Log out</button>
   </div>
 
-  <!-- LOST PAGE (shows found items to claim) -->
+  <!-- LOST PAGE -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
     <h2>🔍 Claim a Lost Item</h2>
@@ -274,7 +274,7 @@
     <div id="lostResults" style="display:flex; flex-direction:column; gap:12px;"></div>
   </div>
 
-  <!-- FOUND PAGE (report found item) -->
+  <!-- FOUND PAGE -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
     <h2>📦 Report Found Item</h2>
@@ -324,7 +324,7 @@
     <button id="submitFoundBtn" class="primary-btn" style="margin-top:12px;">✅ Submit item</button>
   </div>
 
-  <!-- popups -->
+  <!-- VERIFY POPUP -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verification</h3>
@@ -345,6 +345,7 @@
     </div>
   </div>
 
+  <!-- CHECK CLAIM CODE POPUP -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
@@ -356,6 +357,7 @@
     </div>
   </div>
 
+  <!-- SUCCESS POPUP -->
   <div id="successPopup" class="verify-popup hidden">
     <div class="popup-content" style="text-align:center;">
       <h3 style="font-size:2rem;">✅</h3>
@@ -364,6 +366,7 @@
     </div>
   </div>
 
+  <!-- ERROR POPUP -->
   <div id="errorPopup" class="verify-popup hidden">
     <div class="popup-content" style="text-align:center;">
       <h3 style="font-size:2rem;">⚠️</h3>
@@ -650,7 +653,7 @@
   document.getElementById('goFoundBtn').addEventListener('click', () => showPage(foundPage));
   document.getElementById('openCheckCodeBtn').addEventListener('click', () => {
     document.getElementById('checkCodeInput').value = '';
-    document.getElementById('checkCodeResult').textContent = '';
+    document.getElementById('checkCodeResult').innerHTML = '';
     checkCodePopup.classList.remove('hidden');
   });
   document.getElementById('logoutFromHomeBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
@@ -696,16 +699,12 @@
     } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
   }
 
-  // ** Filter button & Enter key search **
+  // Filter & search event listeners
   document.getElementById('searchLostBtn').addEventListener('click', () => {
-    const term = document.getElementById('lostSearchInput').value;
-    loadLostItems(term);
+    loadLostItems(document.getElementById('lostSearchInput').value);
   });
-
   document.getElementById('lostSearchInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      loadLostItems(e.target.value);
-    }
+    if (e.key === 'Enter') loadLostItems(e.target.value);
   });
 
   // Verification popup
@@ -847,13 +846,28 @@
   document.getElementById('submitCheckCodeBtn').addEventListener('click', async () => {
     const code = document.getElementById('checkCodeInput').value.trim();
     if(!code) return;
-    document.getElementById('checkCodeResult').innerHTML = '⌛ Checking...';
+    const resultDiv = document.getElementById('checkCodeResult');
+    resultDiv.innerHTML = '⌛ Checking...';
     try {
       const res = await checkClaimCode(code);
-      document.getElementById('checkCodeResult').innerHTML = res.found ?
-        `✅ Valid claim code!<br>Type: ${res.type}<br>🎨 ${res.color} · 🏷️ ${res.model}<br>📍 Found near: ${res.locationFound}` :
-        '❌ Invalid code.';
-    } catch(e) { document.getElementById('checkCodeResult').innerHTML = 'Error: '+e.message; }
+      if(res.found) {
+        resultDiv.innerHTML = `
+          <div style="background:#e6f7ec; padding:12px; border-radius:14px; margin-top:8px;">
+            ✅ Valid claim code!<br>
+            Type: ${res.type}<br>
+            🎨 ${res.color} · 🏷️ ${res.model}<br>
+            📍 Found near: ${res.locationFound}
+            <p style="font-size:0.8rem; margin:6px 0 0;">Hand item to the owner.</p>
+            <button id="closeCheckResultBtn" class="outline-btn" style="margin-top:8px;">Close</button>
+          </div>
+        `;
+        document.getElementById('closeCheckResultBtn').addEventListener('click', () => {
+          checkCodePopup.classList.add('hidden');
+        });
+      } else {
+        resultDiv.innerHTML = '❌ Invalid code.';
+      }
+    } catch(e) { resultDiv.innerHTML = 'Error: '+e.message; }
   });
 
   // Admin
