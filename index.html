@@ -64,7 +64,7 @@
       outline: none;
     }
 
-    /* ---------- login page (reduced gaps) ---------- */
+    /* ---------- login page (no gap) ---------- */
     #loginPage {
       text-align: center;
       padding-top: 40px;
@@ -85,24 +85,26 @@
       background: #ffffff;
       border: 1px solid #d1d5db;
     }
-    /* Tighter button spacing inside cards */
     .auth-card button {
-      margin-top: 6px;
+      margin-top: 4px;
     }
-    /* Error message – small height to avoid huge gap */
     .error-msg {
       color: #b91c1c;
       font-size: 0.9rem;
-      margin: 4px 0 0;
-      min-height: 18px;
+      margin: 0;
+      min-height: 0;
+      display: none; /* hidden when empty */
     }
-    /* Toggle button – less margin */
+    .error-msg.show {
+      display: block;
+      margin: 4px 0 0;
+    }
     .toggle-btn {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
       color: #334155;
       font-size: 0.95rem;
-      margin-top: 6px;
+      margin-top: 2px;
       cursor: pointer;
       font-weight: 500;
       padding: 8px 12px;
@@ -206,7 +208,7 @@
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE (tighter gaps) -->
+  <!-- LOGIN PAGE (no gaps) -->
   <div id="loginPage" class="page">
     <h2 style="justify-content:center;">🔐 Lost & Found</h2>
 
@@ -272,7 +274,7 @@
     <button id="logoutFromHomeBtn" class="danger-btn" style="margin-top:6px;">🚪 Log out</button>
   </div>
 
-  <!-- LOST PAGE (hidden type filter until "Filter" is clicked) -->
+  <!-- LOST PAGE (filter panel hidden, resets on leave) -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
     <h2>🔍 Claim a Lost Item</h2>
@@ -281,7 +283,7 @@
       <input type="text" id="lostSearchInput" placeholder="🔍 search by keyword..." style="flex:2;">
       <button id="searchLostBtn" class="primary-btn" style="flex:1;">Filter</button>
     </div>
-    <!-- This panel appears when Filter is clicked -->
+    <!-- Filter type panel (hidden initially) -->
     <div id="filterTypePanel" class="filter-type-panel hidden">
       <label style="font-size:0.9rem; margin-bottom:4px; display:block;">📂 Filter by type:</label>
       <select id="filterType" style="width:100%;">
@@ -369,10 +371,11 @@
     </div>
   </div>
 
+  <!-- CHECK CLAIM CODE POPUP (wording updated) -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
-      <p>Enter the code from the owner.</p>
+      <p>Enter the claim code.</p>
       <input type="text" id="checkCodeInput" placeholder="e.g. A3K9X7">
       <button id="submitCheckCodeBtn" class="primary-btn">✅ Check</button>
       <button id="cancelCheckCodeBtn" class="outline-btn">Cancel</button>
@@ -590,6 +593,7 @@
   // ========== UI LOGIC ==========
   const HOST_PASSWORD = "host123";
   let currentVerifyingItemId = null;
+  let filterPanelVisible = false;
 
   function showPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
@@ -606,32 +610,43 @@
     }
   }
 
+  // Helper to show/hide error messages without space
+  function setError(el, msg) {
+    if (msg) {
+      el.textContent = msg;
+      el.classList.add('show');
+    } else {
+      el.textContent = '';
+      el.classList.remove('show');
+    }
+  }
+
   // Login toggles
   document.getElementById('showSignUpCard').addEventListener('click', () => {
     document.getElementById('loginCard').classList.add('hidden');
     document.getElementById('signUpCard').classList.remove('hidden');
-    document.getElementById('loginError').textContent = '';
-    document.getElementById('signUpError').textContent = '';
+    setError(document.getElementById('loginError'), '');
+    setError(document.getElementById('signUpError'), '');
   });
   document.getElementById('showLoginCard').addEventListener('click', () => {
     document.getElementById('signUpCard').classList.add('hidden');
     document.getElementById('loginCard').classList.remove('hidden');
-    document.getElementById('loginError').textContent = '';
-    document.getElementById('signUpError').textContent = '';
+    setError(document.getElementById('loginError'), '');
+    setError(document.getElementById('signUpError'), '');
   });
 
   document.getElementById('signInBtn').addEventListener('click', async () => {
     const u = document.getElementById('loginUsername').value.trim();
     const p = document.getElementById('loginPassword').value;
     const errEl = document.getElementById('loginError');
-    if(!u||!p) { errEl.textContent = 'Please enter both username and password.'; return; }
+    if(!u||!p) { setError(errEl, 'Please enter both username and password.'); return; }
     try {
       await auth.logIn(u,p);
       document.getElementById('loginPassword').value = '';
-      errEl.textContent = '';
+      setError(errEl, '');
       checkSession();
     } catch(e) {
-      errEl.textContent = e.message.includes('Invalid username/password') || e.message.includes('incorrect') ? '❌ Incorrect username or password.' : '❌ ' + e.message;
+      setError(errEl, e.message.includes('Invalid username/password') || e.message.includes('incorrect') ? '❌ Incorrect username or password.' : '❌ ' + e.message);
     }
   });
 
@@ -639,14 +654,14 @@
     const u = document.getElementById('signUpUsername').value.trim();
     const p = document.getElementById('signUpPassword').value;
     const errEl = document.getElementById('signUpError');
-    if(!u||!p) { errEl.textContent = 'Please fill all fields.'; return; }
+    if(!u||!p) { setError(errEl, 'Please fill all fields.'); return; }
     try {
       await auth.signUp(u,p);
       document.getElementById('signUpPassword').value = '';
-      errEl.textContent = '';
+      setError(errEl, '');
       checkSession();
     } catch(e) {
-      errEl.textContent = e.message.includes('already taken') ? '❌ Username already taken.' : '❌ ' + e.message;
+      setError(errEl, e.message.includes('already taken') ? '❌ Username already taken.' : '❌ ' + e.message);
     }
   });
 
@@ -666,7 +681,11 @@
   document.getElementById('backToLoginFromRole').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
   document.getElementById('backToRoleFromHost').addEventListener('click', () => showPage(roleSelectionPage));
   document.getElementById('backToRoleFromHome').addEventListener('click', () => showPage(roleSelectionPage));
-  document.getElementById('backToHomeFromLost').addEventListener('click', () => showPage(homePage));
+  document.getElementById('backToHomeFromLost').addEventListener('click', () => {
+    // Reset filter when leaving
+    resetFilter();
+    showPage(homePage);
+  });
   document.getElementById('backToHomeFromFound').addEventListener('click', () => showPage(homePage));
   document.getElementById('backToRoleFromAdmin').addEventListener('click', () => showPage(roleSelectionPage));
 
@@ -681,7 +700,7 @@
   });
 
   // Home navigation
-  document.getElementById('goLostBtn').addEventListener('click', () => { showPage(lostPage); loadLostItems('', ''); });
+  document.getElementById('goLostBtn').addEventListener('click', () => { showPage(lostPage); resetFilter(); loadLostItems('', ''); });
   document.getElementById('goFoundBtn').addEventListener('click', () => showPage(foundPage));
   document.getElementById('openCheckCodeBtn').addEventListener('click', () => {
     document.getElementById('checkCodeInput').value = '';
@@ -689,6 +708,13 @@
     checkCodePopup.classList.remove('hidden');
   });
   document.getElementById('logoutFromHomeBtn').addEventListener('click', async () => { await auth.logOut(); showPage(loginPage); });
+
+  // Helper to reset filter
+  function resetFilter() {
+    document.getElementById('filterTypePanel').classList.add('hidden');
+    document.getElementById('filterType').value = '';
+    filterPanelVisible = false;
+  }
 
   // Lost items rendering
   async function loadLostItems(searchTerm, filterType) {
@@ -731,46 +757,33 @@
     } catch(e) { container.innerHTML = `<p style="color:red;">Error: ${e.message}</p>`; }
   }
 
-  // Filter button: toggle type panel, then apply filter
-  let filterPanelVisible = false;
+  // Filter button: toggle panel, then apply
   document.getElementById('searchLostBtn').addEventListener('click', () => {
     const panel = document.getElementById('filterTypePanel');
     if (!filterPanelVisible) {
       panel.classList.remove('hidden');
       filterPanelVisible = true;
     } else {
-      // Panel is already visible, apply the filter with selected type and keyword
       const term = document.getElementById('lostSearchInput').value;
       const type = document.getElementById('filterType').value;
       loadLostItems(term, type);
     }
   });
 
-  // When a type is selected, automatically filter (panel stays visible until next click)
+  // Type dropdown change: auto-filter
   document.getElementById('filterType').addEventListener('change', () => {
     const term = document.getElementById('lostSearchInput').value;
     const type = document.getElementById('filterType').value;
     loadLostItems(term, type);
   });
 
-  // Enter key on search input still triggers filter (with current type, panel visibility unchanged)
+  // Enter key in search
   document.getElementById('lostSearchInput').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
       const term = e.target.value;
       const type = document.getElementById('filterType').value;
       loadLostItems(term, type);
     }
-  });
-
-  // Hide panel when navigating away (e.g., back button) – reset flag
-  document.getElementById('backToHomeFromLost').addEventListener('click', () => {
-    document.getElementById('filterTypePanel').classList.add('hidden');
-    filterPanelVisible = false;
-  });
-  // Also reset on home navigation
-  document.getElementById('goLostBtn').addEventListener('click', () => {
-    document.getElementById('filterTypePanel').classList.add('hidden');
-    filterPanelVisible = false;
   });
 
   // Verification popup
@@ -909,7 +922,7 @@
     document.getElementById('errorPopup').classList.add('hidden');
   });
 
-  // Check claim code
+  // Check claim code (wording and message updated)
   document.getElementById('cancelCheckCodeBtn').addEventListener('click', () => checkCodePopup.classList.add('hidden'));
   document.getElementById('submitCheckCodeBtn').addEventListener('click', async () => {
     const code = document.getElementById('checkCodeInput').value.trim();
@@ -925,7 +938,7 @@
             Type: ${res.type}<br>
             🎨 ${res.color} · 🏷️ ${res.model}<br>
             📍 Found near: ${res.locationFound}
-            <p style="font-size:0.8rem; margin:6px 0 0;">Hand item to the owner.</p>
+            <p style="font-size:0.8rem; margin:6px 0 0;">Give this item to the owner.</p>
             <button id="closeCheckResultBtn" class="outline-btn" style="margin-top:8px;">Close</button>
           </div>
         `;
