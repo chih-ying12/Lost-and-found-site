@@ -114,7 +114,6 @@
     }
 
     /* ---------- polished buttons ---------- */
-    /* primary action buttons – soft dark blue */
     .primary-btn {
       background: #3b82f6;
       color: white;
@@ -129,7 +128,6 @@
       background: #2563eb;
     }
 
-    /* outline buttons – light grey fill instead of white */
     .outline-btn {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
@@ -141,7 +139,6 @@
       border-color: #94a3b8;
     }
 
-    /* danger button – soft pink */
     .danger-btn {
       background: #fecaca;
       color: #b91c1c;
@@ -244,7 +241,7 @@
     <p id="hostPasswordMessage" style="color:#b91c1c; text-align:center;"></p>
   </div>
 
-  <!-- USER HOME -->
+  <!-- USER HOME (improved descriptions) -->
   <div id="homePage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromHome">←</button>
     <h2>🏠 Home</h2>
@@ -252,16 +249,24 @@
       <span style="font-size:1.4rem;">👋</span>
       <span>Welcome, <strong id="displayUsername">...</strong></span>
     </div>
-    <button id="goLostBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">🔎 Lost something?</button>
-    <button id="goFoundBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">📦 I found an item</button>
-    <button id="openCheckCodeBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">🔑 Check Claim Code</button>
+    <p style="margin-bottom:16px; color:#475569; font-size:0.95rem;">What would you like to do?</p>
+    <button id="goLostBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
+      <span class="emoji-icon">🔍</span> I lost something (claim an item)
+    </button>
+    <button id="goFoundBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
+      <span class="emoji-icon">📦</span> I found an item
+    </button>
+    <button id="openCheckCodeBtn" class="outline-btn" style="margin-bottom:10px; justify-content:flex-start;">
+      <span class="emoji-icon">🔑</span> Check Claim Code
+    </button>
     <button id="logoutFromHomeBtn" class="danger-btn" style="margin-top:6px;">🚪 Log out</button>
   </div>
 
-  <!-- LOST PAGE -->
+  <!-- LOST PAGE (shows found items to claim) -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
-    <h2>🔎 Lost Items</h2>
+    <h2>🔍 Claim a Lost Item</h2>
+    <p style="color:#475569; margin-bottom:8px;">Browse items found by others. If yours is here, tap "Verify it's yours" and answer the secret question.</p>
     <div class="row" style="margin-bottom:16px;">
       <input type="text" id="lostSearchInput" placeholder="🔍 search items..." style="flex:2;">
       <button id="searchLostBtn" class="primary-btn" style="flex:1;">Filter</button>
@@ -269,10 +274,11 @@
     <div id="lostResults" style="display:flex; flex-direction:column; gap:12px;"></div>
   </div>
 
-  <!-- FOUND PAGE (with required asterisks) -->
+  <!-- FOUND PAGE (report found item) -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
     <h2>📦 Report Found Item</h2>
+    <p style="color:#475569; margin-bottom:8px;">Fill in the details below. The answers will be used to verify the owner.</p>
 
     <select id="foundType" style="margin-bottom:12px;">
       <option value="electronic">📱 Electronic</option>
@@ -332,6 +338,7 @@
         <p style="font-weight:700; background:#e6f7ec; padding:12px; border-radius:14px;">
           🎫 Claim Code: <span id="claimCodeText" style="font-size:1.6rem; letter-spacing:2px;"></span>
         </p>
+        <p style="color:#334155; font-size:0.9rem;">Use this code when picking up your item.</p>
         <button id="copyClaimCodeBtn" class="outline-btn">📋 Copy Code</button>
         <button id="closeClaimCodeBtn" class="outline-btn" style="margin-top:8px;">Close</button>
       </div>
@@ -673,7 +680,7 @@
             <div>📍 ${item.get('locationFound')}</div>
             ${photo ? `<img src="${photo.url()}" class="item-photo">` : ''}
             <button class="primary-btn verify-btn" data-id="${item.id}" style="margin-top:8px; width:100%;">🔐 Verify it's yours</button>
-            <button class="outline-btn forgot-btn" style="margin-top:4px; width:100%;">❓ Forgot details?</button>
+            <button class="outline-btn forgot-btn" style="margin-top:4px; width:100%;">❓ Forgot details? (Contact finder)</button>
             <div class="contact-info hidden" id="contact-${item.id}" style="margin-top:6px; color:#475569;">${contact ? '📞 '+contact : '⚠️ No contact provided.'}</div>
           </div>
         `;
