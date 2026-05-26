@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>🔍 Lost & Found – Secure Claims</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
       background: linear-gradient(135deg, #eef2f7 0%, #dce3ed 100%);
@@ -13,30 +18,100 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      padding: 10px;
+      padding: 12px;
     }
+
     .app-container {
       width: 100%;
-      max-width: 480px;
+      max-width: 500px;
       background: #ffffff;
-      border-radius: 28px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.08);
-      padding: 24px 18px;
+      border-radius: 32px;
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.08);
+      padding: 24px 20px;
       margin: 10px 0;
+      transition: all 0.2s ease;
     }
-    .hidden { display: none !important; }
-    .page { display: flex; flex-direction: column; gap: 1rem; }
-    h2 { display: flex; align-items: center; gap: 8px; font-size: 1.5rem; color: #1e293b; }
-    .emoji-icon { font-size: 1.4rem; }
+
+    /* pages */
+    .page {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ========= HEADER (back button + title side by side) ========= */
+    .page-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 6px;
+      position: relative;
+    }
+
+    /* BACK BUTTON — never changes colour on click/hover/active */
+    .back-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 500;
+      color: #000000;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+      transition: none;
+      flex-shrink: 0;
+      outline: none;
+    }
+
+    /* NO colour change on any interaction */
+    .back-btn:hover,
+    .back-btn:active,
+    .back-btn:focus,
+    .back-btn:focus-visible {
+      background: #ffffff !important;
+      color: #000000 !important;
+      border-color: #cbd5e1 !important;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03) !important;
+      transform: none !important;
+    }
+
+    .page-header h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    /* cards + spacing */
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 1.45rem;
+      color: #1e293b;
+    }
+
     input, select, textarea, button {
       width: 100%;
       padding: 12px 14px;
       border: 1px solid #dce3ec;
-      border-radius: 14px;
+      border-radius: 16px;
       font-size: 0.95rem;
       background: #f8fafc;
       transition: 0.2s;
+      font-family: inherit;
     }
+
     button {
       background: #1e3a5f;
       color: white;
@@ -45,148 +120,240 @@
       cursor: pointer;
       letter-spacing: 0.3px;
     }
-    button:hover { background: #0f2540; }
-    .primary-btn { background: #3b82f6; }
-    .primary-btn:hover { background: #2563eb; }
-    .outline-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; }
-    .danger-btn { background: #fecaca; color: #b91c1c; border: 1px solid #fca5a5; }
-    .card {
-      background: #f4f7fc;
-      border-radius: 18px;
-      padding: 14px;
+
+    button:hover {
+      background: #0f2540;
+    }
+
+    .primary-btn {
+      background: #3b82f6;
+    }
+
+    .primary-btn:hover {
+      background: #2563eb;
+    }
+
+    .outline-btn {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #1e293b;
+    }
+
+    .danger-btn {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .danger-btn:hover {
+      background: #fecaca;
+    }
+
+    /* LOGIN & SIGNUP cards — BIG GAPS between boxes */
+    .auth-card {
+      background: #f8fafd;
+      border-radius: 24px;
+      padding: 22px 20px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-      margin-bottom: 12px;
+      gap: 18px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      margin-top: 8px;
     }
-    .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+    .auth-card h3 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #0f172a;
+    }
+
+    /* bigger gap inside auth-card already uses gap:18px — perfect */
+    .user-welcome {
+      background: #f1f5f9;
+      border-radius: 18px;
+      padding: 12px 16px;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .card {
+      background: #f4f7fc;
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+
     .lost-item-card {
       background: #ffffff;
       border: 1px solid #eef2f6;
-      border-radius: 18px;
+      border-radius: 20px;
       padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     }
-    .item-photo { max-width: 100%; border-radius: 14px; margin-top: 8px; }
-    .verify-options { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+
+    .verify-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 8px 0;
+    }
+
     .verify-options button {
-      background: #e2e8f0;
+      background: #eef2ff;
       color: #1e293b;
-      padding: 6px 12px;
+      padding: 8px 12px;
       font-size: 0.85rem;
       width: auto;
       flex: 1 0 auto;
     }
+
+    /* popups */
     .verify-popup, .popup-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
     }
+
     .popup-content {
-      background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 360px;
-      display: flex; flex-direction: column; gap: 14px;
-      position: relative; /* for the X button */
+      background: white;
+      padding: 24px 22px;
+      border-radius: 28px;
+      width: 90%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.2);
     }
-    /* ---- New close button (X) in top-right corner ---- */
+
     .popup-close {
       position: absolute;
-      top: 8px;
-      right: 12px;
+      top: 12px;
+      right: 16px;
       background: transparent;
       border: none;
-      font-size: 22px;
+      font-size: 26px;
       color: #64748b;
       cursor: pointer;
-      padding: 0;
       width: auto;
+      padding: 0;
+      line-height: 1;
     }
-    .popup-close:hover { color: #0f172a; }
 
-    /* ---- Back button: black arrow on white circle ---- */
-    .back-arrow-circle {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      color: #000000;
-      cursor: pointer;
-      z-index: 10;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    .popup-close:hover {
+      color: #0f172a;
+      background: transparent;
     }
-    .page.has-back-arrow { padding-top: 60px; position: relative; }
-    .required-asterisk { color: #b91c1c; margin-left: 2px; }
-    .admin-badge { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; margin-left: 6px; }
-    .badge-resolved { background: #dcfce7; color: #15803d; }
-    .badge-active { background: #dbeafe; color: #1d4ed8; }
-    .error-msg { color: #b91c1c; font-size: 0.85rem; display: none; }
-    .error-msg.show { display: block; }
-    .auth-card { background: #f0f4ff; border-radius: 24px; padding: 20px; margin-top: 10px; }
-    .user-welcome {
-      background: #f8fafc;
-      border-radius: 16px;
-      padding: 10px 14px;
-      margin-bottom: 8px;
+
+    .required-asterisk {
+      color: #b91c1c;
+      margin-left: 2px;
+    }
+
+    .admin-badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .badge-resolved {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .error-msg {
+      color: #b91c1c;
+      font-size: 0.85rem;
+      display: none;
+    }
+
+    .error-msg.show {
+      display: block;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    #adminResults {
+      max-height: 60vh;
+      overflow-y: auto;
     }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE -->
+  <!-- LOGIN PAGE (NO BACK BUTTON HERE) -->
   <div id="loginPage" class="page">
     <h2>🔐 Lost & Found</h2>
     <div id="loginCard" class="auth-card">
       <h3>Sign In</h3>
-      <input type="text" id="loginUsername" placeholder="Username">
-      <input type="password" id="loginPassword" placeholder="Password">
+      <input type="text" id="loginUsername" placeholder="Username" autocomplete="username">
+      <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
       <button id="signInBtn" class="primary-btn">Sign In</button>
       <p class="error-msg" id="loginError"></p>
-      <button class="outline-btn" id="showSignUpCard">Create account</button>
+      <button id="showSignUpCard" class="outline-btn">Create account</button>
     </div>
     <div id="signUpCard" class="auth-card hidden">
       <h3>Sign Up</h3>
-      <input type="text" id="signUpUsername" placeholder="Username">
-      <input type="email" id="signUpEmail" placeholder="Email (must be @school.edu.sg)">
-      <input type="text" id="signUpEzlink" placeholder="Ezlink Card Number (compulsory)">
-      <input type="password" id="signUpPassword" placeholder="Password">
+      <input type="text" id="signUpUsername" placeholder="Username *">
+      <input type="email" id="signUpEmail" placeholder="Email * (must be @school.edu.sg)">
+      <input type="text" id="signUpEzlink" placeholder="Ezlink Card Number * (compulsory)">
+      <input type="password" id="signUpPassword" placeholder="Password *">
       <button id="signUpSubmitBtn" class="primary-btn">Sign Up</button>
       <p class="error-msg" id="signUpError"></p>
-      <button class="outline-btn" id="showLoginCard">Back to sign in</button>
+      <button id="showLoginCard" class="outline-btn">Back to sign in</button>
     </div>
   </div>
 
-  <!-- ROLE SELECTION -->
-  <div id="roleSelectionPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToLoginFromRole">←</button>
-    <h2>Choose Role</h2>
+  <!-- ROLE SELECTION (back button + title inline) -->
+  <div id="roleSelectionPage" class="page hidden">
+    <div class="page-header">
+      <button class="back-btn" id="backToLoginFromRole">←</button>
+      <h2>Choose Role</h2>
+    </div>
     <div class="user-welcome">Logged in as <strong id="roleUsername"></strong></div>
     <button id="goUserBtn" class="outline-btn">👤 Continue as User</button>
     <button id="goHostAccessBtn" class="outline-btn">🛠️ Host Panel</button>
     <button id="logoutFromRoleBtn" class="danger-btn">Log out</button>
   </div>
 
-  <!-- HOST PASSWORD -->
-  <div id="hostPasswordPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToRoleFromHost">←</button>
-    <h2>Host Password</h2>
+  <!-- HOST PASSWORD PAGE -->
+  <div id="hostPasswordPage" class="page hidden">
+    <div class="page-header">
+      <button class="back-btn" id="backToRoleFromHost">←</button>
+      <h2>Host Password</h2>
+    </div>
     <input type="password" id="hostPasswordInput" placeholder="Enter host password">
     <button id="submitHostPasswordBtn" class="primary-btn">Unlock Panel</button>
     <p id="hostPasswordMessage" class="error-msg"></p>
   </div>
 
   <!-- USER HOME -->
-  <div id="homePage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToRoleFromHome">←</button>
-    <h2>🏠 Home</h2>
+  <div id="homePage" class="page hidden">
+    <div class="page-header">
+      <button class="back-btn" id="backToRoleFromHome">←</button>
+      <h2>🏠 Home</h2>
+    </div>
     <div class="user-welcome">Welcome, <strong id="displayUsername"></strong></div>
     <button id="goLostBtn" class="outline-btn">🔍 I lost something (claim an item)</button>
     <button id="goFoundBtn" class="outline-btn">📦 I found an item</button>
@@ -194,10 +361,12 @@
     <button id="logoutFromHomeBtn" class="danger-btn">Log out</button>
   </div>
 
-  <!-- LOST PAGE (FORM + MATCHING RESULTS) -->
-  <div id="lostPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
-    <h2>🔍 I lost an item</h2>
+  <!-- LOST PAGE (find matches) -->
+  <div id="lostPage" class="page hidden">
+    <div class="page-header">
+      <button class="back-btn" id="backToHomeFromLost">←</button>
+      <h2>🔍 I lost an item</h2>
+    </div>
     <p>Describe your lost item – system will show matching found items.</p>
     <div class="card">
       <select id="lostType">
@@ -219,10 +388,12 @@
     <div id="lostResults" style="margin-top:8px;"></div>
   </div>
 
-  <!-- FOUND PAGE (with detailed location) -->
-  <div id="foundPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
-    <h2>📦 Report Found Item</h2>
+  <!-- FOUND PAGE (report found item) -->
+  <div id="foundPage" class="page hidden">
+    <div class="page-header">
+      <button class="back-btn" id="backToHomeFromFound">←</button>
+      <h2>📦 Report Found Item</h2>
+    </div>
     <select id="foundType">
       <option value="electronic">📱 Electronic</option><option value="personal">🎒 Personal</option>
       <option value="clothing">👕 Clothing</option><option value="documents">🪪 Documents</option>
@@ -244,7 +415,7 @@
     <button id="submitFoundBtn" class="primary-btn">✅ Submit found item</button>
   </div>
 
-  <!-- POPUPS with close 'X' buttons -->
+  <!-- POPUPS with X close -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
       <button class="popup-close" id="closeVerifyPopupTop">&times;</button>
@@ -291,11 +462,13 @@
     </div>
   </div>
 
-  <!-- ADMIN PANEL -->
-  <div id="adminPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
-    <h2>🛠️ Host Panel</h2>
-    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+  <!-- ADMIN PANEL (HOST) -->
+  <div id="adminPage" class="page hidden">
+    <div class="page-header">
+      <button class="back-btn" id="backToRoleFromAdmin">←</button>
+      <h2>🛠️ Host Panel</h2>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button id="selectAllBtn" class="outline-btn">Select All</button>
       <button id="selectResolvedBtn" class="outline-btn">Select Resolved</button>
       <button id="deleteSelectedBtn" class="danger-btn">Delete Selected</button>
@@ -311,10 +484,10 @@
   const HOST_PASSWORD = "host123";
   const ALLOWED_EMAIL_DOMAIN = "@school.edu.sg";
 
-  function generateClaimCode(len=6) {
-    const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code='';
-    for(let i=0;i<len;i++) code+=chars[Math.floor(Math.random()*chars.length)];
+  function generateClaimCode(len = 6) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < len; i++) code += chars[Math.floor(Math.random() * chars.length)];
     return code;
   }
 
@@ -337,7 +510,7 @@
     item.set("verificationBlocked", false);
     item.set("contactInfo", data.contactInfo);
     item.set("claimCode", "");
-    if(data.photoFile) {
+    if (data.photoFile) {
       const parseFile = new Parse.File(data.photoName, data.photoFile);
       item.set("photo", parseFile);
     }
@@ -348,12 +521,12 @@
     let query = new Parse.Query(LostItem);
     query.equalTo("isResolved", false);
     query.equalTo("verificationBlocked", false);
-    if(criteria.type) query.equalTo("type", criteria.type);
-    if(criteria.color) query.matches("color", new RegExp(criteria.color, "i"));
-    if(criteria.model) query.matches("model", new RegExp(criteria.model, "i"));
-    if(criteria.appearance) query.matches("appearance", new RegExp(criteria.appearance, "i"));
-    if(criteria.description) query.matches("description", new RegExp(criteria.description, "i"));
-    if(criteria.building) query.matches("locationBuilding", new RegExp(criteria.building, "i"));
+    if (criteria.type) query.equalTo("type", criteria.type);
+    if (criteria.color) query.matches("color", new RegExp(criteria.color, "i"));
+    if (criteria.model) query.matches("model", new RegExp(criteria.model, "i"));
+    if (criteria.appearance) query.matches("appearance", new RegExp(criteria.appearance, "i"));
+    if (criteria.description) query.matches("description", new RegExp(criteria.description, "i"));
+    if (criteria.building) query.matches("locationBuilding", new RegExp(criteria.building, "i"));
     query.descending("createdAt");
     return query.find();
   }
@@ -361,43 +534,47 @@
   async function verifyItem(itemId, userAnswer) {
     const query = new Parse.Query(LostItem);
     const item = await query.get(itemId);
-    if(!item) return { success: false, message: "Not found." };
-    if(item.get("isResolved")) return { success: false, message: "Already claimed." };
-    if(item.get("verificationBlocked")) return { success: false, message: "Blocked.", blocked: true };
-    const attempts = item.get("verificationAttempts")||0;
+    if (!item) return { success: false, message: "Not found." };
+    if (item.get("isResolved")) return { success: false, message: "Already claimed." };
+    if (item.get("verificationBlocked")) return { success: false, message: "Blocked.", blocked: true };
+    const attempts = item.get("verificationAttempts") || 0;
     const nextAllowed = item.get("nextAttemptAllowedAt");
-    if(nextAllowed && new Date() < new Date(nextAllowed)) {
-      const diff = new Date(nextAllowed)-new Date();
-      return { success: false, message: `Cooldown: try in ${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m.` };
+    if (nextAllowed && new Date() < new Date(nextAllowed)) {
+      const diff = new Date(nextAllowed) - new Date();
+      return { success: false, message: `Cooldown: try in ${Math.floor(diff / 3600000)}h ${Math.floor((diff % 3600000) / 60000)}m.` };
     }
-    const correct = (item.get("verificationAnswer")||"").trim().toLowerCase();
-    if(correct === userAnswer.trim().toLowerCase()) {
+    const correct = (item.get("verificationAnswer") || "").trim().toLowerCase();
+    if (correct === userAnswer.trim().toLowerCase()) {
       const code = generateClaimCode();
       item.set("claimCode", code);
-      item.set("verificationAttempts",0);
+      item.set("verificationAttempts", 0);
       item.set("nextAttemptAllowedAt", new Date());
       item.set("verificationBlocked", false);
       item.set("isResolved", true);
       await item.save();
       return { success: true, message: `Claim code: ${code}`, claimCode: code };
     }
-    const newAttempts = attempts+1;
+    const newAttempts = attempts + 1;
     item.set("verificationAttempts", newAttempts);
-    if(newAttempts>=9) {
-      item.set("verificationBlocked",true); item.set("nextAttemptAllowedAt",null);
+    if (newAttempts >= 9) {
+      item.set("verificationBlocked", true);
+      item.set("nextAttemptAllowedAt", null);
       await item.save();
       return { success: false, message: "Too many attempts. Blocked.", blocked: true };
-    } else if(newAttempts>=6) {
-      const cooldown = new Date(Date.now()+5*3600000);
-      item.set("nextAttemptAllowedAt", cooldown); await item.save();
+    } else if (newAttempts >= 6) {
+      const cooldown = new Date(Date.now() + 5 * 3600000);
+      item.set("nextAttemptAllowedAt", cooldown);
+      await item.save();
       return { success: false, message: "Wrong. Locked 5h.", cooldownEnd: cooldown };
-    } else if(newAttempts>=3) {
-      const cooldown = new Date(Date.now()+3*3600000);
-      item.set("nextAttemptAllowedAt", cooldown); await item.save();
+    } else if (newAttempts >= 3) {
+      const cooldown = new Date(Date.now() + 3 * 3600000);
+      item.set("nextAttemptAllowedAt", cooldown);
+      await item.save();
       return { success: false, message: "Wrong. Locked 3h.", cooldownEnd: cooldown };
     } else {
-      item.set("nextAttemptAllowedAt", new Date()); await item.save();
-      return { success: false, message: `Wrong. ${3-newAttempts} attempts left.` };
+      item.set("nextAttemptAllowedAt", new Date());
+      await item.save();
+      return { success: false, message: `Wrong. ${3 - newAttempts} attempts left.` };
     }
   }
 
@@ -412,22 +589,24 @@
     q.equalTo("claimCode", code.trim().toUpperCase());
     q.equalTo("isResolved", true);
     const res = await q.find();
-    if(res.length) {
+    if (res.length) {
       const i = res[0];
-      return { found: true, type:i.get("type"), color:i.get("color"), model:i.get("model"),
-               locationFound: `${i.get("locationBuilding")||''} ${i.get("locationFloor")||''} ${i.get("locationRoom")||''}` };
+      return {
+        found: true, type: i.get("type"), color: i.get("color"), model: i.get("model"),
+        locationFound: `${i.get("locationBuilding") || ''} ${i.get("locationFloor") || ''} ${i.get("locationRoom") || ''}`
+      };
     }
     return { found: false };
   }
 
   async function adminGetAllItems() { const q = new Parse.Query(LostItem); q.descending("createdAt"); return q.find(); }
-  async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
-  async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
+  async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i = await q.get(id); i.set("verificationAttempts", 0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked", false); return i.save(); }
+  async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i = await q.get(id); return i.destroy(); }
 
   const auth = {
     signUp: async (username, email, ezlink, password) => {
-      if(!email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)) throw new Error(`Only ${ALLOWED_EMAIL_DOMAIN} emails allowed.`);
-      if(!ezlink.trim()) throw new Error("Ezlink card number is required.");
+      if (!email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)) throw new Error(`Only ${ALLOWED_EMAIL_DOMAIN} emails allowed.`);
+      if (!ezlink.trim()) throw new Error("Ezlink card number is required.");
       const user = new Parse.User();
       user.set("username", username);
       user.set("email", email);
@@ -453,25 +632,24 @@
   const errorPopup = document.getElementById('errorPopup');
 
   let currentVerifyingItemId = null;
-  function showPage(page) { document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden')); page.classList.remove('hidden'); }
-  function setError(el, msg) { if(msg){ el.textContent=msg; el.classList.add('show'); } else { el.textContent=''; el.classList.remove('show'); } }
+  function showPage(page) { document.querySelectorAll('.page').forEach(p => p.classList.add('hidden')); page.classList.remove('hidden'); }
+  function setError(el, msg) { if (msg) { el.textContent = msg; el.classList.add('show'); } else { el.textContent = ''; el.classList.remove('show'); } }
 
   function checkSession() {
     const u = auth.getCurrentUser();
-    if(u) { document.getElementById('roleUsername').textContent = u.getUsername(); showPage(rolePage); }
+    if (u) { document.getElementById('roleUsername').textContent = u.getUsername(); showPage(rolePage); }
     else showPage(loginPage);
   }
 
-  // Login / signup toggles
-  document.getElementById('showSignUpCard').onclick = () => { document.getElementById('loginCard').classList.add('hidden'); document.getElementById('signUpCard').classList.remove('hidden'); setError(document.getElementById('loginError'),''); setError(document.getElementById('signUpError'),''); };
+  // UI listeners
+  document.getElementById('showSignUpCard').onclick = () => { document.getElementById('loginCard').classList.add('hidden'); document.getElementById('signUpCard').classList.remove('hidden'); setError(document.getElementById('loginError'), ''); setError(document.getElementById('signUpError'), ''); };
   document.getElementById('showLoginCard').onclick = () => { document.getElementById('signUpCard').classList.add('hidden'); document.getElementById('loginCard').classList.remove('hidden'); };
   document.getElementById('signInBtn').onclick = async () => {
     const u = document.getElementById('loginUsername').value.trim();
     const p = document.getElementById('loginPassword').value;
     const err = document.getElementById('loginError');
-    if(!u||!p) { setError(err,'Enter username & password'); return; }
-    try { await auth.logIn(u,p); setError(err,''); checkSession(); }
-    catch(e) { setError(err, e.message.includes('Invalid')?'Wrong credentials':e.message); }
+    if (!u || !p) { setError(err, 'Enter username & password'); return; }
+    try { await auth.logIn(u, p); setError(err, ''); checkSession(); } catch (e) { setError(err, e.message.includes('Invalid') ? 'Wrong credentials' : e.message); }
   };
   document.getElementById('signUpSubmitBtn').onclick = async () => {
     const u = document.getElementById('signUpUsername').value.trim();
@@ -479,9 +657,8 @@
     const ez = document.getElementById('signUpEzlink').value.trim();
     const p = document.getElementById('signUpPassword').value;
     const err = document.getElementById('signUpError');
-    if(!u||!e||!ez||!p) { setError(err,'All fields required'); return; }
-    try { await auth.signUp(u,e,ez,p); setError(err,''); checkSession(); }
-    catch(e) { setError(err, e.message); }
+    if (!u || !e || !ez || !p) { setError(err, 'All fields required'); return; }
+    try { await auth.signUp(u, e, ez, p); setError(err, ''); checkSession(); } catch (e) { setError(err, e.message); }
   };
   document.getElementById('backToLoginFromRole').onclick = async () => { await auth.logOut(); showPage(loginPage); };
   document.getElementById('logoutFromRoleBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
@@ -493,14 +670,14 @@
   document.getElementById('goUserBtn').onclick = () => { document.getElementById('displayUsername').innerText = auth.getCurrentUser().getUsername(); showPage(homePage); };
   document.getElementById('goHostAccessBtn').onclick = () => showPage(hostPassPage);
   document.getElementById('submitHostPasswordBtn').onclick = () => {
-    if(document.getElementById('hostPasswordInput').value === HOST_PASSWORD) { loadAdminItems(); showPage(adminPage); }
+    if (document.getElementById('hostPasswordInput').value === HOST_PASSWORD) { loadAdminItems(); showPage(adminPage); }
     else document.getElementById('hostPasswordMessage').classList.add('show');
   };
   document.getElementById('goLostBtn').onclick = () => showPage(lostPage);
   document.getElementById('goFoundBtn').onclick = () => showPage(foundPage);
   document.getElementById('logoutFromHomeBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
 
-  // Matching lost items
+  // matching
   document.getElementById('searchMatchingBtn').onclick = async () => {
     const criteria = {
       type: document.getElementById('lostType').value,
@@ -514,11 +691,11 @@
     container.innerHTML = '<p>🔍 Searching...</p>';
     try {
       const items = await searchMatchingLostItems(criteria);
-      if(!items.length) { container.innerHTML = '<p>😔 No matching found items.</p>'; return; }
+      if (!items.length) { container.innerHTML = '<p>😔 No matching found items.</p>'; return; }
       container.innerHTML = items.map(item => `
         <div class="lost-item-card">
           <div><strong>${item.get('type')}</strong> · ${item.get('color')} · ${item.get('model')}</div>
-          <div>📍 Found: ${item.get('locationBuilding')||''} ${item.get('locationFloor')||''} ${item.get('locationRoom')||''}</div>
+          <div>📍 Found: ${item.get('locationBuilding') || ''} ${item.get('locationFloor') || ''} ${item.get('locationRoom') || ''}</div>
           <div>✨ ${item.get('appearance')}</div>
           <button class="primary-btn verify-btn" data-id="${item.id}" style="margin-top:8px;">🔐 Claim this item</button>
         </div>
@@ -528,29 +705,26 @@
         const question = await getVerificationQuestion(currentVerifyingItemId);
         document.getElementById('verifyQuestionText').innerText = question || "No question set";
         const item = await new Parse.Query(LostItem).get(currentVerifyingItemId);
-        const sugg = [item.get('color'), item.get('model'), item.get('appearance')].filter(v=>v);
+        const sugg = [item.get('color'), item.get('model'), item.get('appearance')].filter(v => v);
         const optsDiv = document.getElementById('verifyOptionsPanel');
         optsDiv.innerHTML = sugg.map(s => `<button type="button" class="suggest-btn" data-val="${s}">${s}</button>`).join('');
         optsDiv.querySelectorAll('.suggest-btn').forEach(b => b.onclick = () => { document.getElementById('verifyAnswerInput').value = b.dataset.val; });
         verifyPopup.classList.remove('hidden');
       }));
-    } catch(e) { container.innerHTML = `<p>Error: ${e.message}</p>`; }
+    } catch (e) { container.innerHTML = `<p>Error: ${e.message}</p>`; }
   };
 
-  // Close popups via X buttons (top-right)
   document.getElementById('closeVerifyPopupTop').onclick = () => verifyPopup.classList.add('hidden');
   document.getElementById('closeCheckCodePopupTop').onclick = () => checkCodePopup.classList.add('hidden');
   document.getElementById('closeSuccessPopupTop').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopupTop').onclick = () => errorPopup.classList.add('hidden');
-
-  // Verification popup logic
   document.getElementById('cancelVerifyBtn').onclick = () => verifyPopup.classList.add('hidden');
   document.getElementById('submitVerifyBtn').onclick = async () => {
-    if(!currentVerifyingItemId) return;
+    if (!currentVerifyingItemId) return;
     const ans = document.getElementById('verifyAnswerInput').value.trim();
-    if(!ans) return;
+    if (!ans) return;
     const result = await verifyItem(currentVerifyingItemId, ans);
-    if(result.success) {
+    if (result.success) {
       document.getElementById('claimCodeText').innerText = result.claimCode;
       document.getElementById('claimCodeSection').style.display = 'block';
       document.querySelector('#verifyPopup .popup-content > p:first-of-type').style.display = 'none';
@@ -561,19 +735,14 @@
       document.getElementById('verifyMessage').innerText = '';
     } else {
       document.getElementById('verifyMessage').innerText = result.message;
-      if(result.blocked || result.cooldownEnd) {
-        document.getElementById('verifyAnswerInput').disabled = true;
-        document.getElementById('submitVerifyBtn').disabled = true;
-      }
+      if (result.blocked || result.cooldownEnd) { document.getElementById('verifyAnswerInput').disabled = true; document.getElementById('submitVerifyBtn').disabled = true; }
     }
   };
   document.getElementById('copyClaimCodeBtn').onclick = () => { navigator.clipboard.writeText(document.getElementById('claimCodeText').innerText); alert('Copied!'); };
   document.getElementById('closeClaimCodeBtn').onclick = () => { verifyPopup.classList.add('hidden'); location.reload(); };
-
-  // Report found item
   document.getElementById('submitFoundBtn').onclick = async () => {
-    const required = ['foundColor','foundModel','foundTime','foundBuilding','foundVeriQuestion','foundVeriAnswer'];
-    if(required.some(id => !document.getElementById(id).value.trim())) {
+    const required = ['foundColor', 'foundModel', 'foundTime', 'foundBuilding', 'foundVeriQuestion', 'foundVeriAnswer'];
+    if (required.some(id => !document.getElementById(id).value.trim())) {
       document.getElementById('errorPopupMessage').innerText = 'Please fill all required fields (*).';
       errorPopup.classList.remove('hidden');
       return;
@@ -593,55 +762,51 @@
       contactInfo: document.getElementById('foundContactInfo').value.trim(),
     };
     const photoInput = document.getElementById('foundPhoto');
-    if(photoInput.files.length) { data.photoFile = photoInput.files[0]; data.photoName = photoInput.files[0].name; }
+    if (photoInput.files.length) { data.photoFile = photoInput.files[0]; data.photoName = photoInput.files[0].name; }
     try {
       await createFoundItem(data);
       successPopup.classList.remove('hidden');
       setTimeout(() => { successPopup.classList.add('hidden'); showPage(homePage); }, 1500);
-    } catch(e) { document.getElementById('errorPopupMessage').innerText = e.message; errorPopup.classList.remove('hidden'); }
+    } catch (e) { document.getElementById('errorPopupMessage').innerText = e.message; errorPopup.classList.remove('hidden'); }
   };
-
-  // Check claim code
   document.getElementById('openCheckCodeBtn').onclick = () => checkCodePopup.classList.remove('hidden');
   document.getElementById('cancelCheckCodeBtn').onclick = () => checkCodePopup.classList.add('hidden');
   document.getElementById('submitCheckCodeBtn').onclick = async () => {
     const code = document.getElementById('checkCodeInput').value.trim();
-    if(!code) return;
+    if (!code) return;
     const res = await checkClaimCode(code);
     const resultDiv = document.getElementById('checkCodeResult');
-    if(res.found) resultDiv.innerHTML = `<div style="background:#e6f7ec; padding:10px;">✅ Valid code! Item: ${res.type}, ${res.color}, ${res.model}<br>📍 ${res.locationFound}<br><strong>Bring your Ezlink card to collect.</strong></div>`;
+    if (res.found) resultDiv.innerHTML = `<div style="background:#e6f7ec; padding:10px;">✅ Valid code! Item: ${res.type}, ${res.color}, ${res.model}<br>📍 ${res.locationFound}<br><strong>Bring your Ezlink card to collect.</strong></div>`;
     else resultDiv.innerHTML = '❌ Invalid code.';
   };
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
-  // Admin functions
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = 'Loading...';
     const items = await adminGetAllItems();
-    document.getElementById('adminItemCount').innerText = items.length;
-    if(!items.length) { container.innerHTML = '<p>No items</p>'; return; }
+    if (!items.length) { container.innerHTML = '<p>No items</p>'; return; }
     container.innerHTML = items.map(item => `
       <div class="lost-item-card">
-        <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${item.get('isResolved')}"> <strong>${item.get('type')}</strong> ${item.get('isResolved')?'<span class="admin-badge badge-resolved">Resolved</span>':''}</div>
+        <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${item.get('isResolved')}"> <strong>${item.get('type')}</strong> ${item.get('isResolved') ? '<span class="admin-badge badge-resolved">Resolved</span>' : ''}</div>
         <div>${item.get('color')} · ${item.get('model')}</div>
-        <div>📍 ${item.get('locationBuilding')||''} ${item.get('locationFloor')||''} ${item.get('locationRoom')||''}</div>
+        <div>📍 ${item.get('locationBuilding') || ''} ${item.get('locationFloor') || ''} ${item.get('locationRoom') || ''}</div>
         <div>🔐 Q: ${item.get('verificationQuestion')}</div>
         <div>Attempts: ${item.get('verificationAttempts')}</div>
         <div><button onclick="window.resetAdminItem('${item.id}')" class="outline-btn">Reset</button> <button onclick="window.deleteAdminItem('${item.id}')" class="danger-btn">Delete</button></div>
       </div>
     `).join('');
-    document.getElementById('selectAllBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked=true); };
-    document.getElementById('selectResolvedBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked = c.dataset.resolved==='true'); };
+    document.getElementById('selectAllBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c => c.checked = true); };
+    document.getElementById('selectResolvedBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c => c.checked = c.dataset.resolved === 'true'); };
     document.getElementById('deleteSelectedBtn').onclick = async () => {
-      const ids = [...document.querySelectorAll('.admin-checkbox:checked')].map(c=>c.dataset.id);
-      if(!ids.length) return alert('None selected');
-      if(confirm(`Delete ${ids.length} items?`)) { await Promise.all(ids.map(id=>adminDeleteItem(id))); loadAdminItems(); }
+      const ids = [...document.querySelectorAll('.admin-checkbox:checked')].map(c => c.dataset.id);
+      if (!ids.length) return alert('None selected');
+      if (confirm(`Delete ${ids.length} items?`)) { await Promise.all(ids.map(id => adminDeleteItem(id))); loadAdminItems(); }
     };
   }
-  window.resetAdminItem = async (id) => { if(confirm('Reset attempts?')){ await adminResetAttempts(id); loadAdminItems(); } };
-  window.deleteAdminItem = async (id) => { if(confirm('Delete?')){ await adminDeleteItem(id); loadAdminItems(); } };
+  window.resetAdminItem = async (id) => { if (confirm('Reset attempts?')) { await adminResetAttempts(id); loadAdminItems(); } };
+  window.deleteAdminItem = async (id) => { if (confirm('Delete?')) { await adminDeleteItem(id); loadAdminItems(); } };
 
   checkSession();
 </script>
