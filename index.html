@@ -25,7 +25,7 @@
       margin: 10px 0;
     }
     .hidden { display: none !important; }
-    .page { display: flex; flex-direction: column; gap: 1.2rem; }
+    .page { display: flex; flex-direction: column; gap: 1rem; }
     h2 { display: flex; align-items: center; gap: 8px; font-size: 1.5rem; color: #1e293b; }
     .emoji-icon { font-size: 1.4rem; }
     input, select, textarea, button {
@@ -56,8 +56,9 @@
       padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      margin-bottom: 12px;
     }
     .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
     .lost-item-card {
@@ -85,7 +86,24 @@
     .popup-content {
       background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 360px;
       display: flex; flex-direction: column; gap: 14px;
+      position: relative; /* for the X button */
     }
+    /* ---- New close button (X) in top-right corner ---- */
+    .popup-close {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      background: transparent;
+      border: none;
+      font-size: 22px;
+      color: #64748b;
+      cursor: pointer;
+      padding: 0;
+      width: auto;
+    }
+    .popup-close:hover { color: #0f172a; }
+
+    /* ---- Back button: black arrow on white circle ---- */
     .back-arrow-circle {
       position: absolute;
       top: 14px;
@@ -93,14 +111,16 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
+      color: #000000;
       cursor: pointer;
       z-index: 10;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
     }
     .page.has-back-arrow { padding-top: 60px; position: relative; }
     .required-asterisk { color: #b91c1c; margin-left: 2px; }
@@ -110,6 +130,12 @@
     .error-msg { color: #b91c1c; font-size: 0.85rem; display: none; }
     .error-msg.show { display: block; }
     .auth-card { background: #f0f4ff; border-radius: 24px; padding: 20px; margin-top: 10px; }
+    .user-welcome {
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 10px 14px;
+      margin-bottom: 8px;
+    }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
 </head>
@@ -218,9 +244,10 @@
     <button id="submitFoundBtn" class="primary-btn">✅ Submit found item</button>
   </div>
 
-  <!-- POPUPS -->
+  <!-- POPUPS with close 'X' buttons -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
+      <button class="popup-close" id="closeVerifyPopupTop">&times;</button>
       <h3>🔐 Verification</h3>
       <p id="verifyQuestionText"></p>
       <div id="verifyOptionsPanel" class="verify-options"></div>
@@ -239,6 +266,7 @@
 
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
+      <button class="popup-close" id="closeCheckCodePopupTop">&times;</button>
       <h3>🔑 Check Claim Code</h3>
       <input type="text" id="checkCodeInput" placeholder="e.g. A3K9X7">
       <button id="submitCheckCodeBtn" class="primary-btn">Check</button>
@@ -247,8 +275,21 @@
     </div>
   </div>
 
-  <div id="successPopup" class="verify-popup hidden"><div class="popup-content"><p>✅ Item reported!</p><button id="closeSuccessPopup">OK</button></div></div>
-  <div id="errorPopup" class="verify-popup hidden"><div class="popup-content"><p id="errorPopupMessage"></p><button id="closeErrorPopup">OK</button></div></div>
+  <div id="successPopup" class="verify-popup hidden">
+    <div class="popup-content">
+      <button class="popup-close" id="closeSuccessPopupTop">&times;</button>
+      <p>✅ Item reported!</p>
+      <button id="closeSuccessPopup">OK</button>
+    </div>
+  </div>
+
+  <div id="errorPopup" class="verify-popup hidden">
+    <div class="popup-content">
+      <button class="popup-close" id="closeErrorPopupTop">&times;</button>
+      <p id="errorPopupMessage"></p>
+      <button id="closeErrorPopup">OK</button>
+    </div>
+  </div>
 
   <!-- ADMIN PANEL -->
   <div id="adminPage" class="page hidden has-back-arrow">
@@ -268,9 +309,8 @@
   Parse.serverURL = "https://parseapi.back4app.com/";
   const LostItem = Parse.Object.extend("LostItem");
   const HOST_PASSWORD = "host123";
-  const ALLOWED_EMAIL_DOMAIN = "@school.edu.sg";  // change as needed
+  const ALLOWED_EMAIL_DOMAIN = "@school.edu.sg";
 
-  // ---------- Helper: generate claim code ----------
   function generateClaimCode(len=6) {
     const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code='';
@@ -278,7 +318,6 @@
     return code;
   }
 
-  // ---------- Create found item with detailed location ----------
   async function createFoundItem(data) {
     const item = new LostItem();
     item.set("type", data.type);
@@ -305,7 +344,6 @@
     return item.save();
   }
 
-  // ---------- Search matching items (based on lost form) ----------
   async function searchMatchingLostItems(criteria) {
     let query = new Parse.Query(LostItem);
     query.equalTo("isResolved", false);
@@ -315,13 +353,11 @@
     if(criteria.model) query.matches("model", new RegExp(criteria.model, "i"));
     if(criteria.appearance) query.matches("appearance", new RegExp(criteria.appearance, "i"));
     if(criteria.description) query.matches("description", new RegExp(criteria.description, "i"));
-    // location approximate match: building
     if(criteria.building) query.matches("locationBuilding", new RegExp(criteria.building, "i"));
     query.descending("createdAt");
     return query.find();
   }
 
-  // ---------- Standard verifyItem (same as original) ----------
   async function verifyItem(itemId, userAnswer) {
     const query = new Parse.Query(LostItem);
     const item = await query.get(itemId);
@@ -388,7 +424,6 @@
   async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
 
-  // ---------- AUTH with email domain + ezlink ----------
   const auth = {
     signUp: async (username, email, ezlink, password) => {
       if(!email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)) throw new Error(`Only ${ALLOWED_EMAIL_DOMAIN} emails allowed.`);
@@ -405,7 +440,6 @@
     getCurrentUser: () => Parse.User.current()
   };
 
-  // ---------- UI references ----------
   const loginPage = document.getElementById('loginPage');
   const rolePage = document.getElementById('roleSelectionPage');
   const homePage = document.getElementById('homePage');
@@ -419,18 +453,16 @@
   const errorPopup = document.getElementById('errorPopup');
 
   let currentVerifyingItemId = null;
-
   function showPage(page) { document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden')); page.classList.remove('hidden'); }
   function setError(el, msg) { if(msg){ el.textContent=msg; el.classList.add('show'); } else { el.textContent=''; el.classList.remove('show'); } }
 
-  // session check
   function checkSession() {
     const u = auth.getCurrentUser();
     if(u) { document.getElementById('roleUsername').textContent = u.getUsername(); showPage(rolePage); }
     else showPage(loginPage);
   }
 
-  // login/signup event handlers
+  // Login / signup toggles
   document.getElementById('showSignUpCard').onclick = () => { document.getElementById('loginCard').classList.add('hidden'); document.getElementById('signUpCard').classList.remove('hidden'); setError(document.getElementById('loginError'),''); setError(document.getElementById('signUpError'),''); };
   document.getElementById('showLoginCard').onclick = () => { document.getElementById('signUpCard').classList.add('hidden'); document.getElementById('loginCard').classList.remove('hidden'); };
   document.getElementById('signInBtn').onclick = async () => {
@@ -468,7 +500,7 @@
   document.getElementById('goFoundBtn').onclick = () => showPage(foundPage);
   document.getElementById('logoutFromHomeBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
 
-  // matching lost items
+  // Matching lost items
   document.getElementById('searchMatchingBtn').onclick = async () => {
     const criteria = {
       type: document.getElementById('lostType').value,
@@ -482,7 +514,7 @@
     container.innerHTML = '<p>🔍 Searching...</p>';
     try {
       const items = await searchMatchingLostItems(criteria);
-      if(!items.length) { container.innerHTML = '<p>😔 No matching found items. Try different details.</p>'; return; }
+      if(!items.length) { container.innerHTML = '<p>😔 No matching found items.</p>'; return; }
       container.innerHTML = items.map(item => `
         <div class="lost-item-card">
           <div><strong>${item.get('type')}</strong> · ${item.get('color')} · ${item.get('model')}</div>
@@ -495,7 +527,6 @@
         currentVerifyingItemId = e.target.dataset.id;
         const question = await getVerificationQuestion(currentVerifyingItemId);
         document.getElementById('verifyQuestionText').innerText = question || "No question set";
-        // Provide suggestion options based on common fields? For UX we add buttons from item's own color/model/appearance
         const item = await new Parse.Query(LostItem).get(currentVerifyingItemId);
         const sugg = [item.get('color'), item.get('model'), item.get('appearance')].filter(v=>v);
         const optsDiv = document.getElementById('verifyOptionsPanel');
@@ -506,7 +537,13 @@
     } catch(e) { container.innerHTML = `<p>Error: ${e.message}</p>`; }
   };
 
-  // verification popup logic
+  // Close popups via X buttons (top-right)
+  document.getElementById('closeVerifyPopupTop').onclick = () => verifyPopup.classList.add('hidden');
+  document.getElementById('closeCheckCodePopupTop').onclick = () => checkCodePopup.classList.add('hidden');
+  document.getElementById('closeSuccessPopupTop').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
+  document.getElementById('closeErrorPopupTop').onclick = () => errorPopup.classList.add('hidden');
+
+  // Verification popup logic
   document.getElementById('cancelVerifyBtn').onclick = () => verifyPopup.classList.add('hidden');
   document.getElementById('submitVerifyBtn').onclick = async () => {
     if(!currentVerifyingItemId) return;
@@ -533,7 +570,7 @@
   document.getElementById('copyClaimCodeBtn').onclick = () => { navigator.clipboard.writeText(document.getElementById('claimCodeText').innerText); alert('Copied!'); };
   document.getElementById('closeClaimCodeBtn').onclick = () => { verifyPopup.classList.add('hidden'); location.reload(); };
 
-  // report found item (detailed location)
+  // Report found item
   document.getElementById('submitFoundBtn').onclick = async () => {
     const required = ['foundColor','foundModel','foundTime','foundBuilding','foundVeriQuestion','foundVeriAnswer'];
     if(required.some(id => !document.getElementById(id).value.trim())) {
@@ -564,7 +601,7 @@
     } catch(e) { document.getElementById('errorPopupMessage').innerText = e.message; errorPopup.classList.remove('hidden'); }
   };
 
-  // check claim code popup
+  // Check claim code
   document.getElementById('openCheckCodeBtn').onclick = () => checkCodePopup.classList.remove('hidden');
   document.getElementById('cancelCheckCodeBtn').onclick = () => checkCodePopup.classList.add('hidden');
   document.getElementById('submitCheckCodeBtn').onclick = async () => {
@@ -575,11 +612,10 @@
     if(res.found) resultDiv.innerHTML = `<div style="background:#e6f7ec; padding:10px;">✅ Valid code! Item: ${res.type}, ${res.color}, ${res.model}<br>📍 ${res.locationFound}<br><strong>Bring your Ezlink card to collect.</strong></div>`;
     else resultDiv.innerHTML = '❌ Invalid code.';
   };
-  // close popups
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
-  // admin functions
+  // Admin functions
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = 'Loading...';
