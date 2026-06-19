@@ -396,3 +396,16 @@
 
   checkSession();
 </script>
+<script>
+  Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
+  Parse.serverURL = "https://parseapi.back4app.com/";
+  console.log("Parse initialized");
+
+  // Just show the login page for testing
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('loginPage').classList.remove('hidden');
+    document.querySelectorAll('.page').forEach(p => {
+      if (p.id !== 'loginPage') p.classList.add('hidden');
+    });
+  });
+</script>
