@@ -27,8 +27,6 @@ async function createFoundItem(data) {
   item.set("verificationBlocked", false);
   item.set("contactInfo", data.contactInfo || "");
   item.set("claimCode", "");
-  
-  // ✅ Direct file upload – no Base64
   if (data.photoFile) {
     const parseFile = new Parse.File(data.photoName, data.photoFile);
     item.set("photo", parseFile);
