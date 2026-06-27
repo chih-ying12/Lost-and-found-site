@@ -1,3 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>🔍 Lost & Found – Secure Claims</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #eef2f7 0%, #dce3ed 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 10px;
+    }
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      background: #ffffff;
+      border-radius: 28px;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.08);
+      padding: 24px 18px;
+      margin: 10px 0;
+    }
+    .hidden { display: none !important; }
+    .page { display: flex; flex-direction: column; gap: 1.2rem; }
+    h2 { display: flex; align-items: center; gap: 8px; font-size: 1.5rem; color: #1e293b; }
+    .emoji-icon { font-size: 1.4rem; }
+    input, select, textarea, button {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #dce3ec;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      background: #f8fafc;
+      transition: 0.2s;
+    }
+    button {
+      background: #1e3a5f;
+      color: white;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+    }
+    button:hover { background: #0f2540; }
+    .primary-btn { background: #3b82f6; }
+    .primary-btn:hover { background: #2563eb; }
+    .outline-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; }
+    .danger-btn { background: #fecaca; color: #b91c1c; border: 1px solid #fca5a5; }
+    .card {
+      background: #f4f7fc;
+      border-radius: 18px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .lost-item-card {
+      background: #ffffff;
+      border: 1px solid #eef2f6;
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .item-photo {
+      max-width: 100%;
+      border-radius: 14px;
+      margin-top: 8px;
+      max-height: 200px;
+      object-fit: cover;
+    }
+    .verify-options { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+    .verify-options button {
+      background: #e2e8f0;
+      color: #1e293b;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      width: auto;
+      flex: 1 0 auto;
+    }
+    .verify-popup, .popup-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;
+    }
+    .popup-content {
+      background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 360px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .back-arrow-circle {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      z-index: 10;
+    }
+    .page.has-back-arrow { padding-top: 60px; position: relative; }
+    .required-asterisk { color: #b91c1c; margin-left: 2px; }
+    .admin-badge { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; margin-left: 6px; }
+    .badge-resolved { background: #dcfce7; color: #15803d; }
+    .badge-active { background: #dbeafe; color: #1d4ed8; }
+    .error-msg { color: #b91c1c; font-size: 0.85rem; display: none; }
+    .error-msg.show { display: block; }
+    .auth-card { background: #f0f4ff; border-radius: 24px; padding: 20px; margin-top: 10px; }
+  </style>
+  <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
+</head>
+<body>
+<div class="app-container" id="appContainer">
+  <!-- LOGIN PAGE -->
+  <div id="loginPage" class="page">
+    <h2>🔐 Lost & Found</h2>
+    <div id="loginCard" class="auth-card">
+      <h3>Sign In</h3>
+      <input type="text" id="loginUsername" placeholder="Username">
+      <input type="password" id="loginPassword" placeholder="Password">
+      <button id="signInBtn" class="primary-btn">Sign In</button>
+      <p class="error-msg" id="loginError"></p>
+      <button class="outline-btn" id="showSignUpCard">Create account</button>
+    </div>
+    <div id="signUpCard" class="auth-card hidden">
+      <h3>Sign Up</h3>
+      <input type="text" id="signUpUsername" placeholder="Username">
+      <input type="email" id="signUpEmail" placeholder="Email (must be @school.edu.sg)">
+      <input type="text" id="signUpEzlink" placeholder="Ezlink Card Number (compulsory)">
+      <input type="password" id="signUpPassword" placeholder="Password">
+      <button id="signUpSubmitBtn" class="primary-btn">Sign Up</button>
+      <p class="error-msg" id="signUpError"></p>
+      <button class="outline-btn" id="showLoginCard">Back to sign in</button>
+    </div>
+  </div>
+
+  <!-- ROLE SELECTION -->
+  <div id="roleSelectionPage" class="page hidden has-back-arrow">
+    <button class="back-arrow-circle" id="backToLoginFromRole">←</button>
+    <h2>Choose Role</h2>
+    <div class="user-welcome">Logged in as <strong id="roleUsername"></strong></div>
+    <button id="goUserBtn" class="outline-btn">👤 Continue as User</button>
+    <button id="goHostAccessBtn" class="outline-btn">🛠️ Host Panel</button>
+    <button id="logoutFromRoleBtn" class="danger-btn">Log out</button>
+  </div>
+
+  <!-- HOST PASSWORD -->
+  <div id="hostPasswordPage" class="page hidden has-back-arrow">
+    <button class="back-arrow-circle" id="backToRoleFromHost">←</button>
+    <h2>Host Password</h2>
+    <input type="password" id="hostPasswordInput" placeholder="Enter host password">
+    <button id="submitHostPasswordBtn" class="primary-btn">Unlock Panel</button>
+    <p id="hostPasswordMessage" class="error-msg"></p>
+  </div>
+
+  <!-- USER HOME -->
+  <div id="homePage" class="page hidden has-back-arrow">
+    <button class="back-arrow-circle" id="backToRoleFromHome">←</button>
+    <h2>🏠 Home</h2>
+    <div class="user-welcome">Welcome, <strong id="displayUsername"></strong></div>
+    <button id="goLostBtn" class="outline-btn">🔍 I lost something (claim an item)</button>
+    <button id="goFoundBtn" class="outline-btn">📦 I found an item</button>
+    <button id="openCheckCodeBtn" class="outline-btn">🔑 Check Claim Code</button>
+    <button id="logoutFromHomeBtn" class="danger-btn">Log out</button>
+  </div>
+
+  <!-- LOST PAGE (FORM + MATCHING RESULTS) -->
+  <div id="lostPage" class="page hidden has-back-arrow">
+    <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
+    <h2>🔍 I lost an item</h2>
+    <p>Describe your lost item – system will show matching found items.</p>
+    <div class="card">
+      <select id="lostType">
+        <option value="">Select type</option>
+        <option value="electronic">📱 Electronic</option><option value="personal">🎒 Personal</option>
+        <option value="clothing">👕 Clothing</option><option value="documents">🪪 Documents</option>
+        <option value="keys">🔑 Keys</option><option value="bags">👜 Bags</option><option value="other">📌 Other</option>
+      </select>
+      <input type="text" id="lostColor" placeholder="Color *">
+      <input type="text" id="lostModel" placeholder="Model / Brand *">
+      <input type="text" id="lostAppearance" placeholder="Appearance (scratches, stickers...)">
+      <textarea id="lostDescription" rows="2" placeholder="Additional description"></textarea>
+      <button id="searchMatchingBtn" class="primary-btn">🔎 Find matches</button>
+    </div>
+    <div id="lostResults" style="margin-top:8px;"></div>
+  </div>
+
+  <!-- FOUND PAGE (with detailed location) -->
+  <div id="foundPage" class="page hidden has-back-arrow">
+    <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
+    <h2>📦 Report Found Item</h2>
+    <select id="foundType">
+      <option value="electronic">📱 Electronic</option><option value="personal">🎒 Personal</option>
+      <option value="clothing">👕 Clothing</option><option value="documents">🪪 Documents</option>
+      <option value="keys">🔑 Keys</option><option value="bags">👜 Bags</option><option value="other">📌 Other</option>
+    </select>
+    <input type="text" id="foundColor" placeholder="Color *">
+    <input type="text" id="foundModel" placeholder="Model / Brand *">
+    <input type="text" id="foundAppearance" placeholder="Appearance">
+    <textarea id="foundDescription" rows="2" placeholder="Additional description"></textarea>
+    <div><strong>📍 Where was it found?</strong></div>
+    <input type="text" id="foundBuilding" placeholder="Building / Block *">
+    <input type="text" id="foundFloor" placeholder="Floor / Level">
+    <input type="text" id="foundRoom" placeholder="Room / Unit">
+    <input type="datetime-local" id="foundTime" required>
+    <input type="text" id="foundVeriQuestion" placeholder="Verification question *">
+    <input type="text" id="foundVeriAnswer" placeholder="Secret answer *">
+    <input type="text" id="foundContactInfo" placeholder="Your contact (phone/email)">
+    <input type="file" id="foundPhoto" accept="image/*">
+    <button id="submitFoundBtn" class="primary-btn">✅ Submit found item</button>
+  </div>
+
+  <!-- EZLINK + APPOINTMENT MODAL (after correct verification) -->
+  <div id="ezlinkAppointmentModal" class="verify-popup hidden">
+    <div class="popup-content">
+      <h3>📇 Finalise Claim</h3>
+      <p>You answered correctly. To collect your item:</p>
+      <label>📸 Upload a photo of your EZ‑Link card <span class="required-asterisk">*</span></label>
+      <input type="file" id="ezlinkPhotoInput" accept="image/*" required>
+      <label>📅 Book appointment at General Office</label>
+      <input type="datetime-local" id="appointmentTime" required>
+      <button id="finaliseClaimBtn" class="primary-btn">✅ Confirm & Get Claim Code</button>
+      <button id="cancelFinaliseBtn" class="outline-btn">Cancel</button>
+      <p id="finaliseMessage" style="color:#b91c1c;"></p>
+    </div>
+  </div>
+
+  <!-- VERIFICATION POPUP -->
+  <div id="verifyPopup" class="verify-popup hidden">
+    <div class="popup-content">
+      <h3>🔐 Verification</h3>
+      <p id="verifyQuestionText"></p>
+      <div id="verifyOptionsPanel" class="verify-options"></div>
+      <input type="text" id="verifyAnswerInput" placeholder="Your answer (or click a suggestion)">
+      <button id="submitVerifyBtn" class="primary-btn">Confirm</button>
+      <button id="cancelVerifyBtn" class="outline-btn">Cancel</button>
+      <p id="verifyMessage"></p>
+    </div>
+  </div>
+
+  <!-- CLAIM CODE POPUP (final) -->
+  <div id="claimCodePopup" class="verify-popup hidden">
+    <div class="popup-content">
+      <h3>✅ Claim Successful</h3>
+      <p>Your claim code is:</p>
+      <p style="font-size:2rem; font-weight:bold; text-align:center;" id="finalClaimCode"></p>
+      <p><strong>📇 Remember to bring your registered EZ‑Link card to your appointment.</strong></p>
+      <p>Appointment: <span id="finalAppointment"></span></p>
+      <button id="closeClaimCodePopupBtn" class="primary-btn">Close</button>
+    </div>
+  </div>
+
+  <!-- CHECK CODE POPUP -->
+  <div id="checkCodePopup" class="verify-popup hidden">
+    <div class="popup-content">
+      <h3>🔑 Check Claim Code</h3>
+      <input type="text" id="checkCodeInput" placeholder="e.g. A3K9X7">
+      <button id="submitCheckCodeBtn" class="primary-btn">Check</button>
+      <button id="cancelCheckCodeBtn" class="outline-btn">Cancel</button>
+      <div id="checkCodeResult"></div>
+    </div>
+  </div>
+
+  <div id="successPopup" class="verify-popup hidden"><div class="popup-content"><p>✅ Item reported!</p><button id="closeSuccessPopup">OK</button></div></div>
+  <div id="errorPopup" class="verify-popup hidden"><div class="popup-content"><p id="errorPopupMessage"></p><button id="closeErrorPopup">OK</button></div></div>
+
+  <!-- ADMIN PANEL -->
+  <div id="adminPage" class="page hidden has-back-arrow">
+    <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
+    <h2>🛠️ Host Panel</h2>
+    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+      <button id="selectAllBtn" class="outline-btn">Select All</button>
+      <button id="selectResolvedBtn" class="outline-btn">Select Resolved</button>
+      <button id="deleteSelectedBtn" class="danger-btn">Delete Selected</button>
+    </div>
+    <div id="adminResults"></div>
+  </div>
+</div>
+
 <script>
   Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
   Parse.serverURL = "https://parseapi.back4app.com/";
@@ -12,7 +300,16 @@
     return code;
   }
 
-  // ✅ CREATED FOUND ITEM – uses raw File, no Base64
+  // Convert file to base64 for reliable upload
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  }
+
   async function createFoundItem(data) {
     const item = new LostItem();
     item.set("type", data.type);
@@ -32,8 +329,8 @@
     item.set("verificationBlocked", false);
     item.set("contactInfo", data.contactInfo);
     item.set("claimCode", "");
-    if (data.photoFile) {
-      const parseFile = new Parse.File(data.photoName, data.photoFile);
+    if (data.photoBase64) {
+      const parseFile = new Parse.File(data.photoName, { base64: data.photoBase64.split(',')[1] });
       item.set("photo", parseFile);
     }
     return item.save();
@@ -88,14 +385,15 @@
     }
   }
 
-  // ✅ FINALIZE CLAIM – uses raw File for EZ‑Link photo
   async function finalizeClaim(itemId, ezlinkPhotoFile, appointmentDateTime) {
     const query = new Parse.Query(LostItem);
     const item = await query.get(itemId);
     if(!item) throw new Error("Item not found");
     if(item.get("isResolved")) throw new Error("Already claimed");
     const code = generateClaimCode();
-    const parsePhoto = new Parse.File(ezlinkPhotoFile.name, ezlinkPhotoFile);
+    // Convert EZ-Link photo to base64 and upload
+    const base64 = await fileToBase64(ezlinkPhotoFile);
+    const parsePhoto = new Parse.File(ezlinkPhotoFile.name, { base64: base64.split(',')[1] });
     item.set("ezlinkPhoto", parsePhoto);
     item.set("appointmentTime", new Date(appointmentDateTime));
     item.set("claimCode", code);
@@ -130,7 +428,7 @@
   async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
 
-  // AUTH
+  // AUTH with email domain and ezlink
   const auth = {
     signUp: async (username, email, ezlink, password) => {
       if(!email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)) throw new Error(`Only ${ALLOWED_EMAIL_DOMAIN} emails allowed.`);
@@ -233,7 +531,7 @@
             <div><strong>${item.get('type')}</strong> · ${item.get('color')} · ${item.get('model')}</div>
             <div>📍 Found: ${item.get('locationBuilding')||''} ${item.get('locationFloor')||''} ${item.get('locationRoom')||''}</div>
             <div>✨ ${item.get('appearance')}</div>
-            ${photoUrl ? `<img src="${photoUrl}" class="item-photo" alt="Item photo">` : ''}
+            ${photoUrl ? `<img src="${photoUrl}" class="item-photo" onerror="this.onerror=null;this.src='';this.alt='Image failed to load';">` : ''}
             <button class="primary-btn verify-btn" data-id="${item.id}" style="margin-top:8px;">🔐 Claim this item</button>
           </div>
         `;
@@ -252,7 +550,7 @@
     } catch(e) { container.innerHTML = `<p>Error: ${e.message}</p>`; }
   };
 
-  // Verification popup
+  // Verification popup logic
   document.getElementById('cancelVerifyBtn').onclick = () => verifyPopup.classList.add('hidden');
   document.getElementById('submitVerifyBtn').onclick = async () => {
     if(!currentVerifyingItemId) return;
@@ -274,7 +572,7 @@
     }
   };
 
-  // Finalise claim – uses raw file
+  // Finalise claim (upload photo + appointment)
   document.getElementById('finaliseClaimBtn').onclick = async () => {
     const photoFile = document.getElementById('ezlinkPhotoInput').files[0];
     const appointment = document.getElementById('appointmentTime').value;
@@ -300,7 +598,7 @@
     if(searchBtn) searchBtn.click();
   };
 
-  // Check claim code
+  // Check claim code popup
   document.getElementById('openCheckCodeBtn').onclick = () => checkCodePopup.classList.remove('hidden');
   document.getElementById('cancelCheckCodeBtn').onclick = () => checkCodePopup.classList.add('hidden');
   document.getElementById('submitCheckCodeBtn').onclick = async () => {
@@ -316,7 +614,7 @@
     }
   };
 
-  // ✅ REPORT FOUND ITEM – uses raw File, no Base64
+  // Report found item with base64 photo
   document.getElementById('submitFoundBtn').onclick = async () => {
     const required = ['foundColor','foundModel','foundTime','foundBuilding','foundVeriQuestion','foundVeriAnswer'];
     if(required.some(id => !document.getElementById(id).value.trim())) {
@@ -325,12 +623,12 @@
       return;
     }
     const photoInput = document.getElementById('foundPhoto');
-    let photoFile = null;
+    let photoBase64 = null;
     let photoName = null;
     if (photoInput.files.length) {
       const file = photoInput.files[0];
-      photoFile = file;
       photoName = file.name;
+      photoBase64 = await fileToBase64(file);
     }
     const data = {
       type: document.getElementById('foundType').value,
@@ -345,23 +643,20 @@
       verificationQuestion: document.getElementById('foundVeriQuestion').value.trim(),
       verificationAnswer: document.getElementById('foundVeriAnswer').value.trim(),
       contactInfo: document.getElementById('foundContactInfo').value.trim(),
-      photoFile: photoFile,
+      photoBase64: photoBase64,
       photoName: photoName
     };
     try {
       await createFoundItem(data);
       successPopup.classList.remove('hidden');
       setTimeout(() => { successPopup.classList.add('hidden'); showPage(homePage); }, 1500);
-    } catch(e) {
-      document.getElementById('errorPopupMessage').innerText = e.message;
-      errorPopup.classList.remove('hidden');
-    }
+    } catch(e) { document.getElementById('errorPopupMessage').innerText = e.message; errorPopup.classList.remove('hidden'); }
   };
 
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
-  // ✅ ADMIN – displays photo as image
+  // Admin functions (with photo display)
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = 'Loading...';
@@ -378,7 +673,7 @@
           <div>🔐 Q: ${item.get('verificationQuestion')}</div>
           <div>Attempts: ${item.get('verificationAttempts')}</div>
           <div>📅 Appt: ${item.get('appointmentTime') ? new Date(item.get('appointmentTime')).toLocaleString() : 'N/A'}</div>
-          ${photoUrl ? `<img src="${photoUrl}" class="item-photo" style="max-height:150px;" alt="Item photo">` : ''}
+          ${photoUrl ? `<img src="${photoUrl}" class="item-photo" style="max-height:150px;" onerror="this.onerror=null;this.src='';">` : ''}
           <div><button onclick="window.resetAdminItem('${item.id}')" class="outline-btn">Reset</button> <button onclick="window.deleteAdminItem('${item.id}')" class="danger-btn">Delete</button></div>
         </div>
       `;
@@ -396,16 +691,5 @@
 
   checkSession();
 </script>
-<script>
-  Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
-  Parse.serverURL = "https://parseapi.back4app.com/";
-  console.log("Parse initialized");
-
-  // Just show the login page for testing
-  document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('loginPage').classList.remove('hidden');
-    document.querySelectorAll('.page').forEach(p => {
-      if (p.id !== 'loginPage') p.classList.add('hidden');
-    });
-  });
-</script>
+</body>
+</html>
