@@ -117,6 +117,10 @@
     .auth-card { background: #f0f4ff; border-radius: 24px; padding: 20px; margin-top: 10px; }
     .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center; }
     .filter-bar select, .filter-bar button { width: auto; flex: 1 0 auto; padding: 8px 12px; }
+    .tab-switch { display: flex; gap: 8px; margin-bottom: 10px; }
+    .tab-switch button { flex: 1; }
+    .tab-switch .active { background: #1e3a5f; color: white; }
+    .tab-content.hidden { display: none; }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
 </head>
@@ -183,7 +187,7 @@
     <button id="logoutFromHomeBtn" class="danger-btn">Log out</button>
   </div>
 
-  <!-- LOST PAGE (FORM + MATCHING RESULTS) -->
+  <!-- LOST PAGE -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
     <h2>🔍 I lost an item</h2>
@@ -204,7 +208,7 @@
     <div id="lostResults" style="margin-top:8px;"></div>
   </div>
 
-  <!-- FOUND PAGE (with detailed location) -->
+  <!-- FOUND PAGE -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
     <h2>📦 Report Found Item</h2>
@@ -229,7 +233,7 @@
     <button id="submitFoundBtn" class="primary-btn">✅ Submit found item</button>
   </div>
 
-  <!-- EZLINK + APPOINTMENT MODAL (after correct verification) -->
+  <!-- MODALS -->
   <div id="ezlinkAppointmentModal" class="verify-popup hidden">
     <div class="popup-content">
       <h3>📇 Finalise Claim</h3>
@@ -244,7 +248,6 @@
     </div>
   </div>
 
-  <!-- VERIFICATION POPUP -->
   <div id="verifyPopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verification</h3>
@@ -257,7 +260,6 @@
     </div>
   </div>
 
-  <!-- CLAIM CODE POPUP (final) -->
   <div id="claimCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>✅ Claim Successful</h3>
@@ -269,7 +271,6 @@
     </div>
   </div>
 
-  <!-- CHECK CODE POPUP -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
@@ -287,31 +288,41 @@
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Panel</h2>
-    <div class="filter-bar">
-      <select id="adminTypeFilter">
-        <option value="">All Types</option>
-        <option value="electronic">📱 Electronic</option>
-        <option value="personal">🎒 Personal</option>
-        <option value="clothing">👕 Clothing</option>
-        <option value="documents">🪪 Documents</option>
-        <option value="keys">🔑 Keys</option>
-        <option value="bags">👜 Bags</option>
-        <option value="other">📌 Other</option>
-      </select>
-      <select id="adminStatusFilter">
-        <option value="all">All Status</option>
-        <option value="resolved">✅ Resolved</option>
-        <option value="unresolved">⏳ Unresolved</option>
-      </select>
-      <button id="adminApplyFilterBtn" class="outline-btn">Apply</button>
-      <button id="adminResetFilterBtn" class="outline-btn">Reset</button>
+    <div class="tab-switch">
+      <button id="adminItemsTabBtn" class="active">📦 Items</button>
+      <button id="adminUsersTabBtn">👥 Users</button>
     </div>
-    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
-      <button id="selectAllBtn" class="outline-btn">Select All</button>
-      <button id="selectResolvedBtn" class="outline-btn">Select Resolved</button>
-      <button id="deleteSelectedBtn" class="danger-btn">Delete Selected</button>
+
+    <!-- ITEMS TAB -->
+    <div id="adminItemsTab" class="tab-content">
+      <div class="filter-bar">
+        <select id="adminTypeFilter">
+          <option value="">All Types</option>
+          <option value="electronic">📱 Electronic</option><option value="personal">🎒 Personal</option>
+          <option value="clothing">👕 Clothing</option><option value="documents">🪪 Documents</option>
+          <option value="keys">🔑 Keys</option><option value="bags">👜 Bags</option><option value="other">📌 Other</option>
+        </select>
+        <select id="adminStatusFilter">
+          <option value="all">All Status</option>
+          <option value="resolved">✅ Resolved</option>
+          <option value="unresolved">⏳ Unresolved</option>
+        </select>
+        <button id="adminApplyFilterBtn" class="outline-btn">Apply</button>
+        <button id="adminResetFilterBtn" class="outline-btn">Reset</button>
+      </div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+        <button id="selectAllBtn" class="outline-btn">Select All</button>
+        <button id="selectResolvedBtn" class="outline-btn">Select Resolved</button>
+        <button id="deleteSelectedBtn" class="danger-btn">Delete Selected</button>
+      </div>
+      <div id="adminResults"></div>
     </div>
-    <div id="adminResults"></div>
+
+    <!-- USERS TAB -->
+    <div id="adminUsersTab" class="tab-content hidden">
+      <button id="refreshUsersBtn" class="outline-btn" style="margin-bottom:10px;">🔄 Refresh Users</button>
+      <div id="adminUsersList"></div>
+    </div>
   </div>
 </div>
 
@@ -321,7 +332,6 @@
   const LostItem = Parse.Object.extend("LostItem");
   const HOST_PASSWORD = "host123";
   
-  // ✅ NEW: Allowed email domains
   const ALLOWED_EMAIL_DOMAINS = ["@students.edu.sg", "@moe.edu.sg"];
 
   function generateClaimCode(len=6) {
@@ -340,7 +350,6 @@
     });
   }
 
-  // ✅ NEW: Anti-duplicate flag
   let isSubmitting = false;
 
   async function createFoundItem(data) {
@@ -460,18 +469,20 @@
   async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
 
-  // ✅ NEW: Cloud function wrappers for email verification
+  // Cloud wrappers for email verification
   async function sendVerificationCode(email) {
     return Parse.Cloud.run('sendVerificationCode', { email });
   }
   async function verifyCode(email, code) {
     return Parse.Cloud.run('verifyCode', { email, code });
   }
+  async function getAllUsers() {
+    return Parse.Cloud.run('getAllUsers');
+  }
 
-  // AUTH
+  // Auth
   const auth = {
     signUp: async (username, email, ezlink, password) => {
-      // ✅ NEW: Check against multiple domains
       if (!ALLOWED_EMAIL_DOMAINS.some(domain => email.toLowerCase().endsWith(domain))) {
         throw new Error('Only @students.edu.sg or @moe.edu.sg emails are allowed.');
       }
@@ -488,7 +499,7 @@
     getCurrentUser: () => Parse.User.current()
   };
 
-  // UI references
+  // UI refs
   const loginPage = document.getElementById('loginPage');
   const rolePage = document.getElementById('roleSelectionPage');
   const homePage = document.getElementById('homePage');
@@ -515,7 +526,7 @@
     else showPage(loginPage);
   }
 
-  // Login / Signup handlers
+  // Login / Signup
   document.getElementById('showSignUpCard').onclick = () => { 
     document.getElementById('loginCard').classList.add('hidden'); 
     document.getElementById('signUpCard').classList.remove('hidden');
@@ -538,19 +549,16 @@
     catch(e) { setError(err, e.message.includes('Invalid')?'Wrong credentials':e.message); }
   };
 
-  // ✅ NEW: Step 1 – send verification code
   document.getElementById('signUpSubmitBtn').onclick = async () => {
     const username = document.getElementById('signUpUsername').value.trim();
     const email = document.getElementById('signUpEmail').value.trim();
     const ezlink = document.getElementById('signUpEzlink').value.trim();
     const password = document.getElementById('signUpPassword').value;
     const err = document.getElementById('signUpError');
-    
     if(!username || !email || !ezlink || !password) {
       setError(err, 'All fields required');
       return;
     }
-    // ✅ NEW: Domain check
     if (!ALLOWED_EMAIL_DOMAINS.some(domain => email.toLowerCase().endsWith(domain))) {
       setError(err, 'Only @students.edu.sg or @moe.edu.sg emails are allowed.');
       return;
@@ -568,7 +576,6 @@
     }
   };
 
-  // ✅ NEW: Step 2 – verify and create account
   document.getElementById('verifyAndCreateBtn').onclick = async () => {
     const code = document.getElementById('verificationCode').value.trim();
     const err = document.getElementById('signUpError');
@@ -588,7 +595,6 @@
     }
   };
 
-  // ✅ NEW: Resend code
   document.getElementById('resendCodeBtn').onclick = async () => {
     const err = document.getElementById('signUpError');
     if(!tempSignUpData.email) {
@@ -621,7 +627,7 @@
   document.getElementById('goFoundBtn').onclick = () => showPage(foundPage);
   document.getElementById('logoutFromHomeBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
 
-  // Matching lost items
+  // Search lost items
   document.getElementById('searchMatchingBtn').onclick = async () => {
     const criteria = {
       type: document.getElementById('lostType').value,
@@ -662,7 +668,7 @@
     } catch(e) { container.innerHTML = `<p>Error: ${e.message}</p>`; }
   };
 
-  // Verification popup
+  // Verify popup
   document.getElementById('cancelVerifyBtn').onclick = () => verifyPopup.classList.add('hidden');
   document.getElementById('submitVerifyBtn').onclick = async () => {
     if(!currentVerifyingItemId) return;
@@ -726,7 +732,7 @@
     }
   };
 
-  // ✅ FIXED: Report found item – prevents triple upload
+  // Submit found item – fixed duplicate
   document.getElementById('submitFoundBtn').onclick = async () => {
     if (isSubmitting) return;
     isSubmitting = true;
@@ -781,7 +787,7 @@
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
-  // ✅ UPDATED: Admin with filters and EZ-Link photo
+  // Admin – Items
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = 'Loading...';
@@ -830,13 +836,59 @@
   window.resetAdminItem = async (id) => { if(confirm('Reset attempts?')){ await adminResetAttempts(id); loadAdminItems(); } };
   window.deleteAdminItem = async (id) => { if(confirm('Delete?')){ await adminDeleteItem(id); loadAdminItems(); } };
 
-  // Filter event listeners
   document.getElementById('adminApplyFilterBtn').onclick = loadAdminItems;
   document.getElementById('adminResetFilterBtn').onclick = () => {
     document.getElementById('adminTypeFilter').value = '';
     document.getElementById('adminStatusFilter').value = 'all';
     loadAdminItems();
   };
+
+  // Admin – Users
+  async function loadAdminUsers() {
+    const container = document.getElementById('adminUsersList');
+    container.innerHTML = 'Loading users...';
+    try {
+      const users = await getAllUsers();
+      if (!users || users.length === 0) {
+        container.innerHTML = '<p>No users registered yet.</p>';
+        return;
+      }
+      container.innerHTML = users.map(user => `
+        <div class="lost-item-card" style="background:#f8fafc;">
+          <div><strong>${escapeHtml(user.username)}</strong> (${escapeHtml(user.email)})</div>
+          <div>📇 EZ‑Link: ${escapeHtml(user.ezlink || 'N/A')}</div>
+          <div>📅 Joined: ${new Date(user.createdAt).toLocaleString()}</div>
+          <div style="margin-top:6px; font-size:0.8rem; color:#666;">User ID: ${user.id}</div>
+        </div>
+      `).join('');
+    } catch (error) {
+      container.innerHTML = `<p style="color:#b91c1c;">Error loading users: ${error.message}</p>`;
+    }
+  }
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Tab switching in admin
+  document.getElementById('adminItemsTabBtn').onclick = () => {
+    document.getElementById('adminItemsTab').classList.remove('hidden');
+    document.getElementById('adminUsersTab').classList.add('hidden');
+    document.getElementById('adminItemsTabBtn').classList.add('active');
+    document.getElementById('adminUsersTabBtn').classList.remove('active');
+    loadAdminItems();
+  };
+  document.getElementById('adminUsersTabBtn').onclick = () => {
+    document.getElementById('adminUsersTab').classList.remove('hidden');
+    document.getElementById('adminItemsTab').classList.add('hidden');
+    document.getElementById('adminUsersTabBtn').classList.add('active');
+    document.getElementById('adminItemsTabBtn').classList.remove('active');
+    loadAdminUsers();
+  };
+  document.getElementById('refreshUsersBtn').onclick = loadAdminUsers;
 
   checkSession();
 </script>
