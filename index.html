@@ -140,17 +140,10 @@
     <div id="signUpCard" class="auth-card hidden">
       <h3>Sign Up</h3>
       <div id="signUpFields">
-        <input type="text" id="signUpUsername" placeholder="Username">
-        <input type="email" id="signUpEmail" placeholder="Email (must be @students.edu.sg or @moe.edu.sg)">
-        <input type="text" id="signUpEzlink" placeholder="Ezlink Card Number (compulsory)">
-        <input type="password" id="signUpPassword" placeholder="Password">
-        <button id="signUpSubmitBtn" class="primary-btn">Send Verification Code</button>
-      </div>
-      <div id="verificationSection" class="hidden">
-        <p style="font-size:0.9rem; color:#1e293b;">A 6-digit code has been sent to your email. Enter it below.</p>
-        <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6">
-        <button id="verifyAndCreateBtn" class="primary-btn">Verify & Create Account</button>
-        <button id="resendCodeBtn" class="outline-btn" style="font-size:0.8rem;">Resend Code</button>
+        <input type="text" id="signUpUsername" placeholder="Username *">
+        <input type="text" id="signUpEzlink" placeholder="Ezlink Card Number *">
+        <input type="password" id="signUpPassword" placeholder="Password *">
+        <button id="signUpSubmitBtn" class="primary-btn">Create Account</button>
       </div>
       <p class="error-msg" id="signUpError"></p>
       <button class="outline-btn" id="showLoginCard">Back to sign in</button>
@@ -331,8 +324,6 @@
   Parse.serverURL = "https://parseapi.back4app.com/";
   const LostItem = Parse.Object.extend("LostItem");
   const HOST_PASSWORD = "host123";
-  
-  const ALLOWED_EMAIL_DOMAINS = ["@students.edu.sg", "@moe.edu.sg"];
 
   function generateClaimCode(len=6) {
     const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -469,27 +460,17 @@
   async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
 
-  // Cloud wrappers for email verification
-  async function sendVerificationCode(email) {
-    return Parse.Cloud.run('sendVerificationCode', { email });
-  }
-  async function verifyCode(email, code) {
-    return Parse.Cloud.run('verifyCode', { email, code });
-  }
+  // Cloud wrapper for users
   async function getAllUsers() {
     return Parse.Cloud.run('getAllUsers');
   }
 
-  // Auth
+  // Auth (no email field)
   const auth = {
-    signUp: async (username, email, ezlink, password) => {
-      if (!ALLOWED_EMAIL_DOMAINS.some(domain => email.toLowerCase().endsWith(domain))) {
-        throw new Error('Only @students.edu.sg or @moe.edu.sg emails are allowed.');
-      }
+    signUp: async (username, ezlink, password) => {
       if(!ezlink.trim()) throw new Error("Ezlink card number is required.");
       const user = new Parse.User();
       user.set("username", username);
-      user.set("email", email);
       user.set("password", password);
       user.set("ezlink", ezlink);
       return user.signUp();
@@ -515,7 +496,6 @@
   const errorPopup = document.getElementById('errorPopup');
 
   let currentVerifyingItemId = null;
-  let tempSignUpData = {};
 
   function showPage(page) { document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden')); page.classList.remove('hidden'); }
   function setError(el, msg) { if(msg){ el.textContent=msg; el.classList.add('show'); } else { el.textContent=''; el.classList.remove('show'); } }
@@ -530,8 +510,6 @@
   document.getElementById('showSignUpCard').onclick = () => { 
     document.getElementById('loginCard').classList.add('hidden'); 
     document.getElementById('signUpCard').classList.remove('hidden');
-    document.getElementById('signUpFields').classList.remove('hidden');
-    document.getElementById('verificationSection').classList.add('hidden');
     setError(document.getElementById('signUpError'),'');
   };
   document.getElementById('showLoginCard').onclick = () => { 
@@ -549,61 +527,20 @@
     catch(e) { setError(err, e.message.includes('Invalid')?'Wrong credentials':e.message); }
   };
 
+  // Direct sign-up – no email field
   document.getElementById('signUpSubmitBtn').onclick = async () => {
     const username = document.getElementById('signUpUsername').value.trim();
-    const email = document.getElementById('signUpEmail').value.trim();
     const ezlink = document.getElementById('signUpEzlink').value.trim();
     const password = document.getElementById('signUpPassword').value;
     const err = document.getElementById('signUpError');
-    if(!username || !email || !ezlink || !password) {
+    if(!username || !ezlink || !password) {
       setError(err, 'All fields required');
       return;
     }
-    if (!ALLOWED_EMAIL_DOMAINS.some(domain => email.toLowerCase().endsWith(domain))) {
-      setError(err, 'Only @students.edu.sg or @moe.edu.sg emails are allowed.');
-      return;
-    }
     try {
-      await sendVerificationCode(email);
-      tempSignUpData = { username, email, ezlink, password };
-      document.getElementById('signUpFields').classList.add('hidden');
-      document.getElementById('verificationSection').classList.remove('hidden');
+      await auth.signUp(username, ezlink, password);
       setError(err, '');
-      document.getElementById('signUpSubmitBtn').disabled = true;
-      document.getElementById('signUpSubmitBtn').textContent = 'Code Sent';
-    } catch (e) {
-      setError(err, e.message);
-    }
-  };
-
-  document.getElementById('verifyAndCreateBtn').onclick = async () => {
-    const code = document.getElementById('verificationCode').value.trim();
-    const err = document.getElementById('signUpError');
-    if(!code) { setError(err, 'Please enter the code.'); return; }
-    try {
-      await verifyCode(tempSignUpData.email, code);
-      await auth.signUp(
-        tempSignUpData.username,
-        tempSignUpData.email,
-        tempSignUpData.ezlink,
-        tempSignUpData.password
-      );
-      setError(err, '');
-      checkSession();
-    } catch (e) {
-      setError(err, e.message);
-    }
-  };
-
-  document.getElementById('resendCodeBtn').onclick = async () => {
-    const err = document.getElementById('signUpError');
-    if(!tempSignUpData.email) {
-      setError(err, 'Please start over.');
-      return;
-    }
-    try {
-      await sendVerificationCode(tempSignUpData.email);
-      setError(err, 'New code sent!');
+      checkSession(); // auto-login
     } catch (e) {
       setError(err, e.message);
     }
@@ -855,7 +792,7 @@
       }
       container.innerHTML = users.map(user => `
         <div class="lost-item-card" style="background:#f8fafc;">
-          <div><strong>${escapeHtml(user.username)}</strong> (${escapeHtml(user.email)})</div>
+          <div><strong>${escapeHtml(user.username)}</strong></div>
           <div>📇 EZ‑Link: ${escapeHtml(user.ezlink || 'N/A')}</div>
           <div>📅 Joined: ${new Date(user.createdAt).toLocaleString()}</div>
           <div style="margin-top:6px; font-size:0.8rem; color:#666;">User ID: ${user.id}</div>
