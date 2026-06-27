@@ -135,15 +135,13 @@
     </div>
     <div id="signUpCard" class="auth-card hidden">
       <h3>Sign Up</h3>
-      <!-- NEW: wrap fields in a div to hide them during verification -->
       <div id="signUpFields">
         <input type="text" id="signUpUsername" placeholder="Username">
-        <input type="email" id="signUpEmail" placeholder="Email (must be @school.edu.sg)">
+        <input type="email" id="signUpEmail" placeholder="Email (must be @students.edu.sg or @moe.edu.sg)">
         <input type="text" id="signUpEzlink" placeholder="Ezlink Card Number (compulsory)">
         <input type="password" id="signUpPassword" placeholder="Password">
         <button id="signUpSubmitBtn" class="primary-btn">Send Verification Code</button>
       </div>
-      <!-- NEW: verification step -->
       <div id="verificationSection" class="hidden">
         <p style="font-size:0.9rem; color:#1e293b;">A 6-digit code has been sent to your email. Enter it below.</p>
         <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6">
@@ -289,7 +287,6 @@
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Panel</h2>
-    <!-- NEW: Filter Bar -->
     <div class="filter-bar">
       <select id="adminTypeFilter">
         <option value="">All Types</option>
@@ -323,7 +320,9 @@
   Parse.serverURL = "https://parseapi.back4app.com/";
   const LostItem = Parse.Object.extend("LostItem");
   const HOST_PASSWORD = "host123";
-  const ALLOWED_EMAIL_DOMAIN = "@school.edu.sg";
+  
+  // ✅ NEW: Allowed email domains
+  const ALLOWED_EMAIL_DOMAINS = ["@students.edu.sg", "@moe.edu.sg"];
 
   function generateClaimCode(len=6) {
     const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -332,7 +331,6 @@
     return code;
   }
 
-  // Convert file to base64 for reliable upload
   function fileToBase64(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -342,7 +340,7 @@
     });
   }
 
-  // NEW: Flag to prevent duplicate submissions
+  // ✅ NEW: Anti-duplicate flag
   let isSubmitting = false;
 
   async function createFoundItem(data) {
@@ -462,7 +460,7 @@
   async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
 
-  // NEW: Email Verification Cloud Functions
+  // ✅ NEW: Cloud function wrappers for email verification
   async function sendVerificationCode(email) {
     return Parse.Cloud.run('sendVerificationCode', { email });
   }
@@ -473,7 +471,10 @@
   // AUTH
   const auth = {
     signUp: async (username, email, ezlink, password) => {
-      if(!email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)) throw new Error(`Only ${ALLOWED_EMAIL_DOMAIN} emails allowed.`);
+      // ✅ NEW: Check against multiple domains
+      if (!ALLOWED_EMAIL_DOMAINS.some(domain => email.toLowerCase().endsWith(domain))) {
+        throw new Error('Only @students.edu.sg or @moe.edu.sg emails are allowed.');
+      }
       if(!ezlink.trim()) throw new Error("Ezlink card number is required.");
       const user = new Parse.User();
       user.set("username", username);
@@ -503,7 +504,6 @@
   const errorPopup = document.getElementById('errorPopup');
 
   let currentVerifyingItemId = null;
-  // NEW: temp storage for sign-up
   let tempSignUpData = {};
 
   function showPage(page) { document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden')); page.classList.remove('hidden'); }
@@ -519,7 +519,6 @@
   document.getElementById('showSignUpCard').onclick = () => { 
     document.getElementById('loginCard').classList.add('hidden'); 
     document.getElementById('signUpCard').classList.remove('hidden');
-    // Reset sign-up form
     document.getElementById('signUpFields').classList.remove('hidden');
     document.getElementById('verificationSection').classList.add('hidden');
     setError(document.getElementById('signUpError'),'');
@@ -539,7 +538,7 @@
     catch(e) { setError(err, e.message.includes('Invalid')?'Wrong credentials':e.message); }
   };
 
-  // NEW: Sign-up flow – step 1: send code
+  // ✅ NEW: Step 1 – send verification code
   document.getElementById('signUpSubmitBtn').onclick = async () => {
     const username = document.getElementById('signUpUsername').value.trim();
     const email = document.getElementById('signUpEmail').value.trim();
@@ -551,8 +550,9 @@
       setError(err, 'All fields required');
       return;
     }
-    if(!email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)) {
-      setError(err, `Only ${ALLOWED_EMAIL_DOMAIN} emails allowed.`);
+    // ✅ NEW: Domain check
+    if (!ALLOWED_EMAIL_DOMAINS.some(domain => email.toLowerCase().endsWith(domain))) {
+      setError(err, 'Only @students.edu.sg or @moe.edu.sg emails are allowed.');
       return;
     }
     try {
@@ -563,20 +563,18 @@
       setError(err, '');
       document.getElementById('signUpSubmitBtn').disabled = true;
       document.getElementById('signUpSubmitBtn').textContent = 'Code Sent';
-      // Re-enable after a few seconds? Better to keep disabled until resend.
     } catch (e) {
       setError(err, e.message);
     }
   };
 
-  // NEW: Step 2 – verify code and create account
+  // ✅ NEW: Step 2 – verify and create account
   document.getElementById('verifyAndCreateBtn').onclick = async () => {
     const code = document.getElementById('verificationCode').value.trim();
     const err = document.getElementById('signUpError');
     if(!code) { setError(err, 'Please enter the code.'); return; }
     try {
       await verifyCode(tempSignUpData.email, code);
-      // Code verified, create user
       await auth.signUp(
         tempSignUpData.username,
         tempSignUpData.email,
@@ -584,13 +582,13 @@
         tempSignUpData.password
       );
       setError(err, '');
-      checkSession(); // auto-login
+      checkSession();
     } catch (e) {
       setError(err, e.message);
     }
   };
 
-  // NEW: Resend code
+  // ✅ NEW: Resend code
   document.getElementById('resendCodeBtn').onclick = async () => {
     const err = document.getElementById('signUpError');
     if(!tempSignUpData.email) {
@@ -664,7 +662,7 @@
     } catch(e) { container.innerHTML = `<p>Error: ${e.message}</p>`; }
   };
 
-  // Verification popup logic
+  // Verification popup
   document.getElementById('cancelVerifyBtn').onclick = () => verifyPopup.classList.add('hidden');
   document.getElementById('submitVerifyBtn').onclick = async () => {
     if(!currentVerifyingItemId) return;
@@ -728,9 +726,8 @@
     }
   };
 
-  // Report found item - FIXED: prevent triple upload
+  // ✅ FIXED: Report found item – prevents triple upload
   document.getElementById('submitFoundBtn').onclick = async () => {
-    // NEW: Prevent duplicate submissions
     if (isSubmitting) return;
     isSubmitting = true;
     const btn = document.getElementById('submitFoundBtn');
@@ -775,7 +772,6 @@
       document.getElementById('errorPopupMessage').innerText = e.message;
       errorPopup.classList.remove('hidden');
     } finally {
-      // NEW: Re-enable button
       isSubmitting = false;
       btn.disabled = false;
       btn.textContent = '✅ Submit found item';
@@ -785,13 +781,12 @@
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
-  // NEW: Admin functions with filters and EZ-Link photo
+  // ✅ UPDATED: Admin with filters and EZ-Link photo
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = 'Loading...';
     const items = await adminGetAllItems();
     
-    // Get filter values
     const typeFilter = document.getElementById('adminTypeFilter').value;
     const statusFilter = document.getElementById('adminStatusFilter').value;
     
@@ -805,7 +800,6 @@
     container.innerHTML = filtered.map(item => {
       const photo = item.get('photo');
       const photoUrl = photo ? photo.url() : null;
-      // NEW: EZ-Link photo
       const ezlinkPhoto = item.get('ezlinkPhoto');
       const ezlinkUrl = ezlinkPhoto ? ezlinkPhoto.url() : null;
       
@@ -824,7 +818,6 @@
       `;
     }).join('');
     
-    // Re-bind selection buttons
     document.getElementById('selectAllBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked=true); };
     document.getElementById('selectResolvedBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked = c.dataset.resolved==='true'); };
     document.getElementById('deleteSelectedBtn').onclick = async () => {
@@ -837,7 +830,7 @@
   window.resetAdminItem = async (id) => { if(confirm('Reset attempts?')){ await adminResetAttempts(id); loadAdminItems(); } };
   window.deleteAdminItem = async (id) => { if(confirm('Delete?')){ await adminDeleteItem(id); loadAdminItems(); } };
 
-  // NEW: Filter event listeners
+  // Filter event listeners
   document.getElementById('adminApplyFilterBtn').onclick = loadAdminItems;
   document.getElementById('adminResetFilterBtn').onclick = () => {
     document.getElementById('adminTypeFilter').value = '';
