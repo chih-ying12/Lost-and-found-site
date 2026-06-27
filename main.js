@@ -1,11 +1,10 @@
-// main.js - Deploy this to Back4App Cloud Code
+// main.js – Deploy to Back4App Cloud Code
 
 // =============================================
 // 1. Set up your email provider (e.g., SendGrid)
 //    Replace with your own API key or SMTP config.
 // =============================================
 const sendgrid = require('sendgrid')('YOUR_SENDGRID_API_KEY'); // <-- Replace with your key
-// Or use other email libraries. For testing, you can log the code.
 
 // =============================================
 // Cloud Function: sendVerificationCode
@@ -13,9 +12,10 @@ const sendgrid = require('sendgrid')('YOUR_SENDGRID_API_KEY'); // <-- Replace wi
 Parse.Cloud.define("sendVerificationCode", async (request) => {
   const email = request.params.email;
   
-  // Validate email domain
-  if (!email || !email.toLowerCase().endsWith('@school.edu.sg')) {
-    throw new Error('Only @school.edu.sg emails are allowed.');
+  // ✅ NEW: Check against both allowed domains
+  const allowedDomains = ["@students.edu.sg", "@moe.edu.sg"];
+  if (!email || !allowedDomains.some(domain => email.toLowerCase().endsWith(domain))) {
+    throw new Error('Only @students.edu.sg or @moe.edu.sg emails are allowed.');
   }
 
   // Generate 6-digit code
@@ -42,8 +42,7 @@ Parse.Cloud.define("sendVerificationCode", async (request) => {
     await sendgrid.send(mailData);
   } catch (emailError) {
     console.error('Email send failed:', emailError);
-    // If email fails, we still return success? Better to let the user know.
-    // For robust systems, delete the saved record if email fails.
+    // If email fails, delete the saved record
     await record.destroy({ useMasterKey: true });
     throw new Error('Could not send email. Please check your email address.');
   }
