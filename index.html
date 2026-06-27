@@ -115,6 +115,8 @@
     .error-msg { color: #b91c1c; font-size: 0.85rem; display: none; }
     .error-msg.show { display: block; }
     .auth-card { background: #f0f4ff; border-radius: 24px; padding: 20px; margin-top: 10px; }
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center; }
+    .filter-bar select, .filter-bar button { width: auto; flex: 1 0 auto; padding: 8px 12px; }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
 </head>
@@ -133,11 +135,21 @@
     </div>
     <div id="signUpCard" class="auth-card hidden">
       <h3>Sign Up</h3>
-      <input type="text" id="signUpUsername" placeholder="Username">
-      <input type="email" id="signUpEmail" placeholder="Email (must be @school.edu.sg)">
-      <input type="text" id="signUpEzlink" placeholder="Ezlink Card Number (compulsory)">
-      <input type="password" id="signUpPassword" placeholder="Password">
-      <button id="signUpSubmitBtn" class="primary-btn">Sign Up</button>
+      <!-- NEW: wrap fields in a div to hide them during verification -->
+      <div id="signUpFields">
+        <input type="text" id="signUpUsername" placeholder="Username">
+        <input type="email" id="signUpEmail" placeholder="Email (must be @school.edu.sg)">
+        <input type="text" id="signUpEzlink" placeholder="Ezlink Card Number (compulsory)">
+        <input type="password" id="signUpPassword" placeholder="Password">
+        <button id="signUpSubmitBtn" class="primary-btn">Send Verification Code</button>
+      </div>
+      <!-- NEW: verification step -->
+      <div id="verificationSection" class="hidden">
+        <p style="font-size:0.9rem; color:#1e293b;">A 6-digit code has been sent to your email. Enter it below.</p>
+        <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6">
+        <button id="verifyAndCreateBtn" class="primary-btn">Verify & Create Account</button>
+        <button id="resendCodeBtn" class="outline-btn" style="font-size:0.8rem;">Resend Code</button>
+      </div>
       <p class="error-msg" id="signUpError"></p>
       <button class="outline-btn" id="showLoginCard">Back to sign in</button>
     </div>
@@ -277,7 +289,27 @@
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Panel</h2>
-    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+    <!-- NEW: Filter Bar -->
+    <div class="filter-bar">
+      <select id="adminTypeFilter">
+        <option value="">All Types</option>
+        <option value="electronic">📱 Electronic</option>
+        <option value="personal">🎒 Personal</option>
+        <option value="clothing">👕 Clothing</option>
+        <option value="documents">🪪 Documents</option>
+        <option value="keys">🔑 Keys</option>
+        <option value="bags">👜 Bags</option>
+        <option value="other">📌 Other</option>
+      </select>
+      <select id="adminStatusFilter">
+        <option value="all">All Status</option>
+        <option value="resolved">✅ Resolved</option>
+        <option value="unresolved">⏳ Unresolved</option>
+      </select>
+      <button id="adminApplyFilterBtn" class="outline-btn">Apply</button>
+      <button id="adminResetFilterBtn" class="outline-btn">Reset</button>
+    </div>
+    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
       <button id="selectAllBtn" class="outline-btn">Select All</button>
       <button id="selectResolvedBtn" class="outline-btn">Select Resolved</button>
       <button id="deleteSelectedBtn" class="danger-btn">Delete Selected</button>
@@ -309,6 +341,9 @@
       reader.onerror = error => reject(error);
     });
   }
+
+  // NEW: Flag to prevent duplicate submissions
+  let isSubmitting = false;
 
   async function createFoundItem(data) {
     const item = new LostItem();
@@ -391,7 +426,6 @@
     if(!item) throw new Error("Item not found");
     if(item.get("isResolved")) throw new Error("Already claimed");
     const code = generateClaimCode();
-    // Convert EZ-Link photo to base64 and upload
     const base64 = await fileToBase64(ezlinkPhotoFile);
     const parsePhoto = new Parse.File(ezlinkPhotoFile.name, { base64: base64.split(',')[1] });
     item.set("ezlinkPhoto", parsePhoto);
@@ -428,7 +462,15 @@
   async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
 
-  // AUTH with email domain and ezlink
+  // NEW: Email Verification Cloud Functions
+  async function sendVerificationCode(email) {
+    return Parse.Cloud.run('sendVerificationCode', { email });
+  }
+  async function verifyCode(email, code) {
+    return Parse.Cloud.run('verifyCode', { email, code });
+  }
+
+  // AUTH
   const auth = {
     signUp: async (username, email, ezlink, password) => {
       if(!email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)) throw new Error(`Only ${ALLOWED_EMAIL_DOMAIN} emails allowed.`);
@@ -461,6 +503,8 @@
   const errorPopup = document.getElementById('errorPopup');
 
   let currentVerifyingItemId = null;
+  // NEW: temp storage for sign-up
+  let tempSignUpData = {};
 
   function showPage(page) { document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden')); page.classList.remove('hidden'); }
   function setError(el, msg) { if(msg){ el.textContent=msg; el.classList.add('show'); } else { el.textContent=''; el.classList.remove('show'); } }
@@ -472,8 +516,20 @@
   }
 
   // Login / Signup handlers
-  document.getElementById('showSignUpCard').onclick = () => { document.getElementById('loginCard').classList.add('hidden'); document.getElementById('signUpCard').classList.remove('hidden'); setError(document.getElementById('loginError'),''); setError(document.getElementById('signUpError'),''); };
-  document.getElementById('showLoginCard').onclick = () => { document.getElementById('signUpCard').classList.add('hidden'); document.getElementById('loginCard').classList.remove('hidden'); };
+  document.getElementById('showSignUpCard').onclick = () => { 
+    document.getElementById('loginCard').classList.add('hidden'); 
+    document.getElementById('signUpCard').classList.remove('hidden');
+    // Reset sign-up form
+    document.getElementById('signUpFields').classList.remove('hidden');
+    document.getElementById('verificationSection').classList.add('hidden');
+    setError(document.getElementById('signUpError'),'');
+  };
+  document.getElementById('showLoginCard').onclick = () => { 
+    document.getElementById('signUpCard').classList.add('hidden'); 
+    document.getElementById('loginCard').classList.remove('hidden');
+    setError(document.getElementById('signUpError'),'');
+  };
+
   document.getElementById('signInBtn').onclick = async () => {
     const u = document.getElementById('loginUsername').value.trim();
     const p = document.getElementById('loginPassword').value;
@@ -482,16 +538,74 @@
     try { await auth.logIn(u,p); setError(err,''); checkSession(); }
     catch(e) { setError(err, e.message.includes('Invalid')?'Wrong credentials':e.message); }
   };
+
+  // NEW: Sign-up flow – step 1: send code
   document.getElementById('signUpSubmitBtn').onclick = async () => {
-    const u = document.getElementById('signUpUsername').value.trim();
-    const e = document.getElementById('signUpEmail').value.trim();
-    const ez = document.getElementById('signUpEzlink').value.trim();
-    const p = document.getElementById('signUpPassword').value;
+    const username = document.getElementById('signUpUsername').value.trim();
+    const email = document.getElementById('signUpEmail').value.trim();
+    const ezlink = document.getElementById('signUpEzlink').value.trim();
+    const password = document.getElementById('signUpPassword').value;
     const err = document.getElementById('signUpError');
-    if(!u||!e||!ez||!p) { setError(err,'All fields required'); return; }
-    try { await auth.signUp(u,e,ez,p); setError(err,''); checkSession(); }
-    catch(e) { setError(err, e.message); }
+    
+    if(!username || !email || !ezlink || !password) {
+      setError(err, 'All fields required');
+      return;
+    }
+    if(!email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN)) {
+      setError(err, `Only ${ALLOWED_EMAIL_DOMAIN} emails allowed.`);
+      return;
+    }
+    try {
+      await sendVerificationCode(email);
+      tempSignUpData = { username, email, ezlink, password };
+      document.getElementById('signUpFields').classList.add('hidden');
+      document.getElementById('verificationSection').classList.remove('hidden');
+      setError(err, '');
+      document.getElementById('signUpSubmitBtn').disabled = true;
+      document.getElementById('signUpSubmitBtn').textContent = 'Code Sent';
+      // Re-enable after a few seconds? Better to keep disabled until resend.
+    } catch (e) {
+      setError(err, e.message);
+    }
   };
+
+  // NEW: Step 2 – verify code and create account
+  document.getElementById('verifyAndCreateBtn').onclick = async () => {
+    const code = document.getElementById('verificationCode').value.trim();
+    const err = document.getElementById('signUpError');
+    if(!code) { setError(err, 'Please enter the code.'); return; }
+    try {
+      await verifyCode(tempSignUpData.email, code);
+      // Code verified, create user
+      await auth.signUp(
+        tempSignUpData.username,
+        tempSignUpData.email,
+        tempSignUpData.ezlink,
+        tempSignUpData.password
+      );
+      setError(err, '');
+      checkSession(); // auto-login
+    } catch (e) {
+      setError(err, e.message);
+    }
+  };
+
+  // NEW: Resend code
+  document.getElementById('resendCodeBtn').onclick = async () => {
+    const err = document.getElementById('signUpError');
+    if(!tempSignUpData.email) {
+      setError(err, 'Please start over.');
+      return;
+    }
+    try {
+      await sendVerificationCode(tempSignUpData.email);
+      setError(err, 'New code sent!');
+    } catch (e) {
+      setError(err, e.message);
+    }
+  };
+
+  // Navigation
   document.getElementById('backToLoginFromRole').onclick = async () => { await auth.logOut(); showPage(loginPage); };
   document.getElementById('logoutFromRoleBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
   document.getElementById('backToRoleFromHome').onclick = () => showPage(rolePage);
@@ -572,7 +686,7 @@
     }
   };
 
-  // Finalise claim (upload photo + appointment)
+  // Finalise claim
   document.getElementById('finaliseClaimBtn').onclick = async () => {
     const photoFile = document.getElementById('ezlinkPhotoInput').files[0];
     const appointment = document.getElementById('appointmentTime').value;
@@ -598,7 +712,7 @@
     if(searchBtn) searchBtn.click();
   };
 
-  // Check claim code popup
+  // Check claim code
   document.getElementById('openCheckCodeBtn').onclick = () => checkCodePopup.classList.remove('hidden');
   document.getElementById('cancelCheckCodeBtn').onclick = () => checkCodePopup.classList.add('hidden');
   document.getElementById('submitCheckCodeBtn').onclick = async () => {
@@ -614,57 +728,87 @@
     }
   };
 
-  // Report found item with base64 photo
+  // Report found item - FIXED: prevent triple upload
   document.getElementById('submitFoundBtn').onclick = async () => {
-    const required = ['foundColor','foundModel','foundTime','foundBuilding','foundVeriQuestion','foundVeriAnswer'];
-    if(required.some(id => !document.getElementById(id).value.trim())) {
-      document.getElementById('errorPopupMessage').innerText = 'Please fill all required fields (*).';
-      errorPopup.classList.remove('hidden');
-      return;
-    }
-    const photoInput = document.getElementById('foundPhoto');
-    let photoBase64 = null;
-    let photoName = null;
-    if (photoInput.files.length) {
-      const file = photoInput.files[0];
-      photoName = file.name;
-      photoBase64 = await fileToBase64(file);
-    }
-    const data = {
-      type: document.getElementById('foundType').value,
-      color: document.getElementById('foundColor').value.trim(),
-      model: document.getElementById('foundModel').value.trim(),
-      appearance: document.getElementById('foundAppearance').value.trim(),
-      description: document.getElementById('foundDescription').value.trim(),
-      timeFound: new Date(document.getElementById('foundTime').value),
-      locationBuilding: document.getElementById('foundBuilding').value.trim(),
-      locationFloor: document.getElementById('foundFloor').value.trim(),
-      locationRoom: document.getElementById('foundRoom').value.trim(),
-      verificationQuestion: document.getElementById('foundVeriQuestion').value.trim(),
-      verificationAnswer: document.getElementById('foundVeriAnswer').value.trim(),
-      contactInfo: document.getElementById('foundContactInfo').value.trim(),
-      photoBase64: photoBase64,
-      photoName: photoName
-    };
+    // NEW: Prevent duplicate submissions
+    if (isSubmitting) return;
+    isSubmitting = true;
+    const btn = document.getElementById('submitFoundBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
     try {
+      const required = ['foundColor','foundModel','foundTime','foundBuilding','foundVeriQuestion','foundVeriAnswer'];
+      if(required.some(id => !document.getElementById(id).value.trim())) {
+        document.getElementById('errorPopupMessage').innerText = 'Please fill all required fields (*).';
+        errorPopup.classList.remove('hidden');
+        return;
+      }
+      const photoInput = document.getElementById('foundPhoto');
+      let photoBase64 = null;
+      let photoName = null;
+      if (photoInput.files.length) {
+        const file = photoInput.files[0];
+        photoName = file.name;
+        photoBase64 = await fileToBase64(file);
+      }
+      const data = {
+        type: document.getElementById('foundType').value,
+        color: document.getElementById('foundColor').value.trim(),
+        model: document.getElementById('foundModel').value.trim(),
+        appearance: document.getElementById('foundAppearance').value.trim(),
+        description: document.getElementById('foundDescription').value.trim(),
+        timeFound: new Date(document.getElementById('foundTime').value),
+        locationBuilding: document.getElementById('foundBuilding').value.trim(),
+        locationFloor: document.getElementById('foundFloor').value.trim(),
+        locationRoom: document.getElementById('foundRoom').value.trim(),
+        verificationQuestion: document.getElementById('foundVeriQuestion').value.trim(),
+        verificationAnswer: document.getElementById('foundVeriAnswer').value.trim(),
+        contactInfo: document.getElementById('foundContactInfo').value.trim(),
+        photoBase64: photoBase64,
+        photoName: photoName
+      };
       await createFoundItem(data);
       successPopup.classList.remove('hidden');
       setTimeout(() => { successPopup.classList.add('hidden'); showPage(homePage); }, 1500);
-    } catch(e) { document.getElementById('errorPopupMessage').innerText = e.message; errorPopup.classList.remove('hidden'); }
+    } catch(e) {
+      document.getElementById('errorPopupMessage').innerText = e.message;
+      errorPopup.classList.remove('hidden');
+    } finally {
+      // NEW: Re-enable button
+      isSubmitting = false;
+      btn.disabled = false;
+      btn.textContent = '✅ Submit found item';
+    }
   };
 
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
-  // Admin functions (with photo display)
+  // NEW: Admin functions with filters and EZ-Link photo
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = 'Loading...';
     const items = await adminGetAllItems();
-    if(!items.length) { container.innerHTML = '<p>No items</p>'; return; }
-    container.innerHTML = items.map(item => {
+    
+    // Get filter values
+    const typeFilter = document.getElementById('adminTypeFilter').value;
+    const statusFilter = document.getElementById('adminStatusFilter').value;
+    
+    let filtered = items;
+    if (typeFilter) filtered = filtered.filter(item => item.get('type') === typeFilter);
+    if (statusFilter === 'resolved') filtered = filtered.filter(item => item.get('isResolved') === true);
+    if (statusFilter === 'unresolved') filtered = filtered.filter(item => item.get('isResolved') === false);
+    
+    if(!filtered.length) { container.innerHTML = '<p>No items match filters.</p>'; return; }
+    
+    container.innerHTML = filtered.map(item => {
       const photo = item.get('photo');
       const photoUrl = photo ? photo.url() : null;
+      // NEW: EZ-Link photo
+      const ezlinkPhoto = item.get('ezlinkPhoto');
+      const ezlinkUrl = ezlinkPhoto ? ezlinkPhoto.url() : null;
+      
       return `
         <div class="lost-item-card">
           <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${item.get('isResolved')}"> <strong>${item.get('type')}</strong> ${item.get('isResolved')?'<span class="admin-badge badge-resolved">Resolved</span>':''}</div>
@@ -674,10 +818,13 @@
           <div>Attempts: ${item.get('verificationAttempts')}</div>
           <div>📅 Appt: ${item.get('appointmentTime') ? new Date(item.get('appointmentTime')).toLocaleString() : 'N/A'}</div>
           ${photoUrl ? `<img src="${photoUrl}" class="item-photo" style="max-height:150px;" onerror="this.onerror=null;this.src='';">` : ''}
+          ${ezlinkUrl ? `<div><strong>📇 EZ‑Link Card:</strong><br><img src="${ezlinkUrl}" class="item-photo" style="max-height:150px;"></div>` : ''}
           <div><button onclick="window.resetAdminItem('${item.id}')" class="outline-btn">Reset</button> <button onclick="window.deleteAdminItem('${item.id}')" class="danger-btn">Delete</button></div>
         </div>
       `;
     }).join('');
+    
+    // Re-bind selection buttons
     document.getElementById('selectAllBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked=true); };
     document.getElementById('selectResolvedBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked = c.dataset.resolved==='true'); };
     document.getElementById('deleteSelectedBtn').onclick = async () => {
@@ -686,8 +833,17 @@
       if(confirm(`Delete ${ids.length} items?`)) { await Promise.all(ids.map(id=>adminDeleteItem(id))); loadAdminItems(); }
     };
   }
+  
   window.resetAdminItem = async (id) => { if(confirm('Reset attempts?')){ await adminResetAttempts(id); loadAdminItems(); } };
   window.deleteAdminItem = async (id) => { if(confirm('Delete?')){ await adminDeleteItem(id); loadAdminItems(); } };
+
+  // NEW: Filter event listeners
+  document.getElementById('adminApplyFilterBtn').onclick = loadAdminItems;
+  document.getElementById('adminResetFilterBtn').onclick = () => {
+    document.getElementById('adminTypeFilter').value = '';
+    document.getElementById('adminStatusFilter').value = 'all';
+    loadAdminItems();
+  };
 
   checkSession();
 </script>
