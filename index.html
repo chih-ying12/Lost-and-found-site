@@ -121,6 +121,7 @@
     .tab-switch button { flex: 1; }
     .tab-switch .active { background: #1e3a5f; color: white; }
     .tab-content.hidden { display: none; }
+    .custom-input { margin-top: 4px; }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
 </head>
@@ -180,7 +181,7 @@
     <button id="logoutFromHomeBtn" class="danger-btn">Log out</button>
   </div>
 
-  <!-- LOST PAGE -->
+  <!-- LOST PAGE (with dropdowns) -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
     <h2>🔍 I lost an item</h2>
@@ -192,8 +193,42 @@
         <option value="clothing">👕 Clothing</option><option value="documents">🪪 Documents</option>
         <option value="keys">🔑 Keys</option><option value="bags">👜 Bags</option><option value="other">📌 Other</option>
       </select>
-      <input type="text" id="lostColor" placeholder="Color *">
-      <input type="text" id="lostModel" placeholder="Model / Brand *">
+
+      <!-- Brand dropdown -->
+      <select id="lostModel">
+        <option value="">Select Brand / Model</option>
+        <option value="Lenovo">Lenovo</option>
+        <option value="Dell">Dell</option>
+        <option value="HP">HP</option>
+        <option value="Apple">Apple</option>
+        <option value="Samsung">Samsung</option>
+        <option value="Sony">Sony</option>
+        <option value="Asus">Asus</option>
+        <option value="Acer">Acer</option>
+        <option value="Other">Other (custom)</option>
+      </select>
+      <input type="text" id="lostModelCustom" placeholder="Custom brand/model" class="hidden custom-input">
+
+      <!-- Color dropdown -->
+      <select id="lostColor">
+        <option value="">Select Color</option>
+        <option value="Black">Black</option>
+        <option value="White">White</option>
+        <option value="Red">Red</option>
+        <option value="Blue">Blue</option>
+        <option value="Green">Green</option>
+        <option value="Yellow">Yellow</option>
+        <option value="Silver">Silver</option>
+        <option value="Gold">Gold</option>
+        <option value="Pink">Pink</option>
+        <option value="Purple">Purple</option>
+        <option value="Orange">Orange</option>
+        <option value="Brown">Brown</option>
+        <option value="Grey">Grey</option>
+        <option value="Other">Other (custom)</option>
+      </select>
+      <input type="text" id="lostColorCustom" placeholder="Custom color" class="hidden custom-input">
+
       <input type="text" id="lostAppearance" placeholder="Appearance (scratches, stickers...)">
       <textarea id="lostDescription" rows="2" placeholder="Additional description"></textarea>
       <button id="searchMatchingBtn" class="primary-btn">🔎 Find matches</button>
@@ -201,7 +236,7 @@
     <div id="lostResults" style="margin-top:8px;"></div>
   </div>
 
-  <!-- FOUND PAGE -->
+  <!-- FOUND PAGE (with dropdowns) -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
     <h2>📦 Report Found Item</h2>
@@ -210,8 +245,42 @@
       <option value="clothing">👕 Clothing</option><option value="documents">🪪 Documents</option>
       <option value="keys">🔑 Keys</option><option value="bags">👜 Bags</option><option value="other">📌 Other</option>
     </select>
-    <input type="text" id="foundColor" placeholder="Color *">
-    <input type="text" id="foundModel" placeholder="Model / Brand *">
+
+    <!-- Brand dropdown -->
+    <select id="foundModel">
+      <option value="">Select Brand / Model</option>
+      <option value="Lenovo">Lenovo</option>
+      <option value="Dell">Dell</option>
+      <option value="HP">HP</option>
+      <option value="Apple">Apple</option>
+      <option value="Samsung">Samsung</option>
+      <option value="Sony">Sony</option>
+      <option value="Asus">Asus</option>
+      <option value="Acer">Acer</option>
+      <option value="Other">Other (custom)</option>
+    </select>
+    <input type="text" id="foundModelCustom" placeholder="Custom brand/model" class="hidden custom-input">
+
+    <!-- Color dropdown -->
+    <select id="foundColor">
+      <option value="">Select Color</option>
+      <option value="Black">Black</option>
+      <option value="White">White</option>
+      <option value="Red">Red</option>
+      <option value="Blue">Blue</option>
+      <option value="Green">Green</option>
+      <option value="Yellow">Yellow</option>
+      <option value="Silver">Silver</option>
+      <option value="Gold">Gold</option>
+      <option value="Pink">Pink</option>
+      <option value="Purple">Purple</option>
+      <option value="Orange">Orange</option>
+      <option value="Brown">Brown</option>
+      <option value="Grey">Grey</option>
+      <option value="Other">Other (custom)</option>
+    </select>
+    <input type="text" id="foundColorCustom" placeholder="Custom color" class="hidden custom-input">
+
     <input type="text" id="foundAppearance" placeholder="Appearance">
     <textarea id="foundDescription" rows="2" placeholder="Additional description"></textarea>
     <div><strong>📍 Where was it found?</strong></div>
@@ -226,7 +295,7 @@
     <button id="submitFoundBtn" class="primary-btn">✅ Submit found item</button>
   </div>
 
-  <!-- MODALS -->
+  <!-- MODALS (unchanged) -->
   <div id="ezlinkAppointmentModal" class="verify-popup hidden">
     <div class="popup-content">
       <h3>📇 Finalise Claim</h3>
@@ -277,7 +346,7 @@
   <div id="successPopup" class="verify-popup hidden"><div class="popup-content"><p>✅ Item reported!</p><button id="closeSuccessPopup">OK</button></div></div>
   <div id="errorPopup" class="verify-popup hidden"><div class="popup-content"><p id="errorPopupMessage"></p><button id="closeErrorPopup">OK</button></div></div>
 
-  <!-- ADMIN PANEL -->
+  <!-- ADMIN PANEL (unchanged) -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Panel</h2>
@@ -286,7 +355,6 @@
       <button id="adminUsersTabBtn">👥 Users</button>
     </div>
 
-    <!-- ITEMS TAB -->
     <div id="adminItemsTab" class="tab-content">
       <div class="filter-bar">
         <select id="adminTypeFilter">
@@ -311,7 +379,6 @@
       <div id="adminResults"></div>
     </div>
 
-    <!-- USERS TAB -->
     <div id="adminUsersTab" class="tab-content hidden">
       <button id="refreshUsersBtn" class="outline-btn" style="margin-bottom:10px;">🔄 Refresh Users</button>
       <div id="adminUsersList"></div>
@@ -325,6 +392,37 @@
   const LostItem = Parse.Object.extend("LostItem");
   const HOST_PASSWORD = "host123";
 
+  // ===== Helper: get value from dropdown with custom fallback =====
+  function getDropdownValue(selectId, customId) {
+    const select = document.getElementById(selectId);
+    const custom = document.getElementById(customId);
+    if (select.value === "Other") {
+      return custom.value.trim() || "";
+    }
+    return select.value;
+  }
+
+  // ===== Toggle custom input visibility =====
+  function toggleCustom(selectId, customId) {
+    const select = document.getElementById(selectId);
+    const custom = document.getElementById(customId);
+    if (select.value === "Other") {
+      custom.classList.remove('hidden');
+      custom.required = true; // optional
+    } else {
+      custom.classList.add('hidden');
+      custom.value = '';
+      custom.required = false;
+    }
+  }
+
+  // Attach toggle events to all dropdowns
+  document.querySelectorAll('select[id$="Model"], select[id$="Color"]').forEach(sel => {
+    const customId = sel.id + 'Custom';
+    sel.addEventListener('change', () => toggleCustom(sel.id, customId));
+  });
+
+  // ===== Existing functions =====
   function generateClaimCode(len=6) {
     const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code='';
@@ -460,12 +558,11 @@
   async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
 
-  // Cloud wrapper for users
   async function getAllUsers() {
     return Parse.Cloud.run('getAllUsers');
   }
 
-  // Auth (no email field)
+  // Auth
   const auth = {
     signUp: async (username, ezlink, password) => {
       if(!ezlink.trim()) throw new Error("Ezlink card number is required.");
@@ -527,7 +624,6 @@
     catch(e) { setError(err, e.message.includes('Invalid')?'Wrong credentials':e.message); }
   };
 
-  // Direct sign-up – no email field
   document.getElementById('signUpSubmitBtn').onclick = async () => {
     const username = document.getElementById('signUpUsername').value.trim();
     const ezlink = document.getElementById('signUpEzlink').value.trim();
@@ -540,7 +636,7 @@
     try {
       await auth.signUp(username, ezlink, password);
       setError(err, '');
-      checkSession(); // auto-login
+      checkSession();
     } catch (e) {
       setError(err, e.message);
     }
@@ -564,12 +660,14 @@
   document.getElementById('goFoundBtn').onclick = () => showPage(foundPage);
   document.getElementById('logoutFromHomeBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
 
-  // Search lost items
+  // Search lost items (uses dropdowns)
   document.getElementById('searchMatchingBtn').onclick = async () => {
+    const model = getDropdownValue('lostModel', 'lostModelCustom');
+    const color = getDropdownValue('lostColor', 'lostColorCustom');
     const criteria = {
       type: document.getElementById('lostType').value,
-      color: document.getElementById('lostColor').value,
-      model: document.getElementById('lostModel').value,
+      color: color,
+      model: model,
       appearance: document.getElementById('lostAppearance').value,
       description: document.getElementById('lostDescription').value
     };
@@ -669,7 +767,7 @@
     }
   };
 
-  // Submit found item – fixed duplicate
+  // Submit found item (uses dropdowns)
   document.getElementById('submitFoundBtn').onclick = async () => {
     if (isSubmitting) return;
     isSubmitting = true;
@@ -694,8 +792,8 @@
       }
       const data = {
         type: document.getElementById('foundType').value,
-        color: document.getElementById('foundColor').value.trim(),
-        model: document.getElementById('foundModel').value.trim(),
+        color: getDropdownValue('foundColor', 'foundColorCustom'),
+        model: getDropdownValue('foundModel', 'foundModelCustom'),
         appearance: document.getElementById('foundAppearance').value.trim(),
         description: document.getElementById('foundDescription').value.trim(),
         timeFound: new Date(document.getElementById('foundTime').value),
@@ -724,28 +822,23 @@
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
-  // Admin – Items
+  // Admin – Items (unchanged)
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = 'Loading...';
     const items = await adminGetAllItems();
-    
     const typeFilter = document.getElementById('adminTypeFilter').value;
     const statusFilter = document.getElementById('adminStatusFilter').value;
-    
     let filtered = items;
     if (typeFilter) filtered = filtered.filter(item => item.get('type') === typeFilter);
     if (statusFilter === 'resolved') filtered = filtered.filter(item => item.get('isResolved') === true);
     if (statusFilter === 'unresolved') filtered = filtered.filter(item => item.get('isResolved') === false);
-    
     if(!filtered.length) { container.innerHTML = '<p>No items match filters.</p>'; return; }
-    
     container.innerHTML = filtered.map(item => {
       const photo = item.get('photo');
       const photoUrl = photo ? photo.url() : null;
       const ezlinkPhoto = item.get('ezlinkPhoto');
       const ezlinkUrl = ezlinkPhoto ? ezlinkPhoto.url() : null;
-      
       return `
         <div class="lost-item-card">
           <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${item.get('isResolved')}"> <strong>${item.get('type')}</strong> ${item.get('isResolved')?'<span class="admin-badge badge-resolved">Resolved</span>':''}</div>
@@ -760,7 +853,6 @@
         </div>
       `;
     }).join('');
-    
     document.getElementById('selectAllBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked=true); };
     document.getElementById('selectResolvedBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked = c.dataset.resolved==='true'); };
     document.getElementById('deleteSelectedBtn').onclick = async () => {
@@ -769,10 +861,8 @@
       if(confirm(`Delete ${ids.length} items?`)) { await Promise.all(ids.map(id=>adminDeleteItem(id))); loadAdminItems(); }
     };
   }
-  
   window.resetAdminItem = async (id) => { if(confirm('Reset attempts?')){ await adminResetAttempts(id); loadAdminItems(); } };
   window.deleteAdminItem = async (id) => { if(confirm('Delete?')){ await adminDeleteItem(id); loadAdminItems(); } };
-
   document.getElementById('adminApplyFilterBtn').onclick = loadAdminItems;
   document.getElementById('adminResetFilterBtn').onclick = () => {
     document.getElementById('adminTypeFilter').value = '';
@@ -810,7 +900,6 @@
     return div.innerHTML;
   }
 
-  // Tab switching in admin
   document.getElementById('adminItemsTabBtn').onclick = () => {
     document.getElementById('adminItemsTab').classList.remove('hidden');
     document.getElementById('adminUsersTab').classList.add('hidden');
