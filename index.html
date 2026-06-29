@@ -181,20 +181,31 @@
     <button id="logoutFromHomeBtn" class="danger-btn">Log out</button>
   </div>
 
-  <!-- LOST PAGE (with dropdowns) -->
+  <!-- LOST PAGE -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
     <h2>🔍 I lost an item</h2>
     <p>Describe your lost item – system will show matching found items.</p>
     <div class="card">
+      <!-- Main type -->
       <select id="lostType">
         <option value="">Select type</option>
-        <option value="electronic">📱 Electronic</option><option value="personal">🎒 Personal</option>
-        <option value="clothing">👕 Clothing</option><option value="documents">🪪 Documents</option>
-        <option value="keys">🔑 Keys</option><option value="bags">👜 Bags</option><option value="other">📌 Other</option>
+        <option value="electronic">📱 Electronic</option>
+        <option value="personal">🎒 Personal</option>
+        <option value="clothing">👕 Clothing</option>
+        <option value="documents">🪪 Documents</option>
+        <option value="keys">🔑 Keys</option>
+        <option value="bags">👜 Bags</option>
+        <option value="other">📌 Other</option>
       </select>
 
-      <!-- Brand dropdown -->
+      <!-- Subcategory (hidden until type selected) -->
+      <select id="lostSubcategory" class="hidden">
+        <option value="">Select sub‑category</option>
+      </select>
+      <input type="text" id="lostSubcategoryOther" placeholder="Custom sub‑category" class="hidden custom-input">
+
+      <!-- Brand -->
       <select id="lostModel">
         <option value="">Select Brand / Model</option>
         <option value="Lenovo">Lenovo</option>
@@ -209,7 +220,7 @@
       </select>
       <input type="text" id="lostModelCustom" placeholder="Custom brand/model" class="hidden custom-input">
 
-      <!-- Color dropdown -->
+      <!-- Color -->
       <select id="lostColor">
         <option value="">Select Color</option>
         <option value="Black">Black</option>
@@ -236,17 +247,27 @@
     <div id="lostResults" style="margin-top:8px;"></div>
   </div>
 
-  <!-- FOUND PAGE (with dropdowns) -->
+  <!-- FOUND PAGE -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
     <h2>📦 Report Found Item</h2>
     <select id="foundType">
-      <option value="electronic">📱 Electronic</option><option value="personal">🎒 Personal</option>
-      <option value="clothing">👕 Clothing</option><option value="documents">🪪 Documents</option>
-      <option value="keys">🔑 Keys</option><option value="bags">👜 Bags</option><option value="other">📌 Other</option>
+      <option value="electronic">📱 Electronic</option>
+      <option value="personal">🎒 Personal</option>
+      <option value="clothing">👕 Clothing</option>
+      <option value="documents">🪪 Documents</option>
+      <option value="keys">🔑 Keys</option>
+      <option value="bags">👜 Bags</option>
+      <option value="other">📌 Other</option>
     </select>
 
-    <!-- Brand dropdown -->
+    <!-- Subcategory -->
+    <select id="foundSubcategory" class="hidden">
+      <option value="">Select sub‑category</option>
+    </select>
+    <input type="text" id="foundSubcategoryOther" placeholder="Custom sub‑category" class="hidden custom-input">
+
+    <!-- Brand -->
     <select id="foundModel">
       <option value="">Select Brand / Model</option>
       <option value="Lenovo">Lenovo</option>
@@ -261,7 +282,7 @@
     </select>
     <input type="text" id="foundModelCustom" placeholder="Custom brand/model" class="hidden custom-input">
 
-    <!-- Color dropdown -->
+    <!-- Color -->
     <select id="foundColor">
       <option value="">Select Color</option>
       <option value="Black">Black</option>
@@ -346,7 +367,7 @@
   <div id="successPopup" class="verify-popup hidden"><div class="popup-content"><p>✅ Item reported!</p><button id="closeSuccessPopup">OK</button></div></div>
   <div id="errorPopup" class="verify-popup hidden"><div class="popup-content"><p id="errorPopupMessage"></p><button id="closeErrorPopup">OK</button></div></div>
 
-  <!-- ADMIN PANEL (unchanged) -->
+  <!-- ADMIN PANEL -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Panel</h2>
@@ -392,6 +413,17 @@
   const LostItem = Parse.Object.extend("LostItem");
   const HOST_PASSWORD = "host123";
 
+  // ===== Subcategory mapping =====
+  const subcategoryMap = {
+    electronic: ['mouse', 'computer', 'laptop', 'phone', 'tablet', 'headphones', 'charger', 'cable', 'other'],
+    personal: ['wallet', 'backpack', 'purse', 'glasses', 'watch', 'jewelry', 'other'],
+    clothing: ['jacket', 'shirt', 'pants', 'skirt', 'dress', 'shoes', 'hat', 'other'],
+    documents: ['passport', 'id card', 'driver license', 'student card', 'work permit', 'other'],
+    keys: ['keychain', 'car key', 'house key', 'office key', 'other'],
+    bags: ['backpack', 'tote', 'handbag', 'suitcase', 'duffel', 'other'],
+    other: [] // no subcategories
+  };
+
   // ===== Helper: get value from dropdown with custom fallback =====
   function getDropdownValue(selectId, customId) {
     const select = document.getElementById(selectId);
@@ -408,21 +440,60 @@
     const custom = document.getElementById(customId);
     if (select.value === "Other") {
       custom.classList.remove('hidden');
-      custom.required = true; // optional
     } else {
       custom.classList.add('hidden');
       custom.value = '';
-      custom.required = false;
     }
   }
 
-  // Attach toggle events to all dropdowns
+  // ===== Update subcategory dropdown based on type =====
+  function updateSubcategory(selectTypeId, selectSubId, customSubId) {
+    const typeSelect = document.getElementById(selectTypeId);
+    const subSelect = document.getElementById(selectSubId);
+    const customSub = document.getElementById(customSubId);
+    const type = typeSelect.value;
+    const options = subcategoryMap[type] || [];
+    // Clear existing options
+    subSelect.innerHTML = '<option value="">Select sub‑category</option>';
+    if (options.length > 0) {
+      options.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt;
+        option.textContent = opt.charAt(0).toUpperCase() + opt.slice(1);
+        subSelect.appendChild(option);
+      });
+      subSelect.classList.remove('hidden');
+      customSub.classList.add('hidden');
+      customSub.value = '';
+    } else {
+      subSelect.classList.add('hidden');
+      customSub.classList.remove('hidden');
+    }
+  }
+
+  // Attach events for type changes on both lost and found
+  document.getElementById('lostType').addEventListener('change', function() {
+    updateSubcategory('lostType', 'lostSubcategory', 'lostSubcategoryOther');
+  });
+  document.getElementById('foundType').addEventListener('change', function() {
+    updateSubcategory('foundType', 'foundSubcategory', 'foundSubcategoryOther');
+  });
+
+  // Also attach custom toggle for subcategory "Other" (if any)
+  document.getElementById('lostSubcategory').addEventListener('change', function() {
+    toggleCustom('lostSubcategory', 'lostSubcategoryOther');
+  });
+  document.getElementById('foundSubcategory').addEventListener('change', function() {
+    toggleCustom('foundSubcategory', 'foundSubcategoryOther');
+  });
+
+  // Attach toggle for brand and color
   document.querySelectorAll('select[id$="Model"], select[id$="Color"]').forEach(sel => {
     const customId = sel.id + 'Custom';
     sel.addEventListener('change', () => toggleCustom(sel.id, customId));
   });
 
-  // ===== Existing functions =====
+  // ===== Existing functions (modified to include subcategory) =====
   function generateClaimCode(len=6) {
     const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code='';
@@ -444,6 +515,7 @@
   async function createFoundItem(data) {
     const item = new LostItem();
     item.set("type", data.type);
+    item.set("subcategory", data.subcategory);
     item.set("color", data.color);
     item.set("model", data.model);
     item.set("appearance", data.appearance);
@@ -472,6 +544,7 @@
     query.equalTo("isResolved", false);
     query.equalTo("verificationBlocked", false);
     if(criteria.type) query.equalTo("type", criteria.type);
+    if(criteria.subcategory) query.matches("subcategory", new RegExp(criteria.subcategory, "i"));
     if(criteria.color) query.matches("color", new RegExp(criteria.color, "i"));
     if(criteria.model) query.matches("model", new RegExp(criteria.model, "i"));
     if(criteria.appearance) query.matches("appearance", new RegExp(criteria.appearance, "i"));
@@ -479,6 +552,8 @@
     query.descending("createdAt");
     return query.find();
   }
+
+  // ... (the rest of the functions remain unchanged, but we include them for completeness)
 
   async function verifyItemOnly(itemId, userAnswer) {
     const query = new Parse.Query(LostItem);
@@ -548,6 +623,7 @@
     if(res.length) {
       const i = res[0];
       return { found: true, type:i.get("type"), color:i.get("color"), model:i.get("model"),
+               subcategory: i.get("subcategory"),
                locationFound: `${i.get("locationBuilding")||''} ${i.get("locationFloor")||''} ${i.get("locationRoom")||''}`,
                appointment: i.get("appointmentTime") };
     }
@@ -660,12 +736,19 @@
   document.getElementById('goFoundBtn').onclick = () => showPage(foundPage);
   document.getElementById('logoutFromHomeBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
 
-  // Search lost items (uses dropdowns)
+  // Search lost items (includes subcategory)
   document.getElementById('searchMatchingBtn').onclick = async () => {
+    // Get subcategory value (with custom fallback)
+    const subSelect = document.getElementById('lostSubcategory');
+    let subcategory = subSelect.value;
+    if (subcategory === "Other") {
+      subcategory = document.getElementById('lostSubcategoryOther').value.trim();
+    }
     const model = getDropdownValue('lostModel', 'lostModelCustom');
     const color = getDropdownValue('lostColor', 'lostColorCustom');
     const criteria = {
       type: document.getElementById('lostType').value,
+      subcategory: subcategory,
       color: color,
       model: model,
       appearance: document.getElementById('lostAppearance').value,
@@ -681,7 +764,7 @@
         const photoUrl = photo ? photo.url() : null;
         return `
           <div class="lost-item-card">
-            <div><strong>${item.get('type')}</strong> · ${item.get('color')} · ${item.get('model')}</div>
+            <div><strong>${item.get('type')}</strong> · ${item.get('subcategory') || ''} · ${item.get('color')} · ${item.get('model')}</div>
             <div>📍 Found: ${item.get('locationBuilding')||''} ${item.get('locationFloor')||''} ${item.get('locationRoom')||''}</div>
             <div>✨ ${item.get('appearance')}</div>
             ${photoUrl ? `<img src="${photoUrl}" class="item-photo" onerror="this.onerror=null;this.src='';this.alt='Image failed to load';">` : ''}
@@ -694,7 +777,7 @@
         const question = await getVerificationQuestion(currentVerifyingItemId);
         document.getElementById('verifyQuestionText').innerText = question || "No question set";
         const item = await new Parse.Query(LostItem).get(currentVerifyingItemId);
-        const sugg = [item.get('color'), item.get('model'), item.get('appearance')].filter(v=>v);
+        const sugg = [item.get('color'), item.get('model'), item.get('appearance'), item.get('subcategory')].filter(v=>v);
         const optsDiv = document.getElementById('verifyOptionsPanel');
         optsDiv.innerHTML = sugg.map(s => `<button type="button" class="suggest-btn" data-val="${s}">${s}</button>`).join('');
         optsDiv.querySelectorAll('.suggest-btn').forEach(b => b.onclick = () => { document.getElementById('verifyAnswerInput').value = b.dataset.val; });
@@ -703,7 +786,7 @@
     } catch(e) { container.innerHTML = `<p>Error: ${e.message}</p>`; }
   };
 
-  // Verify popup
+  // Verify popup (unchanged)
   document.getElementById('cancelVerifyBtn').onclick = () => verifyPopup.classList.add('hidden');
   document.getElementById('submitVerifyBtn').onclick = async () => {
     if(!currentVerifyingItemId) return;
@@ -761,13 +844,13 @@
     const resultDiv = document.getElementById('checkCodeResult');
     if(res.found) {
       const appt = res.appointment ? new Date(res.appointment).toLocaleString() : 'Not scheduled';
-      resultDiv.innerHTML = `<div style="background:#e6f7ec; padding:10px;">✅ Valid code! Item: ${res.type}, ${res.color}, ${res.model}<br>📍 ${res.locationFound}<br>📅 Appointment: ${appt}<br><strong>Bring your EZ-Link card to the General Office.</strong></div>`;
+      resultDiv.innerHTML = `<div style="background:#e6f7ec; padding:10px;">✅ Valid code! Item: ${res.type}${res.subcategory ? ' ('+res.subcategory+')' : ''} · ${res.color} · ${res.model}<br>📍 ${res.locationFound}<br>📅 Appointment: ${appt}<br><strong>Bring your EZ-Link card to the General Office.</strong></div>`;
     } else {
       resultDiv.innerHTML = '❌ Invalid code.';
     }
   };
 
-  // Submit found item (uses dropdowns)
+  // Submit found item (includes subcategory)
   document.getElementById('submitFoundBtn').onclick = async () => {
     if (isSubmitting) return;
     isSubmitting = true;
@@ -790,8 +873,16 @@
         photoName = file.name;
         photoBase64 = await fileToBase64(file);
       }
+      // Get subcategory
+      const subSelect = document.getElementById('foundSubcategory');
+      let subcategory = subSelect.value;
+      if (subcategory === "Other") {
+        subcategory = document.getElementById('foundSubcategoryOther').value.trim();
+      }
+
       const data = {
         type: document.getElementById('foundType').value,
+        subcategory: subcategory,
         color: getDropdownValue('foundColor', 'foundColorCustom'),
         model: getDropdownValue('foundModel', 'foundModelCustom'),
         appearance: document.getElementById('foundAppearance').value.trim(),
@@ -822,7 +913,7 @@
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
-  // Admin – Items (unchanged)
+  // Admin – Items (display subcategory)
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = 'Loading...';
@@ -842,7 +933,7 @@
       return `
         <div class="lost-item-card">
           <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${item.get('isResolved')}"> <strong>${item.get('type')}</strong> ${item.get('isResolved')?'<span class="admin-badge badge-resolved">Resolved</span>':''}</div>
-          <div>${item.get('color')} · ${item.get('model')}</div>
+          <div>${item.get('subcategory') ? item.get('subcategory') + ' · ' : ''}${item.get('color')} · ${item.get('model')}</div>
           <div>📍 ${item.get('locationBuilding')||''} ${item.get('locationFloor')||''} ${item.get('locationRoom')||''}</div>
           <div>🔐 Q: ${item.get('verificationQuestion')}</div>
           <div>Attempts: ${item.get('verificationAttempts')}</div>
@@ -915,6 +1006,12 @@
     loadAdminUsers();
   };
   document.getElementById('refreshUsersBtn').onclick = loadAdminUsers;
+
+  // Initialise subcategory for found page (default type is "electronic")
+  window.addEventListener('DOMContentLoaded', function() {
+    // Trigger initial update for found page (default type)
+    updateSubcategory('foundType', 'foundSubcategory', 'foundSubcategoryOther');
+  });
 
   checkSession();
 </script>
