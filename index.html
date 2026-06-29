@@ -5,92 +5,203 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>🔍 Lost & Found – Secure Claims</title>
   <style>
+    /* ---- Reset & Base ---- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, #eef2f7 0%, #dce3ed 100%);
+      background: linear-gradient(145deg, #f6f9fc 0%, #e6edf5 100%);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      padding: 10px;
+      padding: 16px;
     }
     .app-container {
       width: 100%;
       max-width: 480px;
-      background: #ffffff;
-      border-radius: 28px;
-      box-shadow: 0 25px 50px rgba(0,0,0,0.08);
-      padding: 24px 18px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(8px);
+      border-radius: 32px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.05);
+      padding: 24px 20px;
       margin: 10px 0;
+      transition: all 0.2s ease;
     }
     .hidden { display: none !important; }
     .page { display: flex; flex-direction: column; gap: 1.2rem; }
-    h2 { display: flex; align-items: center; gap: 8px; font-size: 1.5rem; color: #1e293b; }
-    .emoji-icon { font-size: 1.4rem; }
+
+    /* ---- Typography ---- */
+    h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1a2b4c;
+      letter-spacing: -0.3px;
+    }
+    .emoji-icon { font-size: 1.5rem; }
+
+    /* ---- Inputs & Buttons ---- */
     input, select, textarea, button {
       width: 100%;
-      padding: 12px 14px;
-      border: 1px solid #dce3ec;
-      border-radius: 14px;
+      padding: 14px 16px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
       font-size: 0.95rem;
-      background: #f8fafc;
-      transition: 0.2s;
+      font-family: inherit;
+      background: #ffffff;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
     }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
+    }
+    textarea { resize: vertical; min-height: 70px; }
+
     button {
       background: #1e3a5f;
       color: white;
       font-weight: 600;
       border: none;
       cursor: pointer;
-      letter-spacing: 0.3px;
+      transition: all 0.15s ease;
     }
-    button:hover { background: #0f2540; }
+    button:hover {
+      background: #0f2a44;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(30,58,95,0.25);
+    }
+    button:active { transform: translateY(0); }
+
     .primary-btn { background: #3b82f6; }
-    .primary-btn:hover { background: #2563eb; }
-    .outline-btn { background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; }
-    .danger-btn { background: #fecaca; color: #b91c1c; border: 1px solid #fca5a5; }
+    .primary-btn:hover { background: #2563eb; box-shadow: 0 8px 20px rgba(59,130,246,0.30); }
+
+    .outline-btn {
+      background: transparent;
+      border: 1.5px solid #cbd5e1;
+      color: #1e293b;
+    }
+    .outline-btn:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .danger-btn {
+      background: #fee2e2;
+      color: #b91c1c;
+      border: 1px solid #fca5a5;
+    }
+    .danger-btn:hover {
+      background: #fecaca;
+      border-color: #ef4444;
+      transform: none;
+    }
+
+    /* ---- Cards ---- */
     .card {
-      background: #f4f7fc;
-      border-radius: 18px;
-      padding: 14px;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 18px 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+      gap: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      border: 1px solid rgba(226,232,240,0.6);
+      transition: box-shadow 0.2s ease;
     }
+    .card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+
     .lost-item-card {
       background: #ffffff;
+      border-radius: 20px;
+      padding: 18px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
       border: 1px solid #eef2f6;
-      border-radius: 18px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.15s ease;
     }
+    .lost-item-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+
     .item-photo {
       max-width: 100%;
       border-radius: 14px;
       margin-top: 8px;
       max-height: 200px;
       object-fit: cover;
+      border: 2px solid #f1f5f9;
     }
-    .verify-options { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
-    .verify-options button {
-      background: #e2e8f0;
-      color: #1e293b;
-      padding: 6px 12px;
+
+    /* ---- Auth cards ---- */
+    .auth-card {
+      background: #f8fafc;
+      border-radius: 24px;
+      padding: 24px 20px;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* ---- Badges, labels, helpers ---- */
+    .admin-badge {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+    .badge-resolved { background: #dcfce7; color: #15803d; }
+    .badge-active { background: #dbeafe; color: #1d4ed8; }
+
+    .error-msg {
+      color: #b91c1c;
       font-size: 0.85rem;
-      width: auto;
-      flex: 1 0 auto;
+      display: none;
+      padding: 6px 0;
     }
+    .error-msg.show { display: block; }
+
+    .location-label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #1e293b;
+      margin-top: 4px;
+    }
+
+    /* ---- Popups / modals ---- */
     .verify-popup, .popup-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      animation: fadeIn 0.2s ease;
     }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .popup-content {
-      background: white; padding: 22px; border-radius: 24px; width: 90%; max-width: 360px;
-      display: flex; flex-direction: column; gap: 14px;
+      background: white;
+      padding: 28px 22px;
+      border-radius: 28px;
+      width: 90%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+      animation: slideUp 0.2s ease;
     }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    /* ---- Back arrow ---- */
     .back-arrow-circle {
       position: absolute;
       top: 14px;
@@ -98,41 +209,86 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background: #f8fafc;
+      background: #ffffff;
       border: 1px solid #e2e8f0;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 24px;
       cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
       z-index: 10;
     }
+    .back-arrow-circle:hover {
+      background: #f1f5f9;
+      transform: scale(1.04);
+    }
     .page.has-back-arrow { padding-top: 60px; position: relative; }
+
+    /* ---- Misc ---- */
     .required-asterisk { color: #b91c1c; margin-left: 2px; }
-    .admin-badge { display: inline-block; padding: 2px 8px; border-radius: 8px; font-size: 0.7rem; font-weight: 600; margin-left: 6px; }
-    .badge-resolved { background: #dcfce7; color: #15803d; }
-    .badge-active { background: #dbeafe; color: #1d4ed8; }
-    .error-msg { color: #b91c1c; font-size: 0.85rem; display: none; }
-    .error-msg.show { display: block; }
-    .auth-card { background: #f0f4ff; border-radius: 24px; padding: 20px; margin-top: 10px; }
-    .filter-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; align-items: center; }
-    .filter-bar select, .filter-bar button { width: auto; flex: 1 0 auto; padding: 8px 12px; }
-    .tab-switch { display: flex; gap: 8px; margin-bottom: 10px; }
-    .tab-switch button { flex: 1; }
-    .tab-switch .active { background: #1e3a5f; color: white; }
-    .tab-content.hidden { display: none; }
     .custom-input { margin-top: 4px; }
-    .location-label { font-weight: 600; margin-top: 4px; }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .filter-bar select, .filter-bar button {
+      width: auto;
+      flex: 1 0 auto;
+      padding: 8px 12px;
+      border-radius: 14px;
+    }
+    .tab-switch {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .tab-switch button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 16px;
+      background: #f1f5f9;
+      color: #334155;
+      border: none;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .tab-switch button.active {
+      background: #1e3a5f;
+      color: white;
+    }
+    .tab-switch button:hover:not(.active) { background: #e2e8f0; }
+
+    .user-welcome {
+      background: #f1f5f9;
+      border-radius: 16px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      color: #1e293b;
+      text-align: center;
+    }
+    .user-welcome strong { color: #1e3a5f; }
+
+    /* ---- Responsive tweaks ---- */
+    @media (max-width: 480px) {
+      .app-container { padding: 16px 14px; }
+      h2 { font-size: 1.4rem; }
+    }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
 </head>
 <body>
 <div class="app-container" id="appContainer">
-  <!-- LOGIN PAGE -->
+
+  <!-- ========== LOGIN PAGE ========== -->
   <div id="loginPage" class="page">
     <h2>🔐 Lost & Found</h2>
     <div id="loginCard" class="auth-card">
-      <h3>Sign In</h3>
+      <h3 style="margin-bottom:12px;">Sign In</h3>
       <input type="text" id="loginUsername" placeholder="Username">
       <input type="password" id="loginPassword" placeholder="Password">
       <button id="signInBtn" class="primary-btn">Sign In</button>
@@ -140,7 +296,7 @@
       <button class="outline-btn" id="showSignUpCard">Create account</button>
     </div>
     <div id="signUpCard" class="auth-card hidden">
-      <h3>Sign Up</h3>
+      <h3 style="margin-bottom:12px;">Sign Up</h3>
       <div id="signUpFields">
         <input type="text" id="signUpUsername" placeholder="Username *">
         <input type="text" id="signUpEzlink" placeholder="Ezlink Card Number *">
@@ -152,7 +308,7 @@
     </div>
   </div>
 
-  <!-- ROLE SELECTION -->
+  <!-- ========== ROLE SELECTION ========== -->
   <div id="roleSelectionPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToLoginFromRole">←</button>
     <h2>Choose Role</h2>
@@ -162,7 +318,7 @@
     <button id="logoutFromRoleBtn" class="danger-btn">Log out</button>
   </div>
 
-  <!-- HOST PASSWORD -->
+  <!-- ========== HOST PASSWORD ========== -->
   <div id="hostPasswordPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromHost">←</button>
     <h2>Host Password</h2>
@@ -171,24 +327,24 @@
     <p id="hostPasswordMessage" class="error-msg"></p>
   </div>
 
-  <!-- USER HOME -->
+  <!-- ========== USER HOME ========== -->
   <div id="homePage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromHome">←</button>
     <h2>🏠 Home</h2>
     <div class="user-welcome">Welcome, <strong id="displayUsername"></strong></div>
-    <button id="goLostBtn" class="outline-btn">🔍 I lost something (claim an item)</button>
+    <button id="goLostBtn" class="outline-btn">🔍 I lost something</button>
     <button id="goFoundBtn" class="outline-btn">📦 I found an item</button>
     <button id="openCheckCodeBtn" class="outline-btn">🔑 Check Claim Code</button>
     <button id="logoutFromHomeBtn" class="danger-btn">Log out</button>
   </div>
 
-  <!-- LOST PAGE -->
+  <!-- ========== LOST PAGE ========== -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost">←</button>
     <h2>🔍 I lost an item</h2>
-    <p>Describe your lost item – system will show matching found items.</p>
+    <p style="color:#475569;">Describe your lost item – we’ll show matching found items.</p>
     <div class="card">
-      <!-- Main type -->
+      <!-- Type -->
       <select id="lostType">
         <option value="">Select type</option>
         <option value="electronic">📱 Electronic</option>
@@ -241,22 +397,13 @@
       </select>
       <input type="text" id="lostColorCustom" placeholder="Custom color" class="hidden custom-input">
 
-      <input type="text" id="lostAppearance" placeholder="Appearance (scratches, stickers...)">
+      <input type="text" id="lostAppearance" placeholder="Appearance (scratches, stickers…)">
       <textarea id="lostDescription" rows="2" placeholder="Additional description"></textarea>
-      
-      <!-- LOCATION (dropdowns) -->
-      <div class="location-label">📍 Where was it found?</div>
-      <select id="lostBuilding">
-        <option value="">Select Building</option>
-        <option value="School 1">School 1</option>
-        <option value="School 2">School 2</option>
-        <option value="School 3">School 3</option>
-        <option value="Other">Other (custom)</option>
-      </select>
-      <input type="text" id="lostBuildingCustom" placeholder="Custom building" class="hidden custom-input">
 
+      <!-- Location (only Room + Floor) -->
+      <div class="location-label">📍 Where was it found?</div>
       <select id="lostRoom">
-        <option value="">Select Room / Location</option>
+        <option value="">Select Location</option>
         <option value="DNT Room">DNT Room</option>
         <option value="Computer Lab 1">Computer Lab 1</option>
         <option value="Computer Lab 2">Computer Lab 2</option>
@@ -273,115 +420,107 @@
         <option value="General Office">General Office</option>
         <option value="Other">Other (custom)</option>
       </select>
-      <input type="text" id="lostRoomCustom" placeholder="Custom room/location" class="hidden custom-input">
-
+      <input type="text" id="lostRoomCustom" placeholder="Custom location" class="hidden custom-input">
       <input type="text" id="lostFloor" placeholder="Floor / Level (optional)">
 
       <button id="searchMatchingBtn" class="primary-btn">🔎 Find matches</button>
     </div>
-    <div id="lostResults" style="margin-top:8px;"></div>
+    <div id="lostResults"></div>
   </div>
 
-  <!-- FOUND PAGE -->
+  <!-- ========== FOUND PAGE ========== -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
     <h2>📦 Report Found Item</h2>
-    <select id="foundType">
-      <option value="electronic">📱 Electronic</option>
-      <option value="personal">🎒 Personal</option>
-      <option value="clothing">👕 Clothing</option>
-      <option value="documents">🪪 Documents</option>
-      <option value="keys">🔑 Keys</option>
-      <option value="bags">👜 Bags</option>
-      <option value="other">📌 Other</option>
-    </select>
+    <div class="card">
+      <select id="foundType">
+        <option value="electronic">📱 Electronic</option>
+        <option value="personal">🎒 Personal</option>
+        <option value="clothing">👕 Clothing</option>
+        <option value="documents">🪪 Documents</option>
+        <option value="keys">🔑 Keys</option>
+        <option value="bags">👜 Bags</option>
+        <option value="other">📌 Other</option>
+      </select>
 
-    <!-- Subcategory -->
-    <select id="foundSubcategory" class="hidden">
-      <option value="">Select sub‑category</option>
-    </select>
-    <input type="text" id="foundSubcategoryOther" placeholder="Custom sub‑category" class="hidden custom-input">
+      <!-- Subcategory -->
+      <select id="foundSubcategory" class="hidden">
+        <option value="">Select sub‑category</option>
+      </select>
+      <input type="text" id="foundSubcategoryOther" placeholder="Custom sub‑category" class="hidden custom-input">
 
-    <!-- Brand -->
-    <select id="foundModel">
-      <option value="">Select Brand / Model</option>
-      <option value="Lenovo">Lenovo</option>
-      <option value="Dell">Dell</option>
-      <option value="HP">HP</option>
-      <option value="Apple">Apple</option>
-      <option value="Samsung">Samsung</option>
-      <option value="Sony">Sony</option>
-      <option value="Asus">Asus</option>
-      <option value="Acer">Acer</option>
-      <option value="Other">Other (custom)</option>
-    </select>
-    <input type="text" id="foundModelCustom" placeholder="Custom brand/model" class="hidden custom-input">
+      <!-- Brand -->
+      <select id="foundModel">
+        <option value="">Select Brand / Model</option>
+        <option value="Lenovo">Lenovo</option>
+        <option value="Dell">Dell</option>
+        <option value="HP">HP</option>
+        <option value="Apple">Apple</option>
+        <option value="Samsung">Samsung</option>
+        <option value="Sony">Sony</option>
+        <option value="Asus">Asus</option>
+        <option value="Acer">Acer</option>
+        <option value="Other">Other (custom)</option>
+      </select>
+      <input type="text" id="foundModelCustom" placeholder="Custom brand/model" class="hidden custom-input">
 
-    <!-- Color -->
-    <select id="foundColor">
-      <option value="">Select Color</option>
-      <option value="Black">Black</option>
-      <option value="White">White</option>
-      <option value="Red">Red</option>
-      <option value="Blue">Blue</option>
-      <option value="Green">Green</option>
-      <option value="Yellow">Yellow</option>
-      <option value="Silver">Silver</option>
-      <option value="Gold">Gold</option>
-      <option value="Pink">Pink</option>
-      <option value="Purple">Purple</option>
-      <option value="Orange">Orange</option>
-      <option value="Brown">Brown</option>
-      <option value="Grey">Grey</option>
-      <option value="Other">Other (custom)</option>
-    </select>
-    <input type="text" id="foundColorCustom" placeholder="Custom color" class="hidden custom-input">
+      <!-- Color -->
+      <select id="foundColor">
+        <option value="">Select Color</option>
+        <option value="Black">Black</option>
+        <option value="White">White</option>
+        <option value="Red">Red</option>
+        <option value="Blue">Blue</option>
+        <option value="Green">Green</option>
+        <option value="Yellow">Yellow</option>
+        <option value="Silver">Silver</option>
+        <option value="Gold">Gold</option>
+        <option value="Pink">Pink</option>
+        <option value="Purple">Purple</option>
+        <option value="Orange">Orange</option>
+        <option value="Brown">Brown</option>
+        <option value="Grey">Grey</option>
+        <option value="Other">Other (custom)</option>
+      </select>
+      <input type="text" id="foundColorCustom" placeholder="Custom color" class="hidden custom-input">
 
-    <input type="text" id="foundAppearance" placeholder="Appearance">
-    <textarea id="foundDescription" rows="2" placeholder="Additional description"></textarea>
+      <input type="text" id="foundAppearance" placeholder="Appearance">
+      <textarea id="foundDescription" rows="2" placeholder="Additional description"></textarea>
 
-    <!-- LOCATION (dropdowns) -->
-    <div class="location-label">📍 Where was it found?</div>
-    <select id="foundBuilding">
-      <option value="">Select Building</option>
-      <option value="School 1">School 1</option>
-      <option value="School 2">School 2</option>
-      <option value="School 3">School 3</option>
-      <option value="Other">Other (custom)</option>
-    </select>
-    <input type="text" id="foundBuildingCustom" placeholder="Custom building" class="hidden custom-input">
+      <!-- Location (only Room + Floor) -->
+      <div class="location-label">📍 Where was it found?</div>
+      <select id="foundRoom">
+        <option value="">Select Location</option>
+        <option value="DNT Room">DNT Room</option>
+        <option value="Computer Lab 1">Computer Lab 1</option>
+        <option value="Computer Lab 2">Computer Lab 2</option>
+        <option value="FCE Room">FCE Room</option>
+        <option value="Classroom 1">Classroom 1</option>
+        <option value="Classroom 2">Classroom 2</option>
+        <option value="Classroom 3">Classroom 3</option>
+        <option value="Library">Library</option>
+        <option value="Cafeteria">Cafeteria</option>
+        <option value="Gymnasium">Gymnasium</option>
+        <option value="Auditorium">Auditorium</option>
+        <option value="Staff Room">Staff Room</option>
+        <option value="Principal Office">Principal Office</option>
+        <option value="General Office">General Office</option>
+        <option value="Other">Other (custom)</option>
+      </select>
+      <input type="text" id="foundRoomCustom" placeholder="Custom location" class="hidden custom-input">
+      <input type="text" id="foundFloor" placeholder="Floor / Level (optional)">
 
-    <select id="foundRoom">
-      <option value="">Select Room / Location</option>
-      <option value="DNT Room">DNT Room</option>
-      <option value="Computer Lab 1">Computer Lab 1</option>
-      <option value="Computer Lab 2">Computer Lab 2</option>
-      <option value="FCE Room">FCE Room</option>
-      <option value="Classroom 1">Classroom 1</option>
-      <option value="Classroom 2">Classroom 2</option>
-      <option value="Classroom 3">Classroom 3</option>
-      <option value="Library">Library</option>
-      <option value="Cafeteria">Cafeteria</option>
-      <option value="Gymnasium">Gymnasium</option>
-      <option value="Auditorium">Auditorium</option>
-      <option value="Staff Room">Staff Room</option>
-      <option value="Principal Office">Principal Office</option>
-      <option value="General Office">General Office</option>
-      <option value="Other">Other (custom)</option>
-    </select>
-    <input type="text" id="foundRoomCustom" placeholder="Custom room/location" class="hidden custom-input">
-
-    <input type="text" id="foundFloor" placeholder="Floor / Level (optional)">
-
-    <input type="datetime-local" id="foundTime" required>
-    <input type="text" id="foundVeriQuestion" placeholder="Verification question *">
-    <input type="text" id="foundVeriAnswer" placeholder="Secret answer *">
-    <input type="text" id="foundContactInfo" placeholder="Your contact (phone/email)">
-    <input type="file" id="foundPhoto" accept="image/*">
-    <button id="submitFoundBtn" class="primary-btn">✅ Submit found item</button>
+      <input type="datetime-local" id="foundTime" required>
+      <input type="text" id="foundVeriQuestion" placeholder="Verification question *">
+      <input type="text" id="foundVeriAnswer" placeholder="Secret answer *">
+      <input type="text" id="foundContactInfo" placeholder="Your contact (phone/email)">
+      <input type="file" id="foundPhoto" accept="image/*">
+      <button id="submitFoundBtn" class="primary-btn">✅ Submit found item</button>
+    </div>
   </div>
 
-  <!-- MODALS (unchanged) -->
+  <!-- ========== MODALS ========== -->
+  <!-- (unchanged – kept for brevity) -->
   <div id="ezlinkAppointmentModal" class="verify-popup hidden">
     <div class="popup-content">
       <h3>📇 Finalise Claim</h3>
@@ -432,7 +571,7 @@
   <div id="successPopup" class="verify-popup hidden"><div class="popup-content"><p>✅ Item reported!</p><button id="closeSuccessPopup">OK</button></div></div>
   <div id="errorPopup" class="verify-popup hidden"><div class="popup-content"><p id="errorPopupMessage"></p><button id="closeErrorPopup">OK</button></div></div>
 
-  <!-- ADMIN PANEL -->
+  <!-- ========== ADMIN PANEL ========== -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Panel</h2>
@@ -473,12 +612,13 @@
 </div>
 
 <script>
+  // ===== Parse init =====
   Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
   Parse.serverURL = "https://parseapi.back4app.com/";
   const LostItem = Parse.Object.extend("LostItem");
   const HOST_PASSWORD = "host123";
 
-  // ===== Subcategory mapping =====
+  // ===== Subcategory map =====
   const subcategoryMap = {
     electronic: ['mouse', 'computer', 'laptop', 'phone', 'tablet', 'headphones', 'charger', 'cable', 'other'],
     personal: ['wallet', 'backpack', 'purse', 'glasses', 'watch', 'jewelry', 'other'],
@@ -486,20 +626,17 @@
     documents: ['passport', 'id card', 'driver license', 'student card', 'work permit', 'other'],
     keys: ['keychain', 'car key', 'house key', 'office key', 'other'],
     bags: ['backpack', 'tote', 'handbag', 'suitcase', 'duffel', 'other'],
-    other: [] // no subcategories
+    other: []
   };
 
-  // ===== Helper: get value from dropdown with custom fallback =====
+  // ===== Helpers =====
   function getDropdownValue(selectId, customId) {
     const select = document.getElementById(selectId);
     const custom = document.getElementById(customId);
-    if (select.value === "Other") {
-      return custom.value.trim() || "";
-    }
+    if (select.value === "Other") return custom.value.trim() || "";
     return select.value;
   }
 
-  // ===== Toggle custom input visibility =====
   function toggleCustom(selectId, customId) {
     const select = document.getElementById(selectId);
     const custom = document.getElementById(customId);
@@ -511,15 +648,13 @@
     }
   }
 
-  // ===== Update subcategory dropdown based on type =====
   function updateSubcategory(selectTypeId, selectSubId, customSubId) {
-    const typeSelect = document.getElementById(selectTypeId);
+    const type = document.getElementById(selectTypeId).value;
     const subSelect = document.getElementById(selectSubId);
     const customSub = document.getElementById(customSubId);
-    const type = typeSelect.value;
     const options = subcategoryMap[type] || [];
     subSelect.innerHTML = '<option value="">Select sub‑category</option>';
-    if (options.length > 0) {
+    if (options.length) {
       options.forEach(opt => {
         const option = document.createElement('option');
         option.value = opt;
@@ -535,29 +670,25 @@
     }
   }
 
-  // Attach events for type changes
+  // Attach events
   document.getElementById('lostType').addEventListener('change', function() {
     updateSubcategory('lostType', 'lostSubcategory', 'lostSubcategoryOther');
   });
   document.getElementById('foundType').addEventListener('change', function() {
     updateSubcategory('foundType', 'foundSubcategory', 'foundSubcategoryOther');
   });
-
-  // Attach custom toggle for subcategory "Other"
   document.getElementById('lostSubcategory').addEventListener('change', function() {
     toggleCustom('lostSubcategory', 'lostSubcategoryOther');
   });
   document.getElementById('foundSubcategory').addEventListener('change', function() {
     toggleCustom('foundSubcategory', 'foundSubcategoryOther');
   });
-
-  // Attach toggle for brand, color, building, room
-  document.querySelectorAll('select[id$="Model"], select[id$="Color"], select[id$="Building"], select[id$="Room"]').forEach(sel => {
+  document.querySelectorAll('select[id$="Model"], select[id$="Color"], select[id$="Room"]').forEach(sel => {
     const customId = sel.id + 'Custom';
     sel.addEventListener('change', () => toggleCustom(sel.id, customId));
   });
 
-  // ===== Existing functions (modified to include location fields) =====
+  // ===== Core functions =====
   function generateClaimCode(len=6) {
     const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code='';
@@ -570,7 +701,7 @@
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
+      reader.onerror = reject;
     });
   }
 
@@ -585,9 +716,8 @@
     item.set("appearance", data.appearance);
     item.set("description", data.description);
     item.set("timeFound", data.timeFound);
-    item.set("locationBuilding", data.locationBuilding);
-    item.set("locationFloor", data.locationFloor);
     item.set("locationRoom", data.locationRoom);
+    item.set("locationFloor", data.locationFloor);
     item.set("verificationQuestion", data.verificationQuestion);
     item.set("verificationAnswer", data.verificationAnswer);
     item.set("isResolved", false);
@@ -613,7 +743,6 @@
     if(criteria.model) query.matches("model", new RegExp(criteria.model, "i"));
     if(criteria.appearance) query.matches("appearance", new RegExp(criteria.appearance, "i"));
     if(criteria.description) query.matches("description", new RegExp(criteria.description, "i"));
-    if(criteria.building) query.matches("locationBuilding", new RegExp(criteria.building, "i"));
     if(criteria.room) query.matches("locationRoom", new RegExp(criteria.room, "i"));
     if(criteria.floor) query.matches("locationFloor", new RegExp(criteria.floor, "i"));
     query.descending("createdAt");
@@ -689,7 +818,7 @@
       const i = res[0];
       return { found: true, type:i.get("type"), color:i.get("color"), model:i.get("model"),
                subcategory: i.get("subcategory"),
-               locationFound: `${i.get("locationBuilding")||''} ${i.get("locationRoom")||''} ${i.get("locationFloor")||''}`,
+               locationFound: `${i.get("locationRoom")||''} ${i.get("locationFloor")||''}`.trim(),
                appointment: i.get("appointmentTime") };
     }
     return { found: false };
@@ -698,12 +827,9 @@
   async function adminGetAllItems() { const q = new Parse.Query(LostItem); q.descending("createdAt"); return q.find(); }
   async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
+  async function getAllUsers() { return Parse.Cloud.run('getAllUsers'); }
 
-  async function getAllUsers() {
-    return Parse.Cloud.run('getAllUsers');
-  }
-
-  // Auth
+  // ===== Auth =====
   const auth = {
     signUp: async (username, ezlink, password) => {
       if(!ezlink.trim()) throw new Error("Ezlink card number is required.");
@@ -718,7 +844,7 @@
     getCurrentUser: () => Parse.User.current()
   };
 
-  // UI refs
+  // ===== UI refs =====
   const loginPage = document.getElementById('loginPage');
   const rolePage = document.getElementById('roleSelectionPage');
   const homePage = document.getElementById('homePage');
@@ -744,7 +870,7 @@
     else showPage(loginPage);
   }
 
-  // Login / Signup
+  // ===== Login / Signup =====
   document.getElementById('showSignUpCard').onclick = () => { 
     document.getElementById('loginCard').classList.add('hidden'); 
     document.getElementById('signUpCard').classList.remove('hidden');
@@ -755,7 +881,6 @@
     document.getElementById('loginCard').classList.remove('hidden');
     setError(document.getElementById('signUpError'),'');
   };
-
   document.getElementById('signInBtn').onclick = async () => {
     const u = document.getElementById('loginUsername').value.trim();
     const p = document.getElementById('loginPassword').value;
@@ -764,26 +889,17 @@
     try { await auth.logIn(u,p); setError(err,''); checkSession(); }
     catch(e) { setError(err, e.message.includes('Invalid')?'Wrong credentials':e.message); }
   };
-
   document.getElementById('signUpSubmitBtn').onclick = async () => {
     const username = document.getElementById('signUpUsername').value.trim();
     const ezlink = document.getElementById('signUpEzlink').value.trim();
     const password = document.getElementById('signUpPassword').value;
     const err = document.getElementById('signUpError');
-    if(!username || !ezlink || !password) {
-      setError(err, 'All fields required');
-      return;
-    }
-    try {
-      await auth.signUp(username, ezlink, password);
-      setError(err, '');
-      checkSession();
-    } catch (e) {
-      setError(err, e.message);
-    }
+    if(!username || !ezlink || !password) { setError(err, 'All fields required'); return; }
+    try { await auth.signUp(username, ezlink, password); setError(err, ''); checkSession(); }
+    catch(e) { setError(err, e.message); }
   };
 
-  // Navigation
+  // ===== Navigation =====
   document.getElementById('backToLoginFromRole').onclick = async () => { await auth.logOut(); showPage(loginPage); };
   document.getElementById('logoutFromRoleBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
   document.getElementById('backToRoleFromHome').onclick = () => showPage(rolePage);
@@ -801,44 +917,38 @@
   document.getElementById('goFoundBtn').onclick = () => showPage(foundPage);
   document.getElementById('logoutFromHomeBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
 
-  // Search lost items (includes location)
+  // ===== Search =====
   document.getElementById('searchMatchingBtn').onclick = async () => {
     const subSelect = document.getElementById('lostSubcategory');
     let subcategory = subSelect.value;
-    if (subcategory === "Other") {
-      subcategory = document.getElementById('lostSubcategoryOther').value.trim();
-    }
+    if (subcategory === "Other") subcategory = document.getElementById('lostSubcategoryOther').value.trim();
     const model = getDropdownValue('lostModel', 'lostModelCustom');
     const color = getDropdownValue('lostColor', 'lostColorCustom');
-    const building = getDropdownValue('lostBuilding', 'lostBuildingCustom');
     const room = getDropdownValue('lostRoom', 'lostRoomCustom');
     const floor = document.getElementById('lostFloor').value.trim();
 
     const criteria = {
       type: document.getElementById('lostType').value,
-      subcategory: subcategory,
-      color: color,
-      model: model,
+      subcategory, color, model,
       appearance: document.getElementById('lostAppearance').value,
       description: document.getElementById('lostDescription').value,
-      building: building,
-      room: room,
-      floor: floor
+      room, floor
     };
     const container = document.getElementById('lostResults');
-    container.innerHTML = '<p>🔍 Searching...</p>';
+    container.innerHTML = '<p style="color:#64748b;">🔍 Searching…</p>';
     try {
       const items = await searchMatchingLostItems(criteria);
-      if(!items.length) { container.innerHTML = '<p>😔 No matching found items. Try different details.</p>'; return; }
+      if(!items.length) { container.innerHTML = '<p style="color:#64748b;">😔 No matching found items. Try different details.</p>'; return; }
       container.innerHTML = items.map(item => {
         const photo = item.get('photo');
         const photoUrl = photo ? photo.url() : null;
+        const loc = [item.get('locationRoom'), item.get('locationFloor')].filter(Boolean).join(' ');
         return `
           <div class="lost-item-card">
-            <div><strong>${item.get('type')}</strong> · ${item.get('subcategory') || ''} · ${item.get('color')} · ${item.get('model')}</div>
-            <div>📍 ${item.get('locationBuilding')||''} ${item.get('locationRoom')||''} ${item.get('locationFloor')||''}</div>
-            <div>✨ ${item.get('appearance')}</div>
-            ${photoUrl ? `<img src="${photoUrl}" class="item-photo" onerror="this.onerror=null;this.src='';this.alt='Image failed to load';">` : ''}
+            <div><strong>${item.get('type')}</strong> · ${item.get('subcategory')||''} · ${item.get('color')} · ${item.get('model')}</div>
+            <div>📍 ${loc || 'Unknown location'}</div>
+            <div>✨ ${item.get('appearance')||''}</div>
+            ${photoUrl ? `<img src="${photoUrl}" class="item-photo" onerror="this.onerror=null;this.src='';">` : ''}
             <button class="primary-btn verify-btn" data-id="${item.id}" style="margin-top:8px;">🔐 Claim this item</button>
           </div>
         `;
@@ -848,16 +958,16 @@
         const question = await getVerificationQuestion(currentVerifyingItemId);
         document.getElementById('verifyQuestionText').innerText = question || "No question set";
         const item = await new Parse.Query(LostItem).get(currentVerifyingItemId);
-        const sugg = [item.get('color'), item.get('model'), item.get('appearance'), item.get('subcategory'), item.get('locationBuilding'), item.get('locationRoom')].filter(v=>v);
+        const sugg = [item.get('color'), item.get('model'), item.get('appearance'), item.get('subcategory'), item.get('locationRoom')].filter(v=>v);
         const optsDiv = document.getElementById('verifyOptionsPanel');
         optsDiv.innerHTML = sugg.map(s => `<button type="button" class="suggest-btn" data-val="${s}">${s}</button>`).join('');
         optsDiv.querySelectorAll('.suggest-btn').forEach(b => b.onclick = () => { document.getElementById('verifyAnswerInput').value = b.dataset.val; });
         verifyPopup.classList.remove('hidden');
       }));
-    } catch(e) { container.innerHTML = `<p>Error: ${e.message}</p>`; }
+    } catch(e) { container.innerHTML = `<p style="color:#b91c1c;">Error: ${e.message}</p>`; }
   };
 
-  // Verify popup (unchanged)
+  // ===== Verify popup =====
   document.getElementById('cancelVerifyBtn').onclick = () => verifyPopup.classList.add('hidden');
   document.getElementById('submitVerifyBtn').onclick = async () => {
     if(!currentVerifyingItemId) return;
@@ -879,7 +989,7 @@
     }
   };
 
-  // Finalise claim
+  // ===== Finalise claim =====
   document.getElementById('finaliseClaimBtn').onclick = async () => {
     const photoFile = document.getElementById('ezlinkPhotoInput').files[0];
     const appointment = document.getElementById('appointmentTime').value;
@@ -901,11 +1011,10 @@
   document.getElementById('cancelFinaliseBtn').onclick = () => ezlinkModal.classList.add('hidden');
   document.getElementById('closeClaimCodePopupBtn').onclick = () => {
     claimCodePopup.classList.add('hidden');
-    const searchBtn = document.getElementById('searchMatchingBtn');
-    if(searchBtn) searchBtn.click();
+    document.getElementById('searchMatchingBtn').click();
   };
 
-  // Check claim code
+  // ===== Check claim code =====
   document.getElementById('openCheckCodeBtn').onclick = () => checkCodePopup.classList.remove('hidden');
   document.getElementById('cancelCheckCodeBtn').onclick = () => checkCodePopup.classList.add('hidden');
   document.getElementById('submitCheckCodeBtn').onclick = async () => {
@@ -915,19 +1024,19 @@
     const resultDiv = document.getElementById('checkCodeResult');
     if(res.found) {
       const appt = res.appointment ? new Date(res.appointment).toLocaleString() : 'Not scheduled';
-      resultDiv.innerHTML = `<div style="background:#e6f7ec; padding:10px;">✅ Valid code! Item: ${res.type}${res.subcategory ? ' ('+res.subcategory+')' : ''} · ${res.color} · ${res.model}<br>📍 ${res.locationFound}<br>📅 Appointment: ${appt}<br><strong>Bring your EZ-Link card to the General Office.</strong></div>`;
+      resultDiv.innerHTML = `<div style="background:#e6f7ec; padding:10px; border-radius:16px;">✅ Valid code! Item: ${res.type}${res.subcategory ? ' ('+res.subcategory+')' : ''} · ${res.color} · ${res.model}<br>📍 ${res.locationFound}<br>📅 Appointment: ${appt}<br><strong>Bring your EZ-Link card to the General Office.</strong></div>`;
     } else {
       resultDiv.innerHTML = '❌ Invalid code.';
     }
   };
 
-  // Submit found item (includes location dropdowns)
+  // ===== Submit found item =====
   document.getElementById('submitFoundBtn').onclick = async () => {
     if (isSubmitting) return;
     isSubmitting = true;
     const btn = document.getElementById('submitFoundBtn');
     btn.disabled = true;
-    btn.textContent = 'Submitting...';
+    btn.textContent = 'Submitting…';
 
     try {
       const required = ['foundColor','foundModel','foundTime','foundVeriQuestion','foundVeriAnswer'];
@@ -937,8 +1046,7 @@
         return;
       }
       const photoInput = document.getElementById('foundPhoto');
-      let photoBase64 = null;
-      let photoName = null;
+      let photoBase64 = null, photoName = null;
       if (photoInput.files.length) {
         const file = photoInput.files[0];
         photoName = file.name;
@@ -946,26 +1054,22 @@
       }
       const subSelect = document.getElementById('foundSubcategory');
       let subcategory = subSelect.value;
-      if (subcategory === "Other") {
-        subcategory = document.getElementById('foundSubcategoryOther').value.trim();
-      }
+      if (subcategory === "Other") subcategory = document.getElementById('foundSubcategoryOther').value.trim();
 
       const data = {
         type: document.getElementById('foundType').value,
-        subcategory: subcategory,
+        subcategory,
         color: getDropdownValue('foundColor', 'foundColorCustom'),
         model: getDropdownValue('foundModel', 'foundModelCustom'),
         appearance: document.getElementById('foundAppearance').value.trim(),
         description: document.getElementById('foundDescription').value.trim(),
         timeFound: new Date(document.getElementById('foundTime').value),
-        locationBuilding: getDropdownValue('foundBuilding', 'foundBuildingCustom'),
-        locationFloor: document.getElementById('foundFloor').value.trim(),
         locationRoom: getDropdownValue('foundRoom', 'foundRoomCustom'),
+        locationFloor: document.getElementById('foundFloor').value.trim(),
         verificationQuestion: document.getElementById('foundVeriQuestion').value.trim(),
         verificationAnswer: document.getElementById('foundVeriAnswer').value.trim(),
         contactInfo: document.getElementById('foundContactInfo').value.trim(),
-        photoBase64: photoBase64,
-        photoName: photoName
+        photoBase64, photoName
       };
       await createFoundItem(data);
       successPopup.classList.remove('hidden');
@@ -983,10 +1087,10 @@
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
-  // Admin – Items (display location)
+  // ===== Admin – Items =====
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
-    container.innerHTML = 'Loading...';
+    container.innerHTML = 'Loading…';
     const items = await adminGetAllItems();
     const typeFilter = document.getElementById('adminTypeFilter').value;
     const statusFilter = document.getElementById('adminStatusFilter').value;
@@ -994,17 +1098,18 @@
     if (typeFilter) filtered = filtered.filter(item => item.get('type') === typeFilter);
     if (statusFilter === 'resolved') filtered = filtered.filter(item => item.get('isResolved') === true);
     if (statusFilter === 'unresolved') filtered = filtered.filter(item => item.get('isResolved') === false);
-    if(!filtered.length) { container.innerHTML = '<p>No items match filters.</p>'; return; }
+    if(!filtered.length) { container.innerHTML = '<p style="color:#64748b;">No items match filters.</p>'; return; }
     container.innerHTML = filtered.map(item => {
       const photo = item.get('photo');
       const photoUrl = photo ? photo.url() : null;
       const ezlinkPhoto = item.get('ezlinkPhoto');
       const ezlinkUrl = ezlinkPhoto ? ezlinkPhoto.url() : null;
+      const loc = [item.get('locationRoom'), item.get('locationFloor')].filter(Boolean).join(' ');
       return `
         <div class="lost-item-card">
           <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${item.get('isResolved')}"> <strong>${item.get('type')}</strong> ${item.get('isResolved')?'<span class="admin-badge badge-resolved">Resolved</span>':''}</div>
           <div>${item.get('subcategory') ? item.get('subcategory') + ' · ' : ''}${item.get('color')} · ${item.get('model')}</div>
-          <div>📍 ${item.get('locationBuilding')||''} ${item.get('locationRoom')||''} ${item.get('locationFloor')||''}</div>
+          <div>📍 ${loc || 'Unknown'}</div>
           <div>🔐 Q: ${item.get('verificationQuestion')}</div>
           <div>Attempts: ${item.get('verificationAttempts')}</div>
           <div>📅 Appt: ${item.get('appointmentTime') ? new Date(item.get('appointmentTime')).toLocaleString() : 'N/A'}</div>
@@ -1031,14 +1136,14 @@
     loadAdminItems();
   };
 
-  // Admin – Users
+  // ===== Admin – Users =====
   async function loadAdminUsers() {
     const container = document.getElementById('adminUsersList');
-    container.innerHTML = 'Loading users...';
+    container.innerHTML = 'Loading…';
     try {
       const users = await getAllUsers();
       if (!users || users.length === 0) {
-        container.innerHTML = '<p>No users registered yet.</p>';
+        container.innerHTML = '<p style="color:#64748b;">No users registered yet.</p>';
         return;
       }
       container.innerHTML = users.map(user => `
@@ -1046,11 +1151,11 @@
           <div><strong>${escapeHtml(user.username)}</strong></div>
           <div>📇 EZ‑Link: ${escapeHtml(user.ezlink || 'N/A')}</div>
           <div>📅 Joined: ${new Date(user.createdAt).toLocaleString()}</div>
-          <div style="margin-top:6px; font-size:0.8rem; color:#666;">User ID: ${user.id}</div>
+          <div style="margin-top:6px; font-size:0.8rem; color:#64748b;">User ID: ${user.id}</div>
         </div>
       `).join('');
     } catch (error) {
-      container.innerHTML = `<p style="color:#b91c1c;">Error loading users: ${error.message}</p>`;
+      container.innerHTML = `<p style="color:#b91c1c;">Error: ${error.message}</p>`;
     }
   }
 
@@ -1077,7 +1182,7 @@
   };
   document.getElementById('refreshUsersBtn').onclick = loadAdminUsers;
 
-  // Initialise subcategory for found page
+  // ===== Init =====
   window.addEventListener('DOMContentLoaded', function() {
     updateSubcategory('foundType', 'foundSubcategory', 'foundSubcategoryOther');
   });
