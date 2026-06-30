@@ -604,8 +604,12 @@
       <div id="adminResults"></div>
     </div>
 
+    <!-- UPDATED USERS TAB with search -->
     <div id="adminUsersTab" class="tab-content hidden">
-      <button id="refreshUsersBtn" class="outline-btn" style="margin-bottom:10px;">🔄 Refresh Users</button>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <input type="text" id="adminUserSearch" placeholder="🔍 Search by username or EZ‑Link..." style="flex:1;">
+        <button id="refreshUsersBtn" class="outline-btn" style="width:auto; padding:10px 16px;">🔄 Refresh</button>
+      </div>
       <div id="adminUsersList"></div>
     </div>
   </div>
@@ -1136,28 +1140,63 @@
     loadAdminItems();
   };
 
-  // ===== Admin – Users =====
+  // ===== Admin – Users (with search) =====
+  let allUsers = []; // store the full list
+
   async function loadAdminUsers() {
     const container = document.getElementById('adminUsersList');
+    const searchInput = document.getElementById('adminUserSearch');
     container.innerHTML = 'Loading…';
     try {
       const users = await getAllUsers();
-      if (!users || users.length === 0) {
+      allUsers = users || [];
+      if (!allUsers.length) {
         container.innerHTML = '<p style="color:#64748b;">No users registered yet.</p>';
         return;
       }
-      container.innerHTML = users.map(user => `
-        <div class="lost-item-card" style="background:#f8fafc;">
-          <div><strong>${escapeHtml(user.username)}</strong></div>
-          <div>📇 EZ‑Link: ${escapeHtml(user.ezlink || 'N/A')}</div>
-          <div>📅 Joined: ${new Date(user.createdAt).toLocaleString()}</div>
-          <div style="margin-top:6px; font-size:0.8rem; color:#64748b;">User ID: ${user.id}</div>
-        </div>
-      `).join('');
+      // Render all
+      renderUserList(allUsers);
     } catch (error) {
       container.innerHTML = `<p style="color:#b91c1c;">Error: ${error.message}</p>`;
     }
   }
+
+  function renderUserList(users) {
+    const container = document.getElementById('adminUsersList');
+    if (!users.length) {
+      container.innerHTML = '<p style="color:#64748b;">No users match your search.</p>';
+      return;
+    }
+    container.innerHTML = users.map(user => `
+      <div class="lost-item-card" style="background:#f8fafc;">
+        <div><strong>${escapeHtml(user.username)}</strong></div>
+        <div>📇 EZ‑Link: ${escapeHtml(user.ezlink || 'N/A')}</div>
+        <div>📅 Joined: ${new Date(user.createdAt).toLocaleString()}</div>
+        <div style="margin-top:6px; font-size:0.8rem; color:#64748b;">User ID: ${user.id}</div>
+      </div>
+    `).join('');
+  }
+
+  // Filter on search input
+  document.getElementById('adminUserSearch').addEventListener('input', function() {
+    const query = this.value.trim().toLowerCase();
+    if (!query) {
+      renderUserList(allUsers);
+      return;
+    }
+    const filtered = allUsers.filter(user => {
+      const username = (user.username || '').toLowerCase();
+      const ezlink = (user.ezlink || '').toLowerCase();
+      return username.includes(query) || ezlink.includes(query);
+    });
+    renderUserList(filtered);
+  });
+
+  // Refresh button: clear search and reload
+  document.getElementById('refreshUsersBtn').onclick = function() {
+    document.getElementById('adminUserSearch').value = '';
+    loadAdminUsers();
+  };
 
   function escapeHtml(text) {
     if (!text) return '';
@@ -1166,6 +1205,7 @@
     return div.innerHTML;
   }
 
+  // ===== Tab switching =====
   document.getElementById('adminItemsTabBtn').onclick = () => {
     document.getElementById('adminItemsTab').classList.remove('hidden');
     document.getElementById('adminUsersTab').classList.add('hidden');
@@ -1180,7 +1220,6 @@
     document.getElementById('adminItemsTabBtn').classList.remove('active');
     loadAdminUsers();
   };
-  document.getElementById('refreshUsersBtn').onclick = loadAdminUsers;
 
   // ===== Init =====
   window.addEventListener('DOMContentLoaded', function() {
