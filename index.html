@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>🔍 Lost & Found – Secure Claims</title>
   <style>
-    /* ---- Reset & Base ---- */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -29,8 +28,6 @@
     }
     .hidden { display: none !important; }
     .page { display: flex; flex-direction: column; gap: 1.2rem; }
-
-    /* ---- Typography ---- */
     h2 {
       display: flex;
       align-items: center;
@@ -41,8 +38,6 @@
       letter-spacing: -0.3px;
     }
     .emoji-icon { font-size: 1.5rem; }
-
-    /* ---- Inputs & Buttons ---- */
     input, select, textarea, button {
       width: 100%;
       padding: 14px 16px;
@@ -60,7 +55,6 @@
       box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
     }
     textarea { resize: vertical; min-height: 70px; }
-
     button {
       background: #1e3a5f;
       color: white;
@@ -75,10 +69,8 @@
       box-shadow: 0 8px 20px rgba(30,58,95,0.25);
     }
     button:active { transform: translateY(0); }
-
     .primary-btn { background: #3b82f6; }
     .primary-btn:hover { background: #2563eb; box-shadow: 0 8px 20px rgba(59,130,246,0.30); }
-
     .outline-btn {
       background: transparent;
       border: 1.5px solid #cbd5e1;
@@ -90,7 +82,6 @@
       transform: none;
       box-shadow: none;
     }
-
     .danger-btn {
       background: #fee2e2;
       color: #b91c1c;
@@ -101,8 +92,6 @@
       border-color: #ef4444;
       transform: none;
     }
-
-    /* ---- Cards ---- */
     .card {
       background: #ffffff;
       border-radius: 20px;
@@ -112,10 +101,7 @@
       gap: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04);
       border: 1px solid rgba(226,232,240,0.6);
-      transition: box-shadow 0.2s ease;
     }
-    .card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-
     .lost-item-card {
       background: #ffffff;
       border-radius: 20px;
@@ -123,10 +109,7 @@
       margin-bottom: 14px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04);
       border: 1px solid #eef2f6;
-      transition: all 0.15s ease;
     }
-    .lost-item-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-
     .item-photo {
       max-width: 100%;
       border-radius: 14px;
@@ -135,16 +118,12 @@
       object-fit: cover;
       border: 2px solid #f1f5f9;
     }
-
-    /* ---- Auth cards ---- */
     .auth-card {
       background: #f8fafc;
       border-radius: 24px;
       padding: 24px 20px;
       border: 1px solid #e2e8f0;
     }
-
-    /* ---- Badges, labels, helpers ---- */
     .admin-badge {
       display: inline-block;
       padding: 2px 12px;
@@ -153,9 +132,8 @@
       font-weight: 600;
       margin-left: 6px;
     }
-    .badge-resolved { background: #dcfce7; color: #15803d; }
-    .badge-active { background: #dbeafe; color: #1d4ed8; }
-
+    .badge-claimed { background: #dcfce7; color: #15803d; }
+    .badge-unclaimed { background: #fef3c7; color: #b45309; }
     .error-msg {
       color: #b91c1c;
       font-size: 0.85rem;
@@ -163,15 +141,12 @@
       padding: 6px 0;
     }
     .error-msg.show { display: block; }
-
     .location-label {
       font-weight: 600;
       font-size: 0.95rem;
       color: #1e293b;
       margin-top: 4px;
     }
-
-    /* ---- Popups / modals ---- */
     .verify-popup, .popup-overlay {
       position: fixed;
       top: 0;
@@ -200,8 +175,6 @@
       animation: slideUp 0.2s ease;
     }
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-    /* ---- Back arrow ---- */
     .back-arrow-circle {
       position: absolute;
       top: 14px;
@@ -225,11 +198,8 @@
       transform: scale(1.04);
     }
     .page.has-back-arrow { padding-top: 60px; position: relative; }
-
-    /* ---- Misc ---- */
     .required-asterisk { color: #b91c1c; margin-left: 2px; }
     .custom-input { margin-top: 4px; }
-
     .filter-bar {
       display: flex;
       flex-wrap: wrap;
@@ -262,7 +232,6 @@
       color: white;
     }
     .tab-switch button:hover:not(.active) { background: #e2e8f0; }
-
     .user-welcome {
       background: #f1f5f9;
       border-radius: 16px;
@@ -272,8 +241,38 @@
       text-align: center;
     }
     .user-welcome strong { color: #1e3a5f; }
-
-    /* ---- Responsive tweaks ---- */
+    .code-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: #f8fafc;
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 1px dashed #cbd5e1;
+    }
+    .code-text {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: #1e293b;
+      font-family: monospace;
+    }
+    .copy-btn {
+      width: auto;
+      padding: 8px 18px;
+      font-size: 0.9rem;
+      background: transparent;
+      border: 1.5px solid #cbd5e1;
+      color: #1e293b;
+    }
+    .copy-btn:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      transform: none;
+      box-shadow: none;
+    }
     @media (max-width: 480px) {
       .app-container { padding: 16px 14px; }
       h2 { font-size: 1.4rem; }
@@ -344,85 +343,19 @@
     <h2>🔍 I lost an item</h2>
     <p style="color:#475569;">Describe your lost item – we’ll show matching found items.</p>
     <div class="card">
-      <!-- Type -->
-      <select id="lostType">
-        <option value="">Select type</option>
-        <option value="electronic">📱 Electronic</option>
-        <option value="personal">🎒 Personal</option>
-        <option value="clothing">👕 Clothing</option>
-        <option value="documents">🪪 Documents</option>
-        <option value="keys">🔑 Keys</option>
-        <option value="bags">👜 Bags</option>
-        <option value="other">📌 Other</option>
-      </select>
-
-      <!-- Subcategory -->
-      <select id="lostSubcategory" class="hidden">
-        <option value="">Select sub‑category</option>
-      </select>
+      <select id="lostType"><option value="">Select type</option></select>
+      <select id="lostSubcategory" class="hidden"><option value="">Select sub‑category</option></select>
       <input type="text" id="lostSubcategoryOther" placeholder="Custom sub‑category" class="hidden custom-input">
-
-      <!-- Brand -->
-      <select id="lostModel">
-        <option value="">Select Brand / Model</option>
-        <option value="Lenovo">Lenovo</option>
-        <option value="Dell">Dell</option>
-        <option value="HP">HP</option>
-        <option value="Apple">Apple</option>
-        <option value="Samsung">Samsung</option>
-        <option value="Sony">Sony</option>
-        <option value="Asus">Asus</option>
-        <option value="Acer">Acer</option>
-        <option value="Other">Other (custom)</option>
-      </select>
+      <select id="lostModel"><option value="">Select Brand / Model</option></select>
       <input type="text" id="lostModelCustom" placeholder="Custom brand/model" class="hidden custom-input">
-
-      <!-- Color -->
-      <select id="lostColor">
-        <option value="">Select Color</option>
-        <option value="Black">Black</option>
-        <option value="White">White</option>
-        <option value="Red">Red</option>
-        <option value="Blue">Blue</option>
-        <option value="Green">Green</option>
-        <option value="Yellow">Yellow</option>
-        <option value="Silver">Silver</option>
-        <option value="Gold">Gold</option>
-        <option value="Pink">Pink</option>
-        <option value="Purple">Purple</option>
-        <option value="Orange">Orange</option>
-        <option value="Brown">Brown</option>
-        <option value="Grey">Grey</option>
-        <option value="Other">Other (custom)</option>
-      </select>
+      <select id="lostColor"><option value="">Select Color</option></select>
       <input type="text" id="lostColorCustom" placeholder="Custom color" class="hidden custom-input">
-
       <input type="text" id="lostAppearance" placeholder="Appearance (scratches, stickers…)">
       <textarea id="lostDescription" rows="2" placeholder="Additional description"></textarea>
-
-      <!-- Location (only Room + Floor) -->
       <div class="location-label">📍 Where was it found?</div>
-      <select id="lostRoom">
-        <option value="">Select Location</option>
-        <option value="DNT Room">DNT Room</option>
-        <option value="Computer Lab 1">Computer Lab 1</option>
-        <option value="Computer Lab 2">Computer Lab 2</option>
-        <option value="FCE Room">FCE Room</option>
-        <option value="Classroom 1">Classroom 1</option>
-        <option value="Classroom 2">Classroom 2</option>
-        <option value="Classroom 3">Classroom 3</option>
-        <option value="Library">Library</option>
-        <option value="Cafeteria">Cafeteria</option>
-        <option value="Gymnasium">Gymnasium</option>
-        <option value="Auditorium">Auditorium</option>
-        <option value="Staff Room">Staff Room</option>
-        <option value="Principal Office">Principal Office</option>
-        <option value="General Office">General Office</option>
-        <option value="Other">Other (custom)</option>
-      </select>
+      <select id="lostRoom"><option value="">Select Location</option></select>
       <input type="text" id="lostRoomCustom" placeholder="Custom location" class="hidden custom-input">
       <input type="text" id="lostFloor" placeholder="Floor / Level (optional)">
-
       <button id="searchMatchingBtn" class="primary-btn">🔎 Find matches</button>
     </div>
     <div id="lostResults"></div>
@@ -433,86 +366,20 @@
     <button class="back-arrow-circle" id="backToHomeFromFound">←</button>
     <h2>📦 Report Found Item</h2>
     <div class="card">
-      <select id="foundType">
-        <option value="electronic">📱 Electronic</option>
-        <option value="personal">🎒 Personal</option>
-        <option value="clothing">👕 Clothing</option>
-        <option value="documents">🪪 Documents</option>
-        <option value="keys">🔑 Keys</option>
-        <option value="bags">👜 Bags</option>
-        <option value="other">📌 Other</option>
-      </select>
-
-      <!-- Subcategory -->
-      <select id="foundSubcategory" class="hidden">
-        <option value="">Select sub‑category</option>
-      </select>
+      <select id="foundType"><option value="electronic">📱 Electronic</option></select>
+      <select id="foundSubcategory" class="hidden"><option value="">Select sub‑category</option></select>
       <input type="text" id="foundSubcategoryOther" placeholder="Custom sub‑category" class="hidden custom-input">
-
-      <!-- Brand -->
-      <select id="foundModel">
-        <option value="">Select Brand / Model</option>
-        <option value="Lenovo">Lenovo</option>
-        <option value="Dell">Dell</option>
-        <option value="HP">HP</option>
-        <option value="Apple">Apple</option>
-        <option value="Samsung">Samsung</option>
-        <option value="Sony">Sony</option>
-        <option value="Asus">Asus</option>
-        <option value="Acer">Acer</option>
-        <option value="Other">Other (custom)</option>
-      </select>
+      <select id="foundModel"><option value="">Select Brand / Model</option></select>
       <input type="text" id="foundModelCustom" placeholder="Custom brand/model" class="hidden custom-input">
-
-      <!-- Color -->
-      <select id="foundColor">
-        <option value="">Select Color</option>
-        <option value="Black">Black</option>
-        <option value="White">White</option>
-        <option value="Red">Red</option>
-        <option value="Blue">Blue</option>
-        <option value="Green">Green</option>
-        <option value="Yellow">Yellow</option>
-        <option value="Silver">Silver</option>
-        <option value="Gold">Gold</option>
-        <option value="Pink">Pink</option>
-        <option value="Purple">Purple</option>
-        <option value="Orange">Orange</option>
-        <option value="Brown">Brown</option>
-        <option value="Grey">Grey</option>
-        <option value="Other">Other (custom)</option>
-      </select>
+      <select id="foundColor"><option value="">Select Color</option></select>
       <input type="text" id="foundColorCustom" placeholder="Custom color" class="hidden custom-input">
-
       <input type="text" id="foundAppearance" placeholder="Appearance">
       <textarea id="foundDescription" rows="2" placeholder="Additional description"></textarea>
-
-      <!-- Location (only Room + Floor) -->
       <div class="location-label">📍 Where was it found?</div>
-      <select id="foundRoom">
-        <option value="">Select Location</option>
-        <option value="DNT Room">DNT Room</option>
-        <option value="Computer Lab 1">Computer Lab 1</option>
-        <option value="Computer Lab 2">Computer Lab 2</option>
-        <option value="FCE Room">FCE Room</option>
-        <option value="Classroom 1">Classroom 1</option>
-        <option value="Classroom 2">Classroom 2</option>
-        <option value="Classroom 3">Classroom 3</option>
-        <option value="Library">Library</option>
-        <option value="Cafeteria">Cafeteria</option>
-        <option value="Gymnasium">Gymnasium</option>
-        <option value="Auditorium">Auditorium</option>
-        <option value="Staff Room">Staff Room</option>
-        <option value="Principal Office">Principal Office</option>
-        <option value="General Office">General Office</option>
-        <option value="Other">Other (custom)</option>
-      </select>
+      <select id="foundRoom"><option value="">Select Location</option></select>
       <input type="text" id="foundRoomCustom" placeholder="Custom location" class="hidden custom-input">
       <input type="text" id="foundFloor" placeholder="Floor / Level (optional)">
-
       <input type="datetime-local" id="foundTime" required>
-      <input type="text" id="foundVeriQuestion" placeholder="Verification question *">
-      <input type="text" id="foundVeriAnswer" placeholder="Secret answer *">
       <input type="text" id="foundContactInfo" placeholder="Your contact (phone/email)">
       <input type="file" id="foundPhoto" accept="image/*">
       <button id="submitFoundBtn" class="primary-btn">✅ Submit found item</button>
@@ -520,12 +387,11 @@
   </div>
 
   <!-- ========== MODALS ========== -->
-  <!-- (unchanged – kept for brevity) -->
   <div id="ezlinkAppointmentModal" class="verify-popup hidden">
     <div class="popup-content">
       <h3>📇 Finalise Claim</h3>
       <p>You answered correctly. To collect your item:</p>
-      <label>📸 Upload a photo of your EZ‑Link card <span class="required-asterisk">*</span></label>
+      <label>📸 Upload a photo of your EZ‑Link / NRIC / Photo ID <span class="required-asterisk">*</span></label>
       <input type="file" id="ezlinkPhotoInput" accept="image/*" required>
       <label>📅 Book appointment at General Office</label>
       <input type="datetime-local" id="appointmentTime" required>
@@ -547,12 +413,16 @@
     </div>
   </div>
 
+  <!-- ===== UPDATED CLAIM CODE POPUP with Copy Button ===== -->
   <div id="claimCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>✅ Claim Successful</h3>
       <p>Your claim code is:</p>
-      <p style="font-size:2rem; font-weight:bold; text-align:center;" id="finalClaimCode"></p>
-      <p><strong>📇 Remember to bring your registered EZ‑Link card to your appointment.</strong></p>
+      <div class="code-display">
+        <span class="code-text" id="finalClaimCode"></span>
+        <button id="copyClaimCodeBtn" class="copy-btn">📋 Copy</button>
+      </div>
+      <p><strong>📇 Remember to bring your registered EZ‑Link card and this claim code to your appointment.</strong></p>
       <p>Appointment: <span id="finalAppointment"></span></p>
       <button id="closeClaimCodePopupBtn" class="primary-btn">Close</button>
     </div>
@@ -565,6 +435,18 @@
       <button id="submitCheckCodeBtn" class="primary-btn">Check</button>
       <button id="cancelCheckCodeBtn" class="outline-btn">Cancel</button>
       <div id="checkCodeResult"></div>
+    </div>
+  </div>
+
+  <!-- EDIT VERIFICATION MODAL -->
+  <div id="editVerificationModal" class="verify-popup hidden">
+    <div class="popup-content">
+      <h3>✏️ Edit Verification</h3>
+      <input type="text" id="editVeriQuestion" placeholder="Verification question">
+      <input type="text" id="editVeriAnswer" placeholder="Secret answer">
+      <button id="saveVerificationBtn" class="primary-btn">Save Changes</button>
+      <button id="cancelEditVeriBtn" class="outline-btn">Cancel</button>
+      <p id="editVeriMessage" style="color:#b91c1c;"></p>
     </div>
   </div>
 
@@ -582,29 +464,23 @@
 
     <div id="adminItemsTab" class="tab-content">
       <div class="filter-bar">
-        <select id="adminTypeFilter">
-          <option value="">All Types</option>
-          <option value="electronic">📱 Electronic</option><option value="personal">🎒 Personal</option>
-          <option value="clothing">👕 Clothing</option><option value="documents">🪪 Documents</option>
-          <option value="keys">🔑 Keys</option><option value="bags">👜 Bags</option><option value="other">📌 Other</option>
-        </select>
+        <select id="adminTypeFilter"><option value="">All Types</option></select>
         <select id="adminStatusFilter">
           <option value="all">All Status</option>
-          <option value="resolved">✅ Resolved</option>
-          <option value="unresolved">⏳ Unresolved</option>
+          <option value="claimed">✅ Claimed</option>
+          <option value="unclaimed">⏳ Not Claimed</option>
         </select>
         <button id="adminApplyFilterBtn" class="outline-btn">Apply</button>
         <button id="adminResetFilterBtn" class="outline-btn">Reset</button>
       </div>
       <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
         <button id="selectAllBtn" class="outline-btn">Select All</button>
-        <button id="selectResolvedBtn" class="outline-btn">Select Resolved</button>
+        <button id="selectClaimedBtn" class="outline-btn">Select Claimed</button>
         <button id="deleteSelectedBtn" class="danger-btn">Delete Selected</button>
       </div>
       <div id="adminResults"></div>
     </div>
 
-    <!-- UPDATED USERS TAB with search -->
     <div id="adminUsersTab" class="tab-content hidden">
       <div style="display:flex; gap:8px; margin-bottom:10px;">
         <input type="text" id="adminUserSearch" placeholder="🔍 Search by username or EZ‑Link..." style="flex:1;">
@@ -633,6 +509,52 @@
     other: []
   };
 
+  // ===== Option lists for alphabetical sorting =====
+  const typeOptions = ['electronic', 'personal', 'clothing', 'documents', 'keys', 'bags', 'other'];
+  const typeLabels = {
+    electronic: '📱 Electronic',
+    personal: '🎒 Personal',
+    clothing: '👕 Clothing',
+    documents: '🪪 Documents',
+    keys: '🔑 Keys',
+    bags: '👜 Bags',
+    other: '📌 Other'
+  };
+  const brandOptions = ['Lenovo', 'Dell', 'HP', 'Apple', 'Samsung', 'Sony', 'Asus', 'Acer', 'Other'];
+  const colorOptions = ['Black', 'White', 'Red', 'Blue', 'Green', 'Yellow', 'Silver', 'Gold', 'Pink', 'Purple', 'Orange', 'Brown', 'Grey', 'Other'];
+  const roomOptions = ['DNT Room', 'Computer Lab 1', 'Computer Lab 2', 'FCE Room', 'Classroom 1', 'Classroom 2', 'Classroom 3', 'Library', 'Cafeteria', 'Gymnasium', 'Auditorium', 'Staff Room', 'Principal Office', 'General Office', 'Other'];
+
+  // ===== Helper to sort and populate a select =====
+  function populateSelect(selectId, options, labelMap) {
+    const sel = document.getElementById(selectId);
+    const firstOption = sel.options[0];
+    sel.innerHTML = '';
+    if (firstOption) sel.appendChild(firstOption);
+    const sorted = [...options].sort((a,b) => a.localeCompare(b));
+    const otherIdx = sorted.indexOf('Other');
+    if (otherIdx > -1) {
+      sorted.splice(otherIdx, 1);
+      sorted.push('Other');
+    }
+    sorted.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt;
+      const label = labelMap ? labelMap[opt] : opt;
+      option.textContent = label || opt;
+      sel.appendChild(option);
+    });
+  }
+
+  populateSelect('lostType', typeOptions, typeLabels);
+  populateSelect('foundType', typeOptions, typeLabels);
+  populateSelect('lostModel', brandOptions);
+  populateSelect('foundModel', brandOptions);
+  populateSelect('lostColor', colorOptions);
+  populateSelect('foundColor', colorOptions);
+  populateSelect('lostRoom', roomOptions);
+  populateSelect('foundRoom', roomOptions);
+  populateSelect('adminTypeFilter', typeOptions, typeLabels);
+
   // ===== Helpers =====
   function getDropdownValue(selectId, customId) {
     const select = document.getElementById(selectId);
@@ -656,10 +578,13 @@
     const type = document.getElementById(selectTypeId).value;
     const subSelect = document.getElementById(selectSubId);
     const customSub = document.getElementById(customSubId);
-    const options = subcategoryMap[type] || [];
+    let options = subcategoryMap[type] || [];
+    const sorted = [...options].sort((a,b) => a.localeCompare(b));
+    const otherIdx = sorted.indexOf('other');
+    if (otherIdx > -1) { sorted.splice(otherIdx, 1); sorted.push('other'); }
     subSelect.innerHTML = '<option value="">Select sub‑category</option>';
-    if (options.length) {
-      options.forEach(opt => {
+    if (sorted.length) {
+      sorted.forEach(opt => {
         const option = document.createElement('option');
         option.value = opt;
         option.textContent = opt.charAt(0).toUpperCase() + opt.slice(1);
@@ -722,8 +647,8 @@
     item.set("timeFound", data.timeFound);
     item.set("locationRoom", data.locationRoom);
     item.set("locationFloor", data.locationFloor);
-    item.set("verificationQuestion", data.verificationQuestion);
-    item.set("verificationAnswer", data.verificationAnswer);
+    item.set("verificationQuestion", "");
+    item.set("verificationAnswer", "");
     item.set("isResolved", false);
     item.set("verificationAttempts", 0);
     item.set("nextAttemptAllowedAt", new Date());
@@ -832,6 +757,9 @@
   async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
   async function getAllUsers() { return Parse.Cloud.run('getAllUsers'); }
+  async function updateVerification(itemId, question, answer) {
+    return Parse.Cloud.run('updateVerification', { itemId, question, answer });
+  }
 
   // ===== Auth =====
   const auth = {
@@ -862,8 +790,10 @@
   const checkCodePopup = document.getElementById('checkCodePopup');
   const successPopup = document.getElementById('successPopup');
   const errorPopup = document.getElementById('errorPopup');
+  const editVeriModal = document.getElementById('editVerificationModal');
 
   let currentVerifyingItemId = null;
+  let editingItemId = null;
 
   function showPage(page) { document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden')); page.classList.remove('hidden'); }
   function setError(el, msg) { if(msg){ el.textContent=msg; el.classList.add('show'); } else { el.textContent=''; el.classList.remove('show'); } }
@@ -998,7 +928,7 @@
     const photoFile = document.getElementById('ezlinkPhotoInput').files[0];
     const appointment = document.getElementById('appointmentTime').value;
     if(!photoFile || !appointment) {
-      document.getElementById('finaliseMessage').innerText = 'Please upload EZ-Link photo and select appointment time.';
+      document.getElementById('finaliseMessage').innerText = 'Please upload EZ-Link / NRIC / Photo ID and select appointment time.';
       return;
     }
     try {
@@ -1018,6 +948,45 @@
     document.getElementById('searchMatchingBtn').click();
   };
 
+  // ============================================================
+  // ===== NEW: Copy Claim Code Button =====
+  // ============================================================
+  document.getElementById('copyClaimCodeBtn').addEventListener('click', function() {
+    const code = document.getElementById('finalClaimCode').innerText;
+    if (!code) return;
+
+    // Use Clipboard API if available
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => {
+        this.textContent = '✅ Copied!';
+        setTimeout(() => { this.textContent = '📋 Copy'; }, 2500);
+      }).catch(() => {
+        fallbackCopy(code, this);
+      });
+    } else {
+      fallbackCopy(code, this);
+    }
+  });
+
+  function fallbackCopy(text, btn) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      btn.textContent = '✅ Copied!';
+      setTimeout(() => { btn.textContent = '📋 Copy'; }, 2500);
+    } catch (e) {
+      btn.textContent = '❌ Error';
+      setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
+    }
+    document.body.removeChild(textarea);
+  }
+
   // ===== Check claim code =====
   document.getElementById('openCheckCodeBtn').onclick = () => checkCodePopup.classList.remove('hidden');
   document.getElementById('cancelCheckCodeBtn').onclick = () => checkCodePopup.classList.add('hidden');
@@ -1028,7 +997,7 @@
     const resultDiv = document.getElementById('checkCodeResult');
     if(res.found) {
       const appt = res.appointment ? new Date(res.appointment).toLocaleString() : 'Not scheduled';
-      resultDiv.innerHTML = `<div style="background:#e6f7ec; padding:10px; border-radius:16px;">✅ Valid code! Item: ${res.type}${res.subcategory ? ' ('+res.subcategory+')' : ''} · ${res.color} · ${res.model}<br>📍 ${res.locationFound}<br>📅 Appointment: ${appt}<br><strong>Bring your EZ-Link card to the General Office.</strong></div>`;
+      resultDiv.innerHTML = `<div style="background:#e6f7ec; padding:10px; border-radius:16px;">✅ Valid code! Item: ${res.type}${res.subcategory ? ' ('+res.subcategory+')' : ''} · ${res.color} · ${res.model}<br>📍 ${res.locationFound}<br>📅 Appointment Time: ${appt}<br><strong>Bring your EZ-Link card and this claim code to the General Office.</strong></div>`;
     } else {
       resultDiv.innerHTML = '❌ Invalid code.';
     }
@@ -1043,7 +1012,7 @@
     btn.textContent = 'Submitting…';
 
     try {
-      const required = ['foundColor','foundModel','foundTime','foundVeriQuestion','foundVeriAnswer'];
+      const required = ['foundColor','foundModel','foundTime'];
       if(required.some(id => !document.getElementById(id).value.trim())) {
         document.getElementById('errorPopupMessage').innerText = 'Please fill all required fields (*).';
         errorPopup.classList.remove('hidden');
@@ -1070,8 +1039,6 @@
         timeFound: new Date(document.getElementById('foundTime').value),
         locationRoom: getDropdownValue('foundRoom', 'foundRoomCustom'),
         locationFloor: document.getElementById('foundFloor').value.trim(),
-        verificationQuestion: document.getElementById('foundVeriQuestion').value.trim(),
-        verificationAnswer: document.getElementById('foundVeriAnswer').value.trim(),
         contactInfo: document.getElementById('foundContactInfo').value.trim(),
         photoBase64, photoName
       };
@@ -1100,8 +1067,8 @@
     const statusFilter = document.getElementById('adminStatusFilter').value;
     let filtered = items;
     if (typeFilter) filtered = filtered.filter(item => item.get('type') === typeFilter);
-    if (statusFilter === 'resolved') filtered = filtered.filter(item => item.get('isResolved') === true);
-    if (statusFilter === 'unresolved') filtered = filtered.filter(item => item.get('isResolved') === false);
+    if (statusFilter === 'claimed') filtered = filtered.filter(item => item.get('isResolved') === true);
+    if (statusFilter === 'unclaimed') filtered = filtered.filter(item => item.get('isResolved') === false);
     if(!filtered.length) { container.innerHTML = '<p style="color:#64748b;">No items match filters.</p>'; return; }
     container.innerHTML = filtered.map(item => {
       const photo = item.get('photo');
@@ -1109,29 +1076,65 @@
       const ezlinkPhoto = item.get('ezlinkPhoto');
       const ezlinkUrl = ezlinkPhoto ? ezlinkPhoto.url() : null;
       const loc = [item.get('locationRoom'), item.get('locationFloor')].filter(Boolean).join(' ');
+      const isClaimed = item.get('isResolved');
+      const statusBadge = isClaimed ? '<span class="admin-badge badge-claimed">✅ Claimed</span>' : '<span class="admin-badge badge-unclaimed">⏳ Not Claimed</span>';
       return `
         <div class="lost-item-card">
-          <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${item.get('isResolved')}"> <strong>${item.get('type')}</strong> ${item.get('isResolved')?'<span class="admin-badge badge-resolved">Resolved</span>':''}</div>
+          <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${isClaimed}"> <strong>${item.get('type')}</strong> ${statusBadge}</div>
           <div>${item.get('subcategory') ? item.get('subcategory') + ' · ' : ''}${item.get('color')} · ${item.get('model')}</div>
           <div>📍 ${loc || 'Unknown'}</div>
-          <div>🔐 Q: ${item.get('verificationQuestion')}</div>
-          <div>Attempts: ${item.get('verificationAttempts')}</div>
-          <div>📅 Appt: ${item.get('appointmentTime') ? new Date(item.get('appointmentTime')).toLocaleString() : 'N/A'}</div>
+          <div>🔐 Q: ${item.get('verificationQuestion') || 'Not set'}</div>
+          <div>📅 Appointment Time: ${item.get('appointmentTime') ? new Date(item.get('appointmentTime')).toLocaleString() : 'N/A'}</div>
           ${photoUrl ? `<img src="${photoUrl}" class="item-photo" style="max-height:150px;" onerror="this.onerror=null;this.src='';">` : ''}
-          ${ezlinkUrl ? `<div><strong>📇 EZ‑Link Card:</strong><br><img src="${ezlinkUrl}" class="item-photo" style="max-height:150px;"></div>` : ''}
-          <div><button onclick="window.resetAdminItem('${item.id}')" class="outline-btn">Reset</button> <button onclick="window.deleteAdminItem('${item.id}')" class="danger-btn">Delete</button></div>
+          ${ezlinkUrl ? `<div><strong>📇 ID Upload:</strong><br><img src="${ezlinkUrl}" class="item-photo" style="max-height:150px;"></div>` : ''}
+          <div>
+            <button onclick="window.editVerification('${item.id}')" class="outline-btn" style="padding:6px 12px; font-size:0.8rem;">✏️ Edit Verification</button>
+            <button onclick="window.deleteAdminItem('${item.id}')" class="danger-btn" style="padding:6px 12px; font-size:0.8rem;">Delete</button>
+          </div>
         </div>
       `;
     }).join('');
     document.getElementById('selectAllBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked=true); };
-    document.getElementById('selectResolvedBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked = c.dataset.resolved==='true'); };
+    document.getElementById('selectClaimedBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked = c.dataset.resolved==='true'); };
     document.getElementById('deleteSelectedBtn').onclick = async () => {
       const ids = [...document.querySelectorAll('.admin-checkbox:checked')].map(c=>c.dataset.id);
       if(!ids.length) return alert('None selected');
       if(confirm(`Delete ${ids.length} items?`)) { await Promise.all(ids.map(id=>adminDeleteItem(id))); loadAdminItems(); }
     };
   }
-  window.resetAdminItem = async (id) => { if(confirm('Reset attempts?')){ await adminResetAttempts(id); loadAdminItems(); } };
+
+  window.editVerification = function(itemId) {
+    editingItemId = itemId;
+    document.getElementById('editVeriQuestion').value = '';
+    document.getElementById('editVeriAnswer').value = '';
+    document.getElementById('editVeriMessage').innerText = '';
+    editVeriModal.classList.remove('hidden');
+  };
+
+  document.getElementById('cancelEditVeriBtn').onclick = () => {
+    editVeriModal.classList.add('hidden');
+    editingItemId = null;
+  };
+
+  document.getElementById('saveVerificationBtn').onclick = async () => {
+    const question = document.getElementById('editVeriQuestion').value.trim();
+    const answer = document.getElementById('editVeriAnswer').value.trim();
+    if (!question || !answer) {
+      document.getElementById('editVeriMessage').innerText = 'Both question and answer are required.';
+      return;
+    }
+    try {
+      await updateVerification(editingItemId, question, answer);
+      document.getElementById('editVeriMessage').innerText = '✅ Updated successfully!';
+      setTimeout(() => {
+        editVeriModal.classList.add('hidden');
+        loadAdminItems();
+      }, 1000);
+    } catch (e) {
+      document.getElementById('editVeriMessage').innerText = 'Error: ' + e.message;
+    }
+  };
+
   window.deleteAdminItem = async (id) => { if(confirm('Delete?')){ await adminDeleteItem(id); loadAdminItems(); } };
   document.getElementById('adminApplyFilterBtn').onclick = loadAdminItems;
   document.getElementById('adminResetFilterBtn').onclick = () => {
@@ -1140,12 +1143,11 @@
     loadAdminItems();
   };
 
-  // ===== Admin – Users (with search) =====
-  let allUsers = []; // store the full list
+  // ===== Admin – Users =====
+  let allUsers = [];
 
   async function loadAdminUsers() {
     const container = document.getElementById('adminUsersList');
-    const searchInput = document.getElementById('adminUserSearch');
     container.innerHTML = 'Loading…';
     try {
       const users = await getAllUsers();
@@ -1154,7 +1156,6 @@
         container.innerHTML = '<p style="color:#64748b;">No users registered yet.</p>';
         return;
       }
-      // Render all
       renderUserList(allUsers);
     } catch (error) {
       container.innerHTML = `<p style="color:#b91c1c;">Error: ${error.message}</p>`;
@@ -1177,13 +1178,9 @@
     `).join('');
   }
 
-  // Filter on search input
   document.getElementById('adminUserSearch').addEventListener('input', function() {
     const query = this.value.trim().toLowerCase();
-    if (!query) {
-      renderUserList(allUsers);
-      return;
-    }
+    if (!query) { renderUserList(allUsers); return; }
     const filtered = allUsers.filter(user => {
       const username = (user.username || '').toLowerCase();
       const ezlink = (user.ezlink || '').toLowerCase();
@@ -1192,7 +1189,6 @@
     renderUserList(filtered);
   });
 
-  // Refresh button: clear search and reload
   document.getElementById('refreshUsersBtn').onclick = function() {
     document.getElementById('adminUserSearch').value = '';
     loadAdminUsers();
