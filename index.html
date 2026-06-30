@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>🔍 Lost & Found – Secure Claims</title>
   <style>
+    /* === Reset & Base === */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -387,7 +388,6 @@
   </div>
 
   <!-- ========== MODALS ========== -->
-  <!-- EZ-Link / Appointment Modal -->
   <div id="ezlinkAppointmentModal" class="verify-popup hidden">
     <div class="popup-content">
       <h3>📇 Finalise Claim</h3>
@@ -402,7 +402,6 @@
     </div>
   </div>
 
-  <!-- Claim Code Popup -->
   <div id="claimCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>✅ Claim Successful</h3>
@@ -417,7 +416,6 @@
     </div>
   </div>
 
-  <!-- Check Code Popup -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
@@ -428,7 +426,6 @@
     </div>
   </div>
 
-  <!-- Success / Error Popups -->
   <div id="successPopup" class="verify-popup hidden"><div class="popup-content"><p>✅ Item reported!</p><button id="closeSuccessPopup">OK</button></div></div>
   <div id="errorPopup" class="verify-popup hidden"><div class="popup-content"><p id="errorPopupMessage"></p><button id="closeErrorPopup">OK</button></div></div>
 
@@ -460,6 +457,7 @@
       <div id="adminResults"></div>
     </div>
 
+    <!-- USERS TAB – with working search & refresh -->
     <div id="adminUsersTab" class="tab-content hidden">
       <div style="display:flex; gap:8px; margin-bottom:10px;">
         <input type="text" id="adminUserSearch" placeholder="🔍 Search by username or EZ‑Link..." style="flex:1;">
@@ -471,13 +469,17 @@
 </div>
 
 <script>
-  // ===== Parse init =====
+  // ============================================================
+  // PARSE INITIALISATION
+  // ============================================================
   Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
   Parse.serverURL = "https://parseapi.back4app.com/";
   const LostItem = Parse.Object.extend("LostItem");
   const HOST_PASSWORD = "host123";
 
-  // ===== Subcategory map =====
+  // ============================================================
+  // SUBCATEGORY MAP & DROPDOWN HELPERS
+  // ============================================================
   const subcategoryMap = {
     electronic: ['mouse', 'computer', 'laptop', 'phone', 'tablet', 'headphones', 'charger', 'cable', 'other'],
     personal: ['wallet', 'backpack', 'purse', 'glasses', 'watch', 'jewelry', 'other'],
@@ -488,7 +490,6 @@
     other: []
   };
 
-  // ===== Option lists (alphabetical) =====
   const typeOptions = ['electronic', 'personal', 'clothing', 'documents', 'keys', 'bags', 'other'];
   const typeLabels = {
     electronic: '📱 Electronic',
@@ -530,7 +531,6 @@
   populateSelect('foundRoom', roomOptions);
   populateSelect('adminTypeFilter', typeOptions, typeLabels);
 
-  // ===== Helpers =====
   function getDropdownValue(selectId, customId) {
     const select = document.getElementById(selectId);
     const custom = document.getElementById(customId);
@@ -592,7 +592,9 @@
     sel.addEventListener('change', () => toggleCustom(sel.id, customId));
   });
 
-  // ===== Core functions =====
+  // ============================================================
+  // CORE FUNCTIONS
+  // ============================================================
   function generateClaimCode(len=6) {
     const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code='';
@@ -682,7 +684,9 @@
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
   async function getAllUsers() { return Parse.Cloud.run('getAllUsers'); }
 
-  // ===== Auth =====
+  // ============================================================
+  // AUTH
+  // ============================================================
   const auth = {
     signUp: async (username, ezlink, password) => {
       if(!ezlink.trim()) throw new Error("Ezlink card number is required.");
@@ -697,7 +701,9 @@
     getCurrentUser: () => Parse.User.current()
   };
 
-  // ===== UI refs =====
+  // ============================================================
+  // UI REFS & HELPERS
+  // ============================================================
   const loginPage = document.getElementById('loginPage');
   const rolePage = document.getElementById('roleSelectionPage');
   const homePage = document.getElementById('homePage');
@@ -722,7 +728,9 @@
     else showPage(loginPage);
   }
 
-  // ===== Login / Signup =====
+  // ============================================================
+  // LOGIN / SIGNUP
+  // ============================================================
   document.getElementById('showSignUpCard').onclick = () => { 
     document.getElementById('loginCard').classList.add('hidden'); 
     document.getElementById('signUpCard').classList.remove('hidden');
@@ -751,7 +759,9 @@
     catch(e) { setError(err, e.message); }
   };
 
-  // ===== Navigation =====
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
   document.getElementById('backToLoginFromRole').onclick = async () => { await auth.logOut(); showPage(loginPage); };
   document.getElementById('logoutFromRoleBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
   document.getElementById('backToRoleFromHome').onclick = () => showPage(rolePage);
@@ -769,7 +779,9 @@
   document.getElementById('goFoundBtn').onclick = () => showPage(foundPage);
   document.getElementById('logoutFromHomeBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
 
-  // ===== Search =====
+  // ============================================================
+  // SEARCH & CLAIM (no verification)
+  // ============================================================
   document.getElementById('searchMatchingBtn').onclick = async () => {
     const subSelect = document.getElementById('lostSubcategory');
     let subcategory = subSelect.value;
@@ -805,10 +817,8 @@
           </div>
         `;
       }).join('');
-      // ===== DIRECT CLAIM – NO VERIFICATION QUESTION =====
       document.querySelectorAll('.claim-btn').forEach(btn => btn.addEventListener('click', function() {
         currentVerifyingItemId = this.dataset.id;
-        // Clear previous values
         document.getElementById('ezlinkPhotoInput').value = '';
         document.getElementById('appointmentTime').value = '';
         document.getElementById('finaliseMessage').innerText = '';
@@ -817,7 +827,9 @@
     } catch(e) { container.innerHTML = `<p style="color:#b91c1c;">Error: ${e.message}</p>`; }
   };
 
-  // ===== Finalise claim =====
+  // ============================================================
+  // FINALISE CLAIM
+  // ============================================================
   document.getElementById('finaliseClaimBtn').onclick = async () => {
     const photoFile = document.getElementById('ezlinkPhotoInput').files[0];
     const appointment = document.getElementById('appointmentTime').value;
@@ -842,7 +854,9 @@
     document.getElementById('searchMatchingBtn').click();
   };
 
-  // ===== Copy Claim Code =====
+  // ============================================================
+  // COPY CLAIM CODE
+  // ============================================================
   document.getElementById('copyClaimCodeBtn').addEventListener('click', function() {
     const code = document.getElementById('finalClaimCode').innerText;
     if (!code) return;
@@ -872,7 +886,9 @@
     document.body.removeChild(textarea);
   }
 
-  // ===== Check claim code =====
+  // ============================================================
+  // CHECK CLAIM CODE
+  // ============================================================
   document.getElementById('openCheckCodeBtn').onclick = () => checkCodePopup.classList.remove('hidden');
   document.getElementById('cancelCheckCodeBtn').onclick = () => checkCodePopup.classList.add('hidden');
   document.getElementById('submitCheckCodeBtn').onclick = async () => {
@@ -888,7 +904,9 @@
     }
   };
 
-  // ===== Submit found item =====
+  // ============================================================
+  // SUBMIT FOUND ITEM
+  // ============================================================
   document.getElementById('submitFoundBtn').onclick = async () => {
     if (isSubmitting) return;
     isSubmitting = true;
@@ -943,47 +961,53 @@
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
-  // ===== Admin – Items =====
+  // ============================================================
+  // ADMIN – ITEMS
+  // ============================================================
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
     container.innerHTML = 'Loading…';
-    const items = await adminGetAllItems();
-    const typeFilter = document.getElementById('adminTypeFilter').value;
-    const statusFilter = document.getElementById('adminStatusFilter').value;
-    let filtered = items;
-    if (typeFilter) filtered = filtered.filter(item => item.get('type') === typeFilter);
-    if (statusFilter === 'claimed') filtered = filtered.filter(item => item.get('isResolved') === true);
-    if (statusFilter === 'unclaimed') filtered = filtered.filter(item => item.get('isResolved') === false);
-    if(!filtered.length) { container.innerHTML = '<p style="color:#64748b;">No items match filters.</p>'; return; }
-    container.innerHTML = filtered.map(item => {
-      const photo = item.get('photo');
-      const photoUrl = photo ? photo.url() : null;
-      const ezlinkPhoto = item.get('ezlinkPhoto');
-      const ezlinkUrl = ezlinkPhoto ? ezlinkPhoto.url() : null;
-      const loc = [item.get('locationRoom'), item.get('locationFloor')].filter(Boolean).join(' ');
-      const isClaimed = item.get('isResolved');
-      const statusBadge = isClaimed ? '<span class="admin-badge badge-claimed">✅ Claimed</span>' : '<span class="admin-badge badge-unclaimed">⏳ Not Claimed</span>';
-      return `
-        <div class="lost-item-card">
-          <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${isClaimed}"> <strong>${item.get('type')}</strong> ${statusBadge}</div>
-          <div>${item.get('subcategory') ? item.get('subcategory') + ' · ' : ''}${item.get('color')} · ${item.get('model')}</div>
-          <div>📍 ${loc || 'Unknown'}</div>
-          <div>📅 Appointment Time: ${item.get('appointmentTime') ? new Date(item.get('appointmentTime')).toLocaleString() : 'N/A'}</div>
-          ${photoUrl ? `<img src="${photoUrl}" class="item-photo" style="max-height:150px;" onerror="this.onerror=null;this.src='';">` : ''}
-          ${ezlinkUrl ? `<div><strong>📇 ID Upload:</strong><br><img src="${ezlinkUrl}" class="item-photo" style="max-height:150px;"></div>` : ''}
-          <div>
-            <button onclick="window.deleteAdminItem('${item.id}')" class="danger-btn" style="padding:6px 12px; font-size:0.8rem;">Delete</button>
+    try {
+      const items = await adminGetAllItems();
+      const typeFilter = document.getElementById('adminTypeFilter').value;
+      const statusFilter = document.getElementById('adminStatusFilter').value;
+      let filtered = items;
+      if (typeFilter) filtered = filtered.filter(item => item.get('type') === typeFilter);
+      if (statusFilter === 'claimed') filtered = filtered.filter(item => item.get('isResolved') === true);
+      if (statusFilter === 'unclaimed') filtered = filtered.filter(item => item.get('isResolved') === false);
+      if(!filtered.length) { container.innerHTML = '<p style="color:#64748b;">No items match filters.</p>'; return; }
+      container.innerHTML = filtered.map(item => {
+        const photo = item.get('photo');
+        const photoUrl = photo ? photo.url() : null;
+        const ezlinkPhoto = item.get('ezlinkPhoto');
+        const ezlinkUrl = ezlinkPhoto ? ezlinkPhoto.url() : null;
+        const loc = [item.get('locationRoom'), item.get('locationFloor')].filter(Boolean).join(' ');
+        const isClaimed = item.get('isResolved');
+        const statusBadge = isClaimed ? '<span class="admin-badge badge-claimed">✅ Claimed</span>' : '<span class="admin-badge badge-unclaimed">⏳ Not Claimed</span>';
+        return `
+          <div class="lost-item-card">
+            <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${isClaimed}"> <strong>${item.get('type')}</strong> ${statusBadge}</div>
+            <div>${item.get('subcategory') ? item.get('subcategory') + ' · ' : ''}${item.get('color')} · ${item.get('model')}</div>
+            <div>📍 ${loc || 'Unknown'}</div>
+            <div>📅 Appointment Time: ${item.get('appointmentTime') ? new Date(item.get('appointmentTime')).toLocaleString() : 'N/A'}</div>
+            ${photoUrl ? `<img src="${photoUrl}" class="item-photo" style="max-height:150px;" onerror="this.onerror=null;this.src='';">` : ''}
+            ${ezlinkUrl ? `<div><strong>📇 ID Upload:</strong><br><img src="${ezlinkUrl}" class="item-photo" style="max-height:150px;"></div>` : ''}
+            <div>
+              <button onclick="window.deleteAdminItem('${item.id}')" class="danger-btn" style="padding:6px 12px; font-size:0.8rem;">Delete</button>
+            </div>
           </div>
-        </div>
-      `;
-    }).join('');
-    document.getElementById('selectAllBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked=true); };
-    document.getElementById('selectClaimedBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked = c.dataset.resolved==='true'); };
-    document.getElementById('deleteSelectedBtn').onclick = async () => {
-      const ids = [...document.querySelectorAll('.admin-checkbox:checked')].map(c=>c.dataset.id);
-      if(!ids.length) return alert('None selected');
-      if(confirm(`Delete ${ids.length} items?`)) { await Promise.all(ids.map(id=>adminDeleteItem(id))); loadAdminItems(); }
-    };
+        `;
+      }).join('');
+      document.getElementById('selectAllBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked=true); };
+      document.getElementById('selectClaimedBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked = c.dataset.resolved==='true'); };
+      document.getElementById('deleteSelectedBtn').onclick = async () => {
+        const ids = [...document.querySelectorAll('.admin-checkbox:checked')].map(c=>c.dataset.id);
+        if(!ids.length) return alert('None selected');
+        if(confirm(`Delete ${ids.length} items?`)) { await Promise.all(ids.map(id=>adminDeleteItem(id))); loadAdminItems(); }
+      };
+    } catch(e) {
+      container.innerHTML = `<p style="color:#b91c1c;">Error: ${e.message}</p>`;
+    }
   }
 
   window.deleteAdminItem = async (id) => { if(confirm('Delete?')){ await adminDeleteItem(id); loadAdminItems(); } };
@@ -994,14 +1018,18 @@
     loadAdminItems();
   };
 
-  // ===== Admin – Users =====
+  // ============================================================
+  // ADMIN – USERS (FIXED)
+  // ============================================================
   let allUsers = [];
 
   async function loadAdminUsers() {
     const container = document.getElementById('adminUsersList');
     container.innerHTML = 'Loading…';
     try {
+      console.log('📡 Calling getAllUsers...');
       const users = await getAllUsers();
+      console.log('✅ Users received:', users);
       allUsers = users || [];
       if (!allUsers.length) {
         container.innerHTML = '<p style="color:#64748b;">No users registered yet.</p>';
@@ -1009,6 +1037,7 @@
       }
       renderUserList(allUsers);
     } catch (error) {
+      console.error('❌ Error loading users:', error);
       container.innerHTML = `<p style="color:#b91c1c;">Error: ${error.message}</p>`;
     }
   }
@@ -1029,6 +1058,7 @@
     `).join('');
   }
 
+  // Search filter
   document.getElementById('adminUserSearch').addEventListener('input', function() {
     const query = this.value.trim().toLowerCase();
     if (!query) { renderUserList(allUsers); return; }
@@ -1040,6 +1070,7 @@
     renderUserList(filtered);
   });
 
+  // Refresh button
   document.getElementById('refreshUsersBtn').onclick = function() {
     document.getElementById('adminUserSearch').value = '';
     loadAdminUsers();
@@ -1052,7 +1083,9 @@
     return div.innerHTML;
   }
 
-  // ===== Tab switching =====
+  // ============================================================
+  // TAB SWITCHING
+  // ============================================================
   document.getElementById('adminItemsTabBtn').onclick = () => {
     document.getElementById('adminItemsTab').classList.remove('hidden');
     document.getElementById('adminUsersTab').classList.add('hidden');
@@ -1068,7 +1101,9 @@
     loadAdminUsers();
   };
 
-  // ===== Init =====
+  // ============================================================
+  // INIT
+  // ============================================================
   window.addEventListener('DOMContentLoaded', function() {
     updateSubcategory('foundType', 'foundSubcategory', 'foundSubcategoryOther');
   });
