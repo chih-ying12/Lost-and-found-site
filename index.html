@@ -387,10 +387,11 @@
   </div>
 
   <!-- ========== MODALS ========== -->
+  <!-- EZ-Link / Appointment Modal -->
   <div id="ezlinkAppointmentModal" class="verify-popup hidden">
     <div class="popup-content">
       <h3>📇 Finalise Claim</h3>
-      <p>You answered correctly. To collect your item:</p>
+      <p>To collect your item:</p>
       <label>📸 Upload a photo of your EZ‑Link / NRIC / Photo ID <span class="required-asterisk">*</span></label>
       <input type="file" id="ezlinkPhotoInput" accept="image/*" required>
       <label>📅 Book appointment at General Office</label>
@@ -401,19 +402,7 @@
     </div>
   </div>
 
-  <div id="verifyPopup" class="verify-popup hidden">
-    <div class="popup-content">
-      <h3>🔐 Verification</h3>
-      <p id="verifyQuestionText"></p>
-      <div id="verifyOptionsPanel" class="verify-options"></div>
-      <input type="text" id="verifyAnswerInput" placeholder="Your answer (or click a suggestion)">
-      <button id="submitVerifyBtn" class="primary-btn">Confirm</button>
-      <button id="cancelVerifyBtn" class="outline-btn">Cancel</button>
-      <p id="verifyMessage"></p>
-    </div>
-  </div>
-
-  <!-- ===== UPDATED CLAIM CODE POPUP with Copy Button ===== -->
+  <!-- Claim Code Popup -->
   <div id="claimCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>✅ Claim Successful</h3>
@@ -428,6 +417,7 @@
     </div>
   </div>
 
+  <!-- Check Code Popup -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
@@ -438,18 +428,7 @@
     </div>
   </div>
 
-  <!-- EDIT VERIFICATION MODAL -->
-  <div id="editVerificationModal" class="verify-popup hidden">
-    <div class="popup-content">
-      <h3>✏️ Edit Verification</h3>
-      <input type="text" id="editVeriQuestion" placeholder="Verification question">
-      <input type="text" id="editVeriAnswer" placeholder="Secret answer">
-      <button id="saveVerificationBtn" class="primary-btn">Save Changes</button>
-      <button id="cancelEditVeriBtn" class="outline-btn">Cancel</button>
-      <p id="editVeriMessage" style="color:#b91c1c;"></p>
-    </div>
-  </div>
-
+  <!-- Success / Error Popups -->
   <div id="successPopup" class="verify-popup hidden"><div class="popup-content"><p>✅ Item reported!</p><button id="closeSuccessPopup">OK</button></div></div>
   <div id="errorPopup" class="verify-popup hidden"><div class="popup-content"><p id="errorPopupMessage"></p><button id="closeErrorPopup">OK</button></div></div>
 
@@ -509,7 +488,7 @@
     other: []
   };
 
-  // ===== Option lists for alphabetical sorting =====
+  // ===== Option lists (alphabetical) =====
   const typeOptions = ['electronic', 'personal', 'clothing', 'documents', 'keys', 'bags', 'other'];
   const typeLabels = {
     electronic: '📱 Electronic',
@@ -524,7 +503,6 @@
   const colorOptions = ['Black', 'White', 'Red', 'Blue', 'Green', 'Yellow', 'Silver', 'Gold', 'Pink', 'Purple', 'Orange', 'Brown', 'Grey', 'Other'];
   const roomOptions = ['DNT Room', 'Computer Lab 1', 'Computer Lab 2', 'FCE Room', 'Classroom 1', 'Classroom 2', 'Classroom 3', 'Library', 'Cafeteria', 'Gymnasium', 'Auditorium', 'Staff Room', 'Principal Office', 'General Office', 'Other'];
 
-  // ===== Helper to sort and populate a select =====
   function populateSelect(selectId, options, labelMap) {
     const sel = document.getElementById(selectId);
     const firstOption = sel.options[0];
@@ -532,10 +510,7 @@
     if (firstOption) sel.appendChild(firstOption);
     const sorted = [...options].sort((a,b) => a.localeCompare(b));
     const otherIdx = sorted.indexOf('Other');
-    if (otherIdx > -1) {
-      sorted.splice(otherIdx, 1);
-      sorted.push('Other');
-    }
+    if (otherIdx > -1) { sorted.splice(otherIdx, 1); sorted.push('Other'); }
     sorted.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt;
@@ -647,12 +622,7 @@
     item.set("timeFound", data.timeFound);
     item.set("locationRoom", data.locationRoom);
     item.set("locationFloor", data.locationFloor);
-    item.set("verificationQuestion", "");
-    item.set("verificationAnswer", "");
     item.set("isResolved", false);
-    item.set("verificationAttempts", 0);
-    item.set("nextAttemptAllowedAt", new Date());
-    item.set("verificationBlocked", false);
     item.set("contactInfo", data.contactInfo);
     item.set("claimCode", "");
     if (data.photoBase64) {
@@ -665,7 +635,6 @@
   async function searchMatchingLostItems(criteria) {
     let query = new Parse.Query(LostItem);
     query.equalTo("isResolved", false);
-    query.equalTo("verificationBlocked", false);
     if(criteria.type) query.equalTo("type", criteria.type);
     if(criteria.subcategory) query.matches("subcategory", new RegExp(criteria.subcategory, "i"));
     if(criteria.color) query.matches("color", new RegExp(criteria.color, "i"));
@@ -676,42 +645,6 @@
     if(criteria.floor) query.matches("locationFloor", new RegExp(criteria.floor, "i"));
     query.descending("createdAt");
     return query.find();
-  }
-
-  async function verifyItemOnly(itemId, userAnswer) {
-    const query = new Parse.Query(LostItem);
-    const item = await query.get(itemId);
-    if(!item) return { success: false, message: "Not found." };
-    if(item.get("isResolved")) return { success: false, message: "Already claimed." };
-    if(item.get("verificationBlocked")) return { success: false, message: "Blocked.", blocked: true };
-    const attempts = item.get("verificationAttempts")||0;
-    const nextAllowed = item.get("nextAttemptAllowedAt");
-    if(nextAllowed && new Date() < new Date(nextAllowed)) {
-      const diff = new Date(nextAllowed)-new Date();
-      return { success: false, message: `Cooldown: try in ${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m.` };
-    }
-    const correct = (item.get("verificationAnswer")||"").trim().toLowerCase();
-    if(correct === userAnswer.trim().toLowerCase()) {
-      return { success: true, correct: true };
-    }
-    const newAttempts = attempts+1;
-    item.set("verificationAttempts", newAttempts);
-    if(newAttempts>=9) {
-      item.set("verificationBlocked",true); item.set("nextAttemptAllowedAt",null);
-      await item.save();
-      return { success: false, message: "Too many attempts. Blocked.", blocked: true };
-    } else if(newAttempts>=6) {
-      const cooldown = new Date(Date.now()+5*3600000);
-      item.set("nextAttemptAllowedAt", cooldown); await item.save();
-      return { success: false, message: "Wrong. Locked 5h.", cooldownEnd: cooldown };
-    } else if(newAttempts>=3) {
-      const cooldown = new Date(Date.now()+3*3600000);
-      item.set("nextAttemptAllowedAt", cooldown); await item.save();
-      return { success: false, message: "Wrong. Locked 3h.", cooldownEnd: cooldown };
-    } else {
-      item.set("nextAttemptAllowedAt", new Date()); await item.save();
-      return { success: false, message: `Wrong. ${3-newAttempts} attempts left.` };
-    }
   }
 
   async function finalizeClaim(itemId, ezlinkPhotoFile, appointmentDateTime) {
@@ -726,16 +659,8 @@
     item.set("appointmentTime", new Date(appointmentDateTime));
     item.set("claimCode", code);
     item.set("isResolved", true);
-    item.set("verificationAttempts", 0);
-    item.set("nextAttemptAllowedAt", new Date());
     await item.save();
     return code;
-  }
-
-  async function getVerificationQuestion(itemId) {
-    const q = new Parse.Query(LostItem);
-    const item = await q.get(itemId);
-    return item ? item.get("verificationQuestion") : null;
   }
 
   async function checkClaimCode(code) {
@@ -754,12 +679,8 @@
   }
 
   async function adminGetAllItems() { const q = new Parse.Query(LostItem); q.descending("createdAt"); return q.find(); }
-  async function adminResetAttempts(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); i.set("verificationAttempts",0); i.set("nextAttemptAllowedAt", new Date()); i.set("verificationBlocked",false); return i.save(); }
   async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
   async function getAllUsers() { return Parse.Cloud.run('getAllUsers'); }
-  async function updateVerification(itemId, question, answer) {
-    return Parse.Cloud.run('updateVerification', { itemId, question, answer });
-  }
 
   // ===== Auth =====
   const auth = {
@@ -784,16 +705,13 @@
   const foundPage = document.getElementById('foundPage');
   const adminPage = document.getElementById('adminPage');
   const hostPassPage = document.getElementById('hostPasswordPage');
-  const verifyPopup = document.getElementById('verifyPopup');
   const ezlinkModal = document.getElementById('ezlinkAppointmentModal');
   const claimCodePopup = document.getElementById('claimCodePopup');
   const checkCodePopup = document.getElementById('checkCodePopup');
   const successPopup = document.getElementById('successPopup');
   const errorPopup = document.getElementById('errorPopup');
-  const editVeriModal = document.getElementById('editVerificationModal');
 
   let currentVerifyingItemId = null;
-  let editingItemId = null;
 
   function showPage(page) { document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden')); page.classList.remove('hidden'); }
   function setError(el, msg) { if(msg){ el.textContent=msg; el.classList.add('show'); } else { el.textContent=''; el.classList.remove('show'); } }
@@ -883,44 +801,20 @@
             <div>📍 ${loc || 'Unknown location'}</div>
             <div>✨ ${item.get('appearance')||''}</div>
             ${photoUrl ? `<img src="${photoUrl}" class="item-photo" onerror="this.onerror=null;this.src='';">` : ''}
-            <button class="primary-btn verify-btn" data-id="${item.id}" style="margin-top:8px;">🔐 Claim this item</button>
+            <button class="primary-btn claim-btn" data-id="${item.id}" style="margin-top:8px;">🔐 Claim this item</button>
           </div>
         `;
       }).join('');
-      document.querySelectorAll('.verify-btn').forEach(btn => btn.addEventListener('click', async (e) => {
-        currentVerifyingItemId = e.target.dataset.id;
-        const question = await getVerificationQuestion(currentVerifyingItemId);
-        document.getElementById('verifyQuestionText').innerText = question || "No question set";
-        const item = await new Parse.Query(LostItem).get(currentVerifyingItemId);
-        const sugg = [item.get('color'), item.get('model'), item.get('appearance'), item.get('subcategory'), item.get('locationRoom')].filter(v=>v);
-        const optsDiv = document.getElementById('verifyOptionsPanel');
-        optsDiv.innerHTML = sugg.map(s => `<button type="button" class="suggest-btn" data-val="${s}">${s}</button>`).join('');
-        optsDiv.querySelectorAll('.suggest-btn').forEach(b => b.onclick = () => { document.getElementById('verifyAnswerInput').value = b.dataset.val; });
-        verifyPopup.classList.remove('hidden');
+      // ===== DIRECT CLAIM – NO VERIFICATION QUESTION =====
+      document.querySelectorAll('.claim-btn').forEach(btn => btn.addEventListener('click', function() {
+        currentVerifyingItemId = this.dataset.id;
+        // Clear previous values
+        document.getElementById('ezlinkPhotoInput').value = '';
+        document.getElementById('appointmentTime').value = '';
+        document.getElementById('finaliseMessage').innerText = '';
+        ezlinkModal.classList.remove('hidden');
       }));
     } catch(e) { container.innerHTML = `<p style="color:#b91c1c;">Error: ${e.message}</p>`; }
-  };
-
-  // ===== Verify popup =====
-  document.getElementById('cancelVerifyBtn').onclick = () => verifyPopup.classList.add('hidden');
-  document.getElementById('submitVerifyBtn').onclick = async () => {
-    if(!currentVerifyingItemId) return;
-    const ans = document.getElementById('verifyAnswerInput').value.trim();
-    if(!ans) return;
-    const result = await verifyItemOnly(currentVerifyingItemId, ans);
-    if(result.success && result.correct) {
-      verifyPopup.classList.add('hidden');
-      document.getElementById('ezlinkPhotoInput').value = '';
-      document.getElementById('appointmentTime').value = '';
-      document.getElementById('finaliseMessage').innerText = '';
-      ezlinkModal.classList.remove('hidden');
-    } else {
-      document.getElementById('verifyMessage').innerText = result.message;
-      if(result.blocked || result.cooldownEnd) {
-        document.getElementById('verifyAnswerInput').disabled = true;
-        document.getElementById('submitVerifyBtn').disabled = true;
-      }
-    }
   };
 
   // ===== Finalise claim =====
@@ -948,26 +842,17 @@
     document.getElementById('searchMatchingBtn').click();
   };
 
-  // ============================================================
-  // ===== NEW: Copy Claim Code Button =====
-  // ============================================================
+  // ===== Copy Claim Code =====
   document.getElementById('copyClaimCodeBtn').addEventListener('click', function() {
     const code = document.getElementById('finalClaimCode').innerText;
     if (!code) return;
-
-    // Use Clipboard API if available
     if (navigator.clipboard) {
       navigator.clipboard.writeText(code).then(() => {
         this.textContent = '✅ Copied!';
         setTimeout(() => { this.textContent = '📋 Copy'; }, 2500);
-      }).catch(() => {
-        fallbackCopy(code, this);
-      });
-    } else {
-      fallbackCopy(code, this);
-    }
+      }).catch(() => { fallbackCopy(code, this); });
+    } else { fallbackCopy(code, this); }
   });
-
   function fallbackCopy(text, btn) {
     const textarea = document.createElement('textarea');
     textarea.value = text;
@@ -1083,12 +968,10 @@
           <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${isClaimed}"> <strong>${item.get('type')}</strong> ${statusBadge}</div>
           <div>${item.get('subcategory') ? item.get('subcategory') + ' · ' : ''}${item.get('color')} · ${item.get('model')}</div>
           <div>📍 ${loc || 'Unknown'}</div>
-          <div>🔐 Q: ${item.get('verificationQuestion') || 'Not set'}</div>
           <div>📅 Appointment Time: ${item.get('appointmentTime') ? new Date(item.get('appointmentTime')).toLocaleString() : 'N/A'}</div>
           ${photoUrl ? `<img src="${photoUrl}" class="item-photo" style="max-height:150px;" onerror="this.onerror=null;this.src='';">` : ''}
           ${ezlinkUrl ? `<div><strong>📇 ID Upload:</strong><br><img src="${ezlinkUrl}" class="item-photo" style="max-height:150px;"></div>` : ''}
           <div>
-            <button onclick="window.editVerification('${item.id}')" class="outline-btn" style="padding:6px 12px; font-size:0.8rem;">✏️ Edit Verification</button>
             <button onclick="window.deleteAdminItem('${item.id}')" class="danger-btn" style="padding:6px 12px; font-size:0.8rem;">Delete</button>
           </div>
         </div>
@@ -1102,38 +985,6 @@
       if(confirm(`Delete ${ids.length} items?`)) { await Promise.all(ids.map(id=>adminDeleteItem(id))); loadAdminItems(); }
     };
   }
-
-  window.editVerification = function(itemId) {
-    editingItemId = itemId;
-    document.getElementById('editVeriQuestion').value = '';
-    document.getElementById('editVeriAnswer').value = '';
-    document.getElementById('editVeriMessage').innerText = '';
-    editVeriModal.classList.remove('hidden');
-  };
-
-  document.getElementById('cancelEditVeriBtn').onclick = () => {
-    editVeriModal.classList.add('hidden');
-    editingItemId = null;
-  };
-
-  document.getElementById('saveVerificationBtn').onclick = async () => {
-    const question = document.getElementById('editVeriQuestion').value.trim();
-    const answer = document.getElementById('editVeriAnswer').value.trim();
-    if (!question || !answer) {
-      document.getElementById('editVeriMessage').innerText = 'Both question and answer are required.';
-      return;
-    }
-    try {
-      await updateVerification(editingItemId, question, answer);
-      document.getElementById('editVeriMessage').innerText = '✅ Updated successfully!';
-      setTimeout(() => {
-        editVeriModal.classList.add('hidden');
-        loadAdminItems();
-      }, 1000);
-    } catch (e) {
-      document.getElementById('editVeriMessage').innerText = 'Error: ' + e.message;
-    }
-  };
 
   window.deleteAdminItem = async (id) => { if(confirm('Delete?')){ await adminDeleteItem(id); loadAdminItems(); } };
   document.getElementById('adminApplyFilterBtn').onclick = loadAdminItems;
