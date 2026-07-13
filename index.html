@@ -500,15 +500,28 @@
     bags: '👜 Bags',
     other: '📌 Other'
   };
-  const brandOptions = ['Lenovo', 'Dell', 'HP', 'Apple', 'Samsung', 'Sony', 'Asus', 'Acer', 'Other'];
   const colorOptions = ['Black', 'White', 'Red', 'Blue', 'Green', 'Yellow', 'Silver', 'Gold', 'Pink', 'Purple', 'Orange', 'Brown', 'Grey', 'Other'];
   const roomOptions = ['DNT Room', 'Computer Lab 1', 'Computer Lab 2', 'FCE Room', 'Classroom 1', 'Classroom 2', 'Classroom 3', 'Library', 'Cafeteria', 'Gymnasium', 'Auditorium', 'Staff Room', 'Principal Office', 'General Office', 'Other'];
 
-  function populateSelect(selectId, options, labelMap) {
+  // ========== BRAND OPTIONS PER TYPE ==========
+  const brandOptionsByType = {
+    electronic: ['Lenovo', 'Dell', 'HP', 'Apple', 'Samsung', 'Sony', 'Asus', 'Acer', 'Other'],
+    personal: ['Rolex', 'Casio', 'Fossil', 'Ray-Ban', 'Oakley', 'Other'],
+    clothing: ['Nike', 'Adidas', 'Uniqlo', 'H&M', 'Zara', "Levi's", 'Other'],
+    documents: ['Other'],   // no typical brand
+    keys: ['Other'],
+    bags: ['Herschel', 'Samsonite', 'Jansport', 'Other'],
+    other: ['Other']
+  };
+
+  // ========== POPULATE HELPERS ==========
+  function populateSelect(selectId, options, labelMap, firstOptionText) {
     const sel = document.getElementById(selectId);
-    const firstOption = sel.options[0];
     sel.innerHTML = '';
-    if (firstOption) sel.appendChild(firstOption);
+    const firstOpt = document.createElement('option');
+    firstOpt.value = '';
+    firstOpt.textContent = firstOptionText || sel.dataset.defaultText || 'Select...';
+    sel.appendChild(firstOpt);
     const sorted = [...options].sort((a,b) => a.localeCompare(b));
     const otherIdx = sorted.indexOf('Other');
     if (otherIdx > -1) { sorted.splice(otherIdx, 1); sorted.push('Other'); }
@@ -521,16 +534,31 @@
     });
   }
 
-  populateSelect('lostType', typeOptions, typeLabels);
-  populateSelect('foundType', typeOptions, typeLabels);
-  populateSelect('lostModel', brandOptions);
-  populateSelect('foundModel', brandOptions);
+  // Dynamically populate model/brand dropdown and update label
+  function populateModelSelect(selectId, type) {
+    const isElectronic = type === 'electronic';
+    const firstText = isElectronic ? 'Select Brand / Model' : 'Select Brand';
+    const brands = brandOptionsByType[type] || ['Other'];
+    populateSelect(selectId, brands, null, firstText);
+    // Update custom input placeholder
+    const customId = selectId.replace('Model', 'ModelCustom');
+    const customInput = document.getElementById(customId);
+    if (customInput) {
+      customInput.placeholder = isElectronic ? 'Custom brand/model' : 'Custom brand';
+    }
+  }
+
+  // Initial population of static selects
+  populateSelect('lostType', typeOptions, typeLabels, 'Select type');
+  populateSelect('foundType', typeOptions, typeLabels, 'Select type');
+  // Color & Room still use generic lists
   populateSelect('lostColor', colorOptions);
   populateSelect('foundColor', colorOptions);
   populateSelect('lostRoom', roomOptions);
   populateSelect('foundRoom', roomOptions);
-  populateSelect('adminTypeFilter', typeOptions, typeLabels);
+  populateSelect('adminTypeFilter', typeOptions, typeLabels, 'All Types');
 
+  // ========== GET/SET DROPDOWN VALUES ==========
   function getDropdownValue(selectId, customId) {
     const select = document.getElementById(selectId);
     const custom = document.getElementById(customId);
@@ -574,19 +602,30 @@
     }
   }
 
+  // ========== TYPE CHANGE HANDLERS ==========
+  function handleTypeChange(prefix) {
+    const typeSelectId = prefix + 'Type';
+    const subSelectId = prefix + 'Subcategory';
+    const subCustomId = prefix + 'SubcategoryOther';
+    const modelSelectId = prefix + 'Model';
+    updateSubcategory(typeSelectId, subSelectId, subCustomId);
+    const type = document.getElementById(typeSelectId).value;
+    if (type) {
+      populateModelSelect(modelSelectId, type);
+    } else {
+      // Reset to default when type is empty
+      populateSelect(modelSelectId, [], null, 'Select Brand / Model');
+      const modelCustom = document.getElementById(prefix + 'ModelCustom');
+      if (modelCustom) modelCustom.placeholder = 'Custom brand/model';
+    }
+  }
+
   // Attach events
-  document.getElementById('lostType').addEventListener('change', function() {
-    updateSubcategory('lostType', 'lostSubcategory', 'lostSubcategoryOther');
-  });
-  document.getElementById('foundType').addEventListener('change', function() {
-    updateSubcategory('foundType', 'foundSubcategory', 'foundSubcategoryOther');
-  });
-  document.getElementById('lostSubcategory').addEventListener('change', function() {
-    toggleCustom('lostSubcategory', 'lostSubcategoryOther');
-  });
-  document.getElementById('foundSubcategory').addEventListener('change', function() {
-    toggleCustom('foundSubcategory', 'foundSubcategoryOther');
-  });
+  document.getElementById('lostType').addEventListener('change', () => handleTypeChange('lost'));
+  document.getElementById('foundType').addEventListener('change', () => handleTypeChange('found'));
+  document.getElementById('lostSubcategory').addEventListener('change', () => toggleCustom('lostSubcategory', 'lostSubcategoryOther'));
+  document.getElementById('foundSubcategory').addEventListener('change', () => toggleCustom('foundSubcategory', 'foundSubcategoryOther'));
+
   document.querySelectorAll('select[id$="Model"], select[id$="Color"], select[id$="Room"]').forEach(sel => {
     const customId = sel.id + 'Custom';
     sel.addEventListener('change', () => toggleCustom(sel.id, customId));
@@ -1105,6 +1144,9 @@
   // INIT
   // ============================================================
   window.addEventListener('DOMContentLoaded', function() {
+    // Initialise the found page (default electronic) with correct brand list & label
+    handleTypeChange('found');
+    // Initialise subcategory for found page
     updateSubcategory('foundType', 'foundSubcategory', 'foundSubcategoryOther');
   });
 
