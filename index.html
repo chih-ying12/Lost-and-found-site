@@ -356,9 +356,7 @@
       <textarea id="lostDescription" rows="2" placeholder="Additional description"></textarea>
       <div class="location-label">📍 Where was it found?</div>
       <select id="lostRoom"><option value="">Select Location</option></select>
-      <select id="lostRoomSub" class="hidden"><option value="">Select number</option></select>
       <input type="text" id="lostRoomCustom" placeholder="Custom location" class="hidden custom-input">
-      <input type="text" id="lostFloor" placeholder="Floor / Level (optional)">
       <button id="searchMatchingBtn" class="primary-btn">🔎 Find matches</button>
     </div>
     <div id="lostResults"></div>
@@ -380,9 +378,7 @@
       <textarea id="foundDescription" rows="2" placeholder="Additional description"></textarea>
       <div class="location-label">📍 Where was it found?</div>
       <select id="foundRoom"><option value="">Select Location</option></select>
-      <select id="foundRoomSub" class="hidden"><option value="">Select number</option></select>
       <input type="text" id="foundRoomCustom" placeholder="Custom location" class="hidden custom-input">
-      <input type="text" id="foundFloor" placeholder="Floor / Level (optional)">
       <input type="datetime-local" id="foundTime" required>
       <input type="text" id="foundContactInfo" placeholder="Your contact (phone/email)">
       <input type="file" id="foundPhoto" accept="image/*">
@@ -478,7 +474,7 @@
   const HOST_PASSWORD = "host123";
 
   // ============================================================
-  // ROOMS CONFIGURATION (new hierarchical)
+  // ROOMS CONFIGURATION – flattened list for direct selection
   // ============================================================
   const roomsConfig = {
     "Classroom Resilience": [1,2,3,4],
@@ -500,7 +496,19 @@
     "Foyer": []
   };
 
-  const mainRoomOptions = Object.keys(roomsConfig);
+  // Build the full room list
+  function buildRoomList() {
+    const list = [];
+    for (const [room, numbers] of Object.entries(roomsConfig)) {
+      if (numbers.length === 0) {
+        list.push(room);
+      } else {
+        numbers.forEach(num => list.push(`${room} ${num}`));
+      }
+    }
+    return list;
+  }
+  const roomOptions = buildRoomList();
 
   // ============================================================
   // SUBCATEGORY MAP & DROPDOWN HELPERS
@@ -560,55 +568,15 @@
     if (customInput) customInput.placeholder = isElectronic ? 'Custom model' : 'Custom brand';
   }
 
-  // ========== ROOM LOGIC ==========
-  function populateRoomSub(prefix) {
-    const mainSelect = document.getElementById(prefix + 'Room');
-    const subSelect = document.getElementById(prefix + 'RoomSub');
-    const customInput = document.getElementById(prefix + 'RoomCustom');
-    const mainValue = mainSelect.value;
-
-    // Hide custom input if a main room is selected (even if "Other")
-    if (mainValue === 'Other') {
-      customInput.classList.remove('hidden');
-      subSelect.classList.add('hidden');
-      subSelect.value = '';
-      return;
-    } else {
-      customInput.classList.add('hidden');
-    }
-
-    const subs = roomsConfig[mainValue] || [];
-    if (subs.length > 0) {
-      subSelect.innerHTML = '<option value="">Select number</option>';
-      subs.forEach(num => {
-        const opt = document.createElement('option');
-        opt.value = num;
-        opt.textContent = num;
-        subSelect.appendChild(opt);
-      });
-      subSelect.classList.remove('hidden');
-    } else {
-      subSelect.classList.add('hidden');
-      subSelect.value = '';
-    }
-  }
-
-  function getRoomValue(prefix) {
-    const main = document.getElementById(prefix + 'Room').value;
-    if (main === 'Other') {
-      return document.getElementById(prefix + 'RoomCustom').value.trim();
-    }
-    const sub = document.getElementById(prefix + 'RoomSub').value;
-    return sub ? `${main} ${sub}` : main;
-  }
-
   // Initial static populations
   populateSelect('lostType', typeOptions, typeLabels, 'Select type');
   populateSelect('foundType', typeOptions, typeLabels, 'Select type');
   populateSelect('lostColor', colorOptions);
   populateSelect('foundColor', colorOptions);
-  populateSelect('lostRoom', mainRoomOptions.concat('Other'), null, 'Select Location');
-  populateSelect('foundRoom', mainRoomOptions.concat('Other'), null, 'Select Location');
+  // Room dropdowns – include "Other" option for custom entry
+  const roomOptionsWithOther = [...roomOptions, 'Other'];
+  populateSelect('lostRoom', roomOptionsWithOther, null, 'Select Location');
+  populateSelect('foundRoom', roomOptionsWithOther, null, 'Select Location');
   populateSelect('adminTypeFilter', typeOptions, typeLabels, 'All Types');
 
   // ========== GET/SET DROPDOWN VALUES ==========
@@ -629,6 +597,14 @@
       custom.value = '';
     }
   }
+
+  // Room change – show custom input if "Other" selected
+  function toggleRoomCustom(prefix) {
+    toggleCustom(prefix + 'Room', prefix + 'RoomCustom');
+  }
+
+  document.getElementById('lostRoom').addEventListener('change', () => toggleRoomCustom('lost'));
+  document.getElementById('foundRoom').addEventListener('change', () => toggleRoomCustom('found'));
 
   function updateSubcategory(selectTypeId, selectSubId, customSubId) {
     const type = document.getElementById(selectTypeId).value;
@@ -682,13 +658,8 @@
     sel.addEventListener('change', () => toggleCustom(sel.id, customId));
   });
 
-  // Room change handlers
-  document.getElementById('lostRoom').addEventListener('change', () => populateRoomSub('lost'));
-  document.getElementById('foundRoom').addEventListener('change', () => populateRoomSub('found'));
-  // Also toggle custom for "Other" (already handled in populateRoomSub)
-
   // ============================================================
-  // CORE FUNCTIONS (unchanged except room value extraction)
+  // CORE FUNCTIONS (floor removed, room is single value)
   // ============================================================
   function generateClaimCode(len=6) {
     const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -717,8 +688,8 @@
     item.set("appearance", data.appearance);
     item.set("description", data.description);
     item.set("timeFound", data.timeFound);
-    item.set("locationRoom", data.locationRoom);
-    item.set("locationFloor", data.locationFloor);
+    item.set("locationRoom", data.locationRoom);  // already includes number
+    item.set("locationFloor", "");                // no longer used
     item.set("isResolved", false);
     item.set("contactInfo", data.contactInfo);
     item.set("claimCode", "");
@@ -739,7 +710,6 @@
     if(criteria.appearance) query.matches("appearance", new RegExp(criteria.appearance, "i"));
     if(criteria.description) query.matches("description", new RegExp(criteria.description, "i"));
     if(criteria.room) query.matches("locationRoom", new RegExp(criteria.room, "i"));
-    if(criteria.floor) query.matches("locationFloor", new RegExp(criteria.floor, "i"));
     query.descending("createdAt");
     return query.find();
   }
@@ -769,7 +739,7 @@
       const i = res[0];
       return { found: true, type:i.get("type"), color:i.get("color"), model:i.get("model"),
                subcategory: i.get("subcategory"),
-               locationFound: `${i.get("locationRoom")||''} ${i.get("locationFloor")||''}`.trim(),
+               locationFound: `${i.get("locationRoom")||''}`.trim(),
                appointment: i.get("appointmentTime") };
     }
     return { found: false };
@@ -877,7 +847,7 @@
   document.getElementById('logoutFromHomeBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
 
   // ============================================================
-  // SEARCH & CLAIM (uses getRoomValue)
+  // SEARCH & CLAIM (room is now single value, no floor)
   // ============================================================
   document.getElementById('searchMatchingBtn').onclick = async () => {
     const subSelect = document.getElementById('lostSubcategory');
@@ -885,15 +855,14 @@
     if (subcategory === "Other") subcategory = document.getElementById('lostSubcategoryOther').value.trim();
     const model = getDropdownValue('lostModel', 'lostModelCustom');
     const color = getDropdownValue('lostColor', 'lostColorCustom');
-    const room = getRoomValue('lost');
-    const floor = document.getElementById('lostFloor').value.trim();
+    const room = getDropdownValue('lostRoom', 'lostRoomCustom');
 
     const criteria = {
       type: document.getElementById('lostType').value,
       subcategory, color, model,
       appearance: document.getElementById('lostAppearance').value,
       description: document.getElementById('lostDescription').value,
-      room, floor
+      room
     };
     const container = document.getElementById('lostResults');
     container.innerHTML = '<p style="color:#64748b;">🔍 Searching…</p>';
@@ -903,11 +872,11 @@
       container.innerHTML = items.map(item => {
         const photo = item.get('photo');
         const photoUrl = photo ? photo.url() : null;
-        const loc = [item.get('locationRoom'), item.get('locationFloor')].filter(Boolean).join(' ');
+        const loc = item.get('locationRoom') || 'Unknown location';
         return `
           <div class="lost-item-card">
             <div><strong>${item.get('type')}</strong> · ${item.get('subcategory')||''} · ${item.get('color')} · ${item.get('model')}</div>
-            <div>📍 ${loc || 'Unknown location'}</div>
+            <div>📍 ${loc}</div>
             <div>✨ ${item.get('appearance')||''}</div>
             ${photoUrl ? `<img src="${photoUrl}" class="item-photo" onerror="this.onerror=null;this.src='';">` : ''}
             <button class="primary-btn claim-btn" data-id="${item.id}" style="margin-top:8px;">🔐 Claim this item</button>
@@ -1002,7 +971,7 @@
   };
 
   // ============================================================
-  // SUBMIT FOUND ITEM (uses getRoomValue)
+  // SUBMIT FOUND ITEM (room only, no floor)
   // ============================================================
   document.getElementById('submitFoundBtn').onclick = async () => {
     if (isSubmitting) return;
@@ -1037,8 +1006,7 @@
         appearance: document.getElementById('foundAppearance').value.trim(),
         description: document.getElementById('foundDescription').value.trim(),
         timeFound: new Date(document.getElementById('foundTime').value),
-        locationRoom: getRoomValue('found'),
-        locationFloor: document.getElementById('foundFloor').value.trim(),
+        locationRoom: getDropdownValue('foundRoom', 'foundRoomCustom'),
         contactInfo: document.getElementById('foundContactInfo').value.trim(),
         photoBase64, photoName
       };
@@ -1078,14 +1046,14 @@
         const photoUrl = photo ? photo.url() : null;
         const ezlinkPhoto = item.get('ezlinkPhoto');
         const ezlinkUrl = ezlinkPhoto ? ezlinkPhoto.url() : null;
-        const loc = [item.get('locationRoom'), item.get('locationFloor')].filter(Boolean).join(' ');
+        const loc = item.get('locationRoom') || 'Unknown';
         const isClaimed = item.get('isResolved');
         const statusBadge = isClaimed ? '<span class="admin-badge badge-claimed">✅ Claimed</span>' : '<span class="admin-badge badge-unclaimed">⏳ Not Claimed</span>';
         return `
           <div class="lost-item-card">
             <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${isClaimed}"> <strong>${item.get('type')}</strong> ${statusBadge}</div>
             <div>${item.get('subcategory') ? item.get('subcategory') + ' · ' : ''}${item.get('color')} · ${item.get('model')}</div>
-            <div>📍 ${loc || 'Unknown'}</div>
+            <div>📍 ${loc}</div>
             <div>📅 Appointment Time: ${item.get('appointmentTime') ? new Date(item.get('appointmentTime')).toLocaleString() : 'N/A'}</div>
             ${photoUrl ? `<img src="${photoUrl}" class="item-photo" style="max-height:150px;" onerror="this.onerror=null;this.src='';">` : ''}
             ${ezlinkUrl ? `<div><strong>📇 ID Upload:</strong><br><img src="${ezlinkUrl}" class="item-photo" style="max-height:150px;"></div>` : ''}
