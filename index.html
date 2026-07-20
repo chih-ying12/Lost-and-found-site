@@ -294,6 +294,8 @@
       <button id="signInBtn" class="primary-btn">Sign In</button>
       <p class="error-msg" id="loginError"></p>
       <button class="outline-btn" id="showSignUpCard">Create account</button>
+      <!-- NEW: Host Panel button on login screen -->
+      <button class="outline-btn" id="goHostAccessFromLogin">🛠️ Host Panel</button>
     </div>
     <div id="signUpCard" class="auth-card hidden">
       <h3 style="margin-bottom:12px;">Sign Up</h3>
@@ -309,19 +311,9 @@
     </div>
   </div>
 
-  <!-- ========== ROLE SELECTION ========== -->
-  <div id="roleSelectionPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToLoginFromRole">←</button>
-    <h2>Choose Role</h2>
-    <div class="user-welcome">Logged in as <strong id="roleUsername"></strong></div>
-    <button id="goUserBtn" class="outline-btn">👤 Continue as User</button>
-    <button id="goHostAccessBtn" class="outline-btn">🛠️ Host Panel</button>
-    <button id="logoutFromRoleBtn" class="danger-btn">Log out</button>
-  </div>
-
   <!-- ========== HOST PASSWORD ========== -->
   <div id="hostPasswordPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToRoleFromHost">←</button>
+    <button class="back-arrow-circle" id="backToLoginFromHost">←</button>
     <h2>Host Password</h2>
     <input type="password" id="hostPasswordInput" placeholder="Enter host password">
     <button id="submitHostPasswordBtn" class="primary-btn">Unlock Panel</button>
@@ -329,8 +321,8 @@
   </div>
 
   <!-- ========== USER HOME ========== -->
-  <div id="homePage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToRoleFromHome">←</button>
+  <div id="homePage" class="page hidden">
+    <!-- No back arrow, no role selection -->
     <h2>🏠 Home</h2>
     <div class="user-welcome">Welcome, <strong id="displayUsername"></strong></div>
     <button id="goLostBtn" class="outline-btn">🔍 I lost something</button>
@@ -430,7 +422,7 @@
 
   <!-- ========== ADMIN PANEL (unchanged) ========== -->
   <div id="adminPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
+    <button class="back-arrow-circle" id="backToLoginFromAdmin">←</button>
     <h2>🛠️ Host Panel</h2>
     <div class="tab-switch">
       <button id="adminItemsTabBtn" class="active">📦 Items</button>
@@ -474,7 +466,7 @@
   const HOST_PASSWORD = "host123";
 
   // ============================================================
-  // ROOMS CONFIGURATION – flattened list for direct selection
+  // ROOMS CONFIGURATION – flattened list
   // ============================================================
   const roomsConfig = {
     "Classroom Resilience": [1,2,3,4],
@@ -496,7 +488,6 @@
     "Foyer": []
   };
 
-  // Build the full room list
   function buildRoomList() {
     const list = [];
     for (const [room, numbers] of Object.entries(roomsConfig)) {
@@ -573,7 +564,6 @@
   populateSelect('foundType', typeOptions, typeLabels, 'Select type');
   populateSelect('lostColor', colorOptions);
   populateSelect('foundColor', colorOptions);
-  // Room dropdowns – include "Other" option for custom entry
   const roomOptionsWithOther = [...roomOptions, 'Other'];
   populateSelect('lostRoom', roomOptionsWithOther, null, 'Select Location');
   populateSelect('foundRoom', roomOptionsWithOther, null, 'Select Location');
@@ -598,7 +588,6 @@
     }
   }
 
-  // Room change – show custom input if "Other" selected
   function toggleRoomCustom(prefix) {
     toggleCustom(prefix + 'Room', prefix + 'RoomCustom');
   }
@@ -659,7 +648,7 @@
   });
 
   // ============================================================
-  // CORE FUNCTIONS (floor removed, room is single value)
+  // CORE FUNCTIONS
   // ============================================================
   function generateClaimCode(len=6) {
     const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -688,8 +677,8 @@
     item.set("appearance", data.appearance);
     item.set("description", data.description);
     item.set("timeFound", data.timeFound);
-    item.set("locationRoom", data.locationRoom);  // already includes number
-    item.set("locationFloor", "");                // no longer used
+    item.set("locationRoom", data.locationRoom);
+    item.set("locationFloor", "");
     item.set("isResolved", false);
     item.set("contactInfo", data.contactInfo);
     item.set("claimCode", "");
@@ -750,7 +739,7 @@
   async function getAllUsers() { return Parse.Cloud.run('getAllUsers'); }
 
   // ============================================================
-  // AUTH (unchanged)
+  // AUTH
   // ============================================================
   const auth = {
     signUp: async (username, ezlink, password) => {
@@ -767,10 +756,9 @@
   };
 
   // ============================================================
-  // UI REFS & HELPERS (unchanged)
+  // UI REFS & HELPERS
   // ============================================================
   const loginPage = document.getElementById('loginPage');
-  const rolePage = document.getElementById('roleSelectionPage');
   const homePage = document.getElementById('homePage');
   const lostPage = document.getElementById('lostPage');
   const foundPage = document.getElementById('foundPage');
@@ -789,12 +777,16 @@
 
   function checkSession() {
     const u = auth.getCurrentUser();
-    if(u) { document.getElementById('roleUsername').textContent = u.getUsername(); showPage(rolePage); }
-    else showPage(loginPage);
+    if (u) {
+      document.getElementById('displayUsername').innerText = u.getUsername();
+      showPage(homePage);
+    } else {
+      showPage(loginPage);
+    }
   }
 
   // ============================================================
-  // LOGIN / SIGNUP (unchanged)
+  // LOGIN / SIGNUP
   // ============================================================
   document.getElementById('showSignUpCard').onclick = () => { 
     document.getElementById('loginCard').classList.add('hidden'); 
@@ -827,27 +819,35 @@
   };
 
   // ============================================================
-  // NAVIGATION (unchanged)
+  // NAVIGATION (updated)
   // ============================================================
-  document.getElementById('backToLoginFromRole').onclick = async () => { await auth.logOut(); showPage(loginPage); };
-  document.getElementById('logoutFromRoleBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
-  document.getElementById('backToRoleFromHome').onclick = () => showPage(rolePage);
+  document.getElementById('goHostAccessFromLogin').onclick = () => {
+    showPage(hostPassPage);
+  };
+
+  document.getElementById('backToLoginFromHost').onclick = () => {
+    showPage(loginPage);
+  };
+
+  document.getElementById('submitHostPasswordBtn').onclick = () => {
+    if(document.getElementById('hostPasswordInput').value === HOST_PASSWORD) {
+      loadAdminItems();
+      showPage(adminPage);
+    } else {
+      document.getElementById('hostPasswordMessage').classList.add('show');
+    }
+  };
+
   document.getElementById('backToHomeFromLost').onclick = () => showPage(homePage);
   document.getElementById('backToHomeFromFound').onclick = () => showPage(homePage);
-  document.getElementById('backToRoleFromHost').onclick = () => showPage(rolePage);
-  document.getElementById('backToRoleFromAdmin').onclick = () => showPage(rolePage);
-  document.getElementById('goUserBtn').onclick = () => { document.getElementById('displayUsername').innerText = auth.getCurrentUser().getUsername(); showPage(homePage); };
-  document.getElementById('goHostAccessBtn').onclick = () => showPage(hostPassPage);
-  document.getElementById('submitHostPasswordBtn').onclick = () => {
-    if(document.getElementById('hostPasswordInput').value === HOST_PASSWORD) { loadAdminItems(); showPage(adminPage); }
-    else document.getElementById('hostPasswordMessage').classList.add('show');
-  };
+  document.getElementById('backToLoginFromAdmin').onclick = () => showPage(loginPage);
+
   document.getElementById('goLostBtn').onclick = () => showPage(lostPage);
   document.getElementById('goFoundBtn').onclick = () => showPage(foundPage);
   document.getElementById('logoutFromHomeBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
 
   // ============================================================
-  // SEARCH & CLAIM (room is now single value, no floor)
+  // SEARCH & CLAIM
   // ============================================================
   document.getElementById('searchMatchingBtn').onclick = async () => {
     const subSelect = document.getElementById('lostSubcategory');
@@ -894,7 +894,7 @@
   };
 
   // ============================================================
-  // FINALISE CLAIM (unchanged)
+  // FINALISE CLAIM
   // ============================================================
   document.getElementById('finaliseClaimBtn').onclick = async () => {
     const photoFile = document.getElementById('ezlinkPhotoInput').files[0];
@@ -921,7 +921,7 @@
   };
 
   // ============================================================
-  // COPY CLAIM CODE (unchanged)
+  // COPY CLAIM CODE
   // ============================================================
   document.getElementById('copyClaimCodeBtn').addEventListener('click', function() {
     const code = document.getElementById('finalClaimCode').innerText;
@@ -953,7 +953,7 @@
   }
 
   // ============================================================
-  // CHECK CLAIM CODE (unchanged)
+  // CHECK CLAIM CODE
   // ============================================================
   document.getElementById('openCheckCodeBtn').onclick = () => checkCodePopup.classList.remove('hidden');
   document.getElementById('cancelCheckCodeBtn').onclick = () => checkCodePopup.classList.add('hidden');
@@ -971,7 +971,7 @@
   };
 
   // ============================================================
-  // SUBMIT FOUND ITEM (room only, no floor)
+  // SUBMIT FOUND ITEM
   // ============================================================
   document.getElementById('submitFoundBtn').onclick = async () => {
     if (isSubmitting) return;
@@ -1027,7 +1027,7 @@
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
   // ============================================================
-  // ADMIN – ITEMS (unchanged)
+  // ADMIN – ITEMS
   // ============================================================
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
@@ -1084,7 +1084,7 @@
   };
 
   // ============================================================
-  // ADMIN – USERS (unchanged)
+  // ADMIN – USERS
   // ============================================================
   let allUsers = [];
 
@@ -1144,7 +1144,7 @@
   }
 
   // ============================================================
-  // TAB SWITCHING (unchanged)
+  // TAB SWITCHING
   // ============================================================
   document.getElementById('adminItemsTabBtn').onclick = () => {
     document.getElementById('adminItemsTab').classList.remove('hidden');
