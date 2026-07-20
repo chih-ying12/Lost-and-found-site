@@ -301,6 +301,7 @@
         <input type="text" id="signUpUsername" placeholder="Username *">
         <input type="text" id="signUpEzlink" placeholder="Ezlink Card Number *">
         <input type="password" id="signUpPassword" placeholder="Password *">
+        <input type="password" id="signUpPasswordConfirm" placeholder="Confirm Password *">
         <button id="signUpSubmitBtn" class="primary-btn">Create Account</button>
       </div>
       <p class="error-msg" id="signUpError"></p>
@@ -355,6 +356,7 @@
       <textarea id="lostDescription" rows="2" placeholder="Additional description"></textarea>
       <div class="location-label">📍 Where was it found?</div>
       <select id="lostRoom"><option value="">Select Location</option></select>
+      <select id="lostRoomSub" class="hidden"><option value="">Select number</option></select>
       <input type="text" id="lostRoomCustom" placeholder="Custom location" class="hidden custom-input">
       <input type="text" id="lostFloor" placeholder="Floor / Level (optional)">
       <button id="searchMatchingBtn" class="primary-btn">🔎 Find matches</button>
@@ -378,6 +380,7 @@
       <textarea id="foundDescription" rows="2" placeholder="Additional description"></textarea>
       <div class="location-label">📍 Where was it found?</div>
       <select id="foundRoom"><option value="">Select Location</option></select>
+      <select id="foundRoomSub" class="hidden"><option value="">Select number</option></select>
       <input type="text" id="foundRoomCustom" placeholder="Custom location" class="hidden custom-input">
       <input type="text" id="foundFloor" placeholder="Floor / Level (optional)">
       <input type="datetime-local" id="foundTime" required>
@@ -387,7 +390,7 @@
     </div>
   </div>
 
-  <!-- ========== MODALS ========== -->
+  <!-- ========== MODALS (unchanged) ========== -->
   <div id="ezlinkAppointmentModal" class="verify-popup hidden">
     <div class="popup-content">
       <h3>📇 Finalise Claim</h3>
@@ -429,7 +432,7 @@
   <div id="successPopup" class="verify-popup hidden"><div class="popup-content"><p>✅ Item reported!</p><button id="closeSuccessPopup">OK</button></div></div>
   <div id="errorPopup" class="verify-popup hidden"><div class="popup-content"><p id="errorPopupMessage"></p><button id="closeErrorPopup">OK</button></div></div>
 
-  <!-- ========== ADMIN PANEL ========== -->
+  <!-- ========== ADMIN PANEL (unchanged) ========== -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToRoleFromAdmin">←</button>
     <h2>🛠️ Host Panel</h2>
@@ -437,7 +440,6 @@
       <button id="adminItemsTabBtn" class="active">📦 Items</button>
       <button id="adminUsersTabBtn">👥 Users</button>
     </div>
-
     <div id="adminItemsTab" class="tab-content">
       <div class="filter-bar">
         <select id="adminTypeFilter"><option value="">All Types</option></select>
@@ -456,8 +458,6 @@
       </div>
       <div id="adminResults"></div>
     </div>
-
-    <!-- USERS TAB -->
     <div id="adminUsersTab" class="tab-content hidden">
       <div style="display:flex; gap:8px; margin-bottom:10px;">
         <input type="text" id="adminUserSearch" placeholder="🔍 Search by username or EZ‑Link..." style="flex:1;">
@@ -478,6 +478,31 @@
   const HOST_PASSWORD = "host123";
 
   // ============================================================
+  // ROOMS CONFIGURATION (new hierarchical)
+  // ============================================================
+  const roomsConfig = {
+    "Classroom Resilience": [1,2,3,4],
+    "Classroom Sincerity": [1,2,3,4],
+    "Classroom Excellence": [1,2,3,4],
+    "Classroom Innovation": [1,2,3,4],
+    "Classroom Perseverance": [1,2,3,4],
+    "Classroom Humility": [1,2,3,4],
+    "Gratitude": [1,2,3,4],
+    "Computer Lab": [1,2,3,4],
+    "DNT Room": [],
+    "FCE Room": [1,2],
+    "Art Room": [1,2],
+    "Dance Studio": [],
+    "Auditorium": [],
+    "Hall": [],
+    "ISH": [1,2],
+    "Canteen": [],
+    "Foyer": []
+  };
+
+  const mainRoomOptions = Object.keys(roomsConfig);
+
+  // ============================================================
   // SUBCATEGORY MAP & DROPDOWN HELPERS
   // ============================================================
   const subcategoryMap = {
@@ -492,27 +517,17 @@
 
   const typeOptions = ['electronic', 'personal', 'clothing', 'documents', 'keys', 'bags', 'other'];
   const typeLabels = {
-    electronic: '📱 Electronic',
-    personal: '🎒 Personal',
-    clothing: '👕 Clothing',
-    documents: '🪪 Documents',
-    keys: '🔑 Keys',
-    bags: '👜 Bags',
-    other: '📌 Other'
+    electronic: '📱 Electronic', personal: '🎒 Personal', clothing: '👕 Clothing',
+    documents: '🪪 Documents', keys: '🔑 Keys', bags: '👜 Bags', other: '📌 Other'
   };
 
   const colorOptions = ['Black', 'White', 'Red', 'Blue', 'Green', 'Yellow', 'Silver', 'Gold', 'Pink', 'Purple', 'Orange', 'Brown', 'Grey', 'Other'];
-  const roomOptions = ['DNT Room', 'Computer Lab 1', 'Computer Lab 2', 'FCE Room', 'Classroom 1', 'Classroom 2', 'Classroom 3', 'Library', 'Cafeteria', 'Gymnasium', 'Auditorium', 'Staff Room', 'Principal Office', 'General Office', 'Other'];
 
-  // ========== BRAND OPTIONS PER TYPE ==========
   const brandOptionsByType = {
     electronic: ['Lenovo', 'Dell', 'HP', 'Apple', 'Samsung', 'Sony', 'Asus', 'Acer', 'Other'],
     personal: ['Rolex', 'Casio', 'Fossil', 'Ray-Ban', 'Oakley', 'Other'],
     clothing: ['Nike', 'Adidas', 'Uniqlo', 'H&M', 'Zara', "Levi's", 'Other'],
-    documents: ['Other'],
-    keys: ['Other'],
-    bags: ['Herschel', 'Samsonite', 'Jansport', 'Other'],
-    other: ['Other']
+    documents: ['Other'], keys: ['Other'], bags: ['Herschel', 'Samsonite', 'Jansport', 'Other'], other: ['Other']
   };
 
   // ========== POPULATE HELPERS ==========
@@ -535,28 +550,65 @@
     });
   }
 
-  // ✅ Dynamically set label and options for model/brand dropdown
   function populateModelSelect(selectId, type) {
     const isElectronic = type === 'electronic';
     const firstText = isElectronic ? 'Select Model' : 'Select Brand';
     const brands = brandOptionsByType[type] || ['Other'];
     populateSelect(selectId, brands, null, firstText);
-
-    // Update custom input placeholder
     const customId = selectId.replace('Model', 'ModelCustom');
     const customInput = document.getElementById(customId);
-    if (customInput) {
-      customInput.placeholder = isElectronic ? 'Custom model' : 'Custom brand';
+    if (customInput) customInput.placeholder = isElectronic ? 'Custom model' : 'Custom brand';
+  }
+
+  // ========== ROOM LOGIC ==========
+  function populateRoomSub(prefix) {
+    const mainSelect = document.getElementById(prefix + 'Room');
+    const subSelect = document.getElementById(prefix + 'RoomSub');
+    const customInput = document.getElementById(prefix + 'RoomCustom');
+    const mainValue = mainSelect.value;
+
+    // Hide custom input if a main room is selected (even if "Other")
+    if (mainValue === 'Other') {
+      customInput.classList.remove('hidden');
+      subSelect.classList.add('hidden');
+      subSelect.value = '';
+      return;
+    } else {
+      customInput.classList.add('hidden');
+    }
+
+    const subs = roomsConfig[mainValue] || [];
+    if (subs.length > 0) {
+      subSelect.innerHTML = '<option value="">Select number</option>';
+      subs.forEach(num => {
+        const opt = document.createElement('option');
+        opt.value = num;
+        opt.textContent = num;
+        subSelect.appendChild(opt);
+      });
+      subSelect.classList.remove('hidden');
+    } else {
+      subSelect.classList.add('hidden');
+      subSelect.value = '';
     }
   }
 
-  // Initial static population
+  function getRoomValue(prefix) {
+    const main = document.getElementById(prefix + 'Room').value;
+    if (main === 'Other') {
+      return document.getElementById(prefix + 'RoomCustom').value.trim();
+    }
+    const sub = document.getElementById(prefix + 'RoomSub').value;
+    return sub ? `${main} ${sub}` : main;
+  }
+
+  // Initial static populations
   populateSelect('lostType', typeOptions, typeLabels, 'Select type');
   populateSelect('foundType', typeOptions, typeLabels, 'Select type');
   populateSelect('lostColor', colorOptions);
   populateSelect('foundColor', colorOptions);
-  populateSelect('lostRoom', roomOptions);
-  populateSelect('foundRoom', roomOptions);
+  populateSelect('lostRoom', mainRoomOptions.concat('Other'), null, 'Select Location');
+  populateSelect('foundRoom', mainRoomOptions.concat('Other'), null, 'Select Location');
   populateSelect('adminTypeFilter', typeOptions, typeLabels, 'All Types');
 
   // ========== GET/SET DROPDOWN VALUES ==========
@@ -603,7 +655,6 @@
     }
   }
 
-  // ========== TYPE CHANGE HANDLER ==========
   function handleTypeChange(prefix) {
     const typeSelectId = prefix + 'Type';
     const subSelectId = prefix + 'Subcategory';
@@ -614,7 +665,6 @@
     if (type) {
       populateModelSelect(modelSelectId, type);
     } else {
-      // Reset to default
       populateSelect(modelSelectId, [], null, 'Select Brand / Model');
       const modelCustom = document.getElementById(prefix + 'ModelCustom');
       if (modelCustom) modelCustom.placeholder = 'Custom brand/model';
@@ -627,13 +677,18 @@
   document.getElementById('lostSubcategory').addEventListener('change', () => toggleCustom('lostSubcategory', 'lostSubcategoryOther'));
   document.getElementById('foundSubcategory').addEventListener('change', () => toggleCustom('foundSubcategory', 'foundSubcategoryOther'));
 
-  document.querySelectorAll('select[id$="Model"], select[id$="Color"], select[id$="Room"]').forEach(sel => {
+  document.querySelectorAll('select[id$="Model"], select[id$="Color"]').forEach(sel => {
     const customId = sel.id + 'Custom';
     sel.addEventListener('change', () => toggleCustom(sel.id, customId));
   });
 
+  // Room change handlers
+  document.getElementById('lostRoom').addEventListener('change', () => populateRoomSub('lost'));
+  document.getElementById('foundRoom').addEventListener('change', () => populateRoomSub('found'));
+  // Also toggle custom for "Other" (already handled in populateRoomSub)
+
   // ============================================================
-  // CORE FUNCTIONS
+  // CORE FUNCTIONS (unchanged except room value extraction)
   // ============================================================
   function generateClaimCode(len=6) {
     const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -725,7 +780,7 @@
   async function getAllUsers() { return Parse.Cloud.run('getAllUsers'); }
 
   // ============================================================
-  // AUTH
+  // AUTH (unchanged)
   // ============================================================
   const auth = {
     signUp: async (username, ezlink, password) => {
@@ -742,7 +797,7 @@
   };
 
   // ============================================================
-  // UI REFS & HELPERS
+  // UI REFS & HELPERS (unchanged)
   // ============================================================
   const loginPage = document.getElementById('loginPage');
   const rolePage = document.getElementById('roleSelectionPage');
@@ -769,7 +824,7 @@
   }
 
   // ============================================================
-  // LOGIN / SIGNUP
+  // LOGIN / SIGNUP (unchanged)
   // ============================================================
   document.getElementById('showSignUpCard').onclick = () => { 
     document.getElementById('loginCard').classList.add('hidden'); 
@@ -793,14 +848,16 @@
     const username = document.getElementById('signUpUsername').value.trim();
     const ezlink = document.getElementById('signUpEzlink').value.trim();
     const password = document.getElementById('signUpPassword').value;
+    const confirmPassword = document.getElementById('signUpPasswordConfirm').value;
     const err = document.getElementById('signUpError');
-    if(!username || !ezlink || !password) { setError(err, 'All fields required'); return; }
+    if(!username || !ezlink || !password || !confirmPassword) { setError(err, 'All fields required'); return; }
+    if (password !== confirmPassword) { setError(err, 'Passwords do not match'); return; }
     try { await auth.signUp(username, ezlink, password); setError(err, ''); checkSession(); }
     catch(e) { setError(err, e.message); }
   };
 
   // ============================================================
-  // NAVIGATION
+  // NAVIGATION (unchanged)
   // ============================================================
   document.getElementById('backToLoginFromRole').onclick = async () => { await auth.logOut(); showPage(loginPage); };
   document.getElementById('logoutFromRoleBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
@@ -820,7 +877,7 @@
   document.getElementById('logoutFromHomeBtn').onclick = async () => { await auth.logOut(); showPage(loginPage); };
 
   // ============================================================
-  // SEARCH & CLAIM
+  // SEARCH & CLAIM (uses getRoomValue)
   // ============================================================
   document.getElementById('searchMatchingBtn').onclick = async () => {
     const subSelect = document.getElementById('lostSubcategory');
@@ -828,7 +885,7 @@
     if (subcategory === "Other") subcategory = document.getElementById('lostSubcategoryOther').value.trim();
     const model = getDropdownValue('lostModel', 'lostModelCustom');
     const color = getDropdownValue('lostColor', 'lostColorCustom');
-    const room = getDropdownValue('lostRoom', 'lostRoomCustom');
+    const room = getRoomValue('lost');
     const floor = document.getElementById('lostFloor').value.trim();
 
     const criteria = {
@@ -868,7 +925,7 @@
   };
 
   // ============================================================
-  // FINALISE CLAIM
+  // FINALISE CLAIM (unchanged)
   // ============================================================
   document.getElementById('finaliseClaimBtn').onclick = async () => {
     const photoFile = document.getElementById('ezlinkPhotoInput').files[0];
@@ -895,7 +952,7 @@
   };
 
   // ============================================================
-  // COPY CLAIM CODE
+  // COPY CLAIM CODE (unchanged)
   // ============================================================
   document.getElementById('copyClaimCodeBtn').addEventListener('click', function() {
     const code = document.getElementById('finalClaimCode').innerText;
@@ -927,7 +984,7 @@
   }
 
   // ============================================================
-  // CHECK CLAIM CODE
+  // CHECK CLAIM CODE (unchanged)
   // ============================================================
   document.getElementById('openCheckCodeBtn').onclick = () => checkCodePopup.classList.remove('hidden');
   document.getElementById('cancelCheckCodeBtn').onclick = () => checkCodePopup.classList.add('hidden');
@@ -945,7 +1002,7 @@
   };
 
   // ============================================================
-  // SUBMIT FOUND ITEM
+  // SUBMIT FOUND ITEM (uses getRoomValue)
   // ============================================================
   document.getElementById('submitFoundBtn').onclick = async () => {
     if (isSubmitting) return;
@@ -980,7 +1037,7 @@
         appearance: document.getElementById('foundAppearance').value.trim(),
         description: document.getElementById('foundDescription').value.trim(),
         timeFound: new Date(document.getElementById('foundTime').value),
-        locationRoom: getDropdownValue('foundRoom', 'foundRoomCustom'),
+        locationRoom: getRoomValue('found'),
         locationFloor: document.getElementById('foundFloor').value.trim(),
         contactInfo: document.getElementById('foundContactInfo').value.trim(),
         photoBase64, photoName
@@ -1002,7 +1059,7 @@
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
 
   // ============================================================
-  // ADMIN – ITEMS
+  // ADMIN – ITEMS (unchanged)
   // ============================================================
   async function loadAdminItems() {
     const container = document.getElementById('adminResults');
@@ -1059,7 +1116,7 @@
   };
 
   // ============================================================
-  // ADMIN – USERS
+  // ADMIN – USERS (unchanged)
   // ============================================================
   let allUsers = [];
 
@@ -1119,7 +1176,7 @@
   }
 
   // ============================================================
-  // TAB SWITCHING
+  // TAB SWITCHING (unchanged)
   // ============================================================
   document.getElementById('adminItemsTabBtn').onclick = () => {
     document.getElementById('adminItemsTab').classList.remove('hidden');
@@ -1140,7 +1197,6 @@
   // INIT
   // ============================================================
   window.addEventListener('DOMContentLoaded', function() {
-    // Found page defaults to electronic => set model label
     handleTypeChange('found');
     updateSubcategory('foundType', 'foundSubcategory', 'foundSubcategoryOther');
   });
