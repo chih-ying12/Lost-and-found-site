@@ -310,7 +310,7 @@
     <h2>🏫 School Lost & Found</h2>
     <div id="loginCard" class="auth-card">
       <h3 style="margin-bottom:12px;">Sign In</h3>
-      <input type="text" id="loginUsername" placeholder="School Email">
+      <input type="text" id="loginUsername" placeholder="Username">
       <input type="password" id="loginPassword" placeholder="Password">
       <button id="signInBtn" class="primary-btn">Sign In</button>
       <p class="error-msg" id="loginError"></p>
@@ -321,11 +321,11 @@
     <div id="signUpCard" class="auth-card hidden">
       <h3 style="margin-bottom:12px;">Sign Up</h3>
       <div id="signUpFields">
-        <input type="email" id="signUpUsername" placeholder="School Email *">
-        <input type="text" id="signUpCan" placeholder="CAN Number (16 digits) *">
-        <input type="text" id="signUpNationality" placeholder="Nationality">
-        <input type="password" id="signUpPassword" placeholder="Password *">
-        <input type="password" id="signUpPasswordConfirm" placeholder="Confirm Password *">
+        <input type="text" id="signUpUsername" placeholder="Username *" required>
+        <input type="email" id="signUpEmail" placeholder="School Email *" required>
+        <input type="text" id="signUpCan" placeholder="CAN Number (16 digits) *" required>
+        <input type="password" id="signUpPassword" placeholder="Password *" required>
+        <input type="password" id="signUpPasswordConfirm" placeholder="Confirm Password *" required>
         <button id="signUpSubmitBtn" class="primary-btn">Create Account</button>
       </div>
       <p class="error-msg" id="signUpError"></p>
@@ -470,7 +470,7 @@
     </div>
     <div id="adminUsersTab" class="tab-content hidden">
       <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <input type="text" id="adminUserSearch" placeholder="🔍 Search by username or CAN..." style="flex:1; text-align: left;">
+        <input type="text" id="adminUserSearch" placeholder="🔍 Search by username, email, CAN..." style="flex:1; text-align: left;">
         <button id="refreshUsersBtn" class="outline-btn" style="width:auto; padding:10px 16px;">🔄 Refresh</button>
       </div>
       <div id="adminUsersList"></div>
@@ -764,17 +764,18 @@
   async function getAllUsers() { return Parse.Cloud.run('getAllUsers'); }
 
   // ============================================================
-  // AUTH
+  // AUTH (UPDATED: username + email + CAN, no nationality)
   // ============================================================
   const auth = {
-    signUp: async (username, can, nationality, password) => {
+    signUp: async (username, email, can, password) => {
       if(!can.trim()) throw new Error("CAN number is required.");
       if(can.trim().replace(/\s/g, '').length < 16) throw new Error("CAN number must be 16 digits.");
       const user = new Parse.User();
-      user.set("username", username);
+      user.set("username", username.trim());
+      user.set("email", email.trim());
       user.set("password", password);
       user.set("can", can.trim());
-      user.set("nationality", nationality.trim() || '');
+      // nationality removed
       return user.signUp();
     },
     logIn: async (username, password) => Parse.User.logIn(username, password),
@@ -835,15 +836,15 @@
   };
   document.getElementById('signUpSubmitBtn').onclick = async () => {
     const username = document.getElementById('signUpUsername').value.trim();
+    const email = document.getElementById('signUpEmail').value.trim();
     const can = document.getElementById('signUpCan').value.trim();
-    const nationality = document.getElementById('signUpNationality').value.trim();
     const password = document.getElementById('signUpPassword').value;
     const confirmPassword = document.getElementById('signUpPasswordConfirm').value;
     const err = document.getElementById('signUpError');
-    if(!username || !can || !password || !confirmPassword) { setError(err, 'All required fields must be filled'); return; }
+    if(!username || !email || !can || !password || !confirmPassword) { setError(err, 'All required fields must be filled'); return; }
     if (password !== confirmPassword) { setError(err, 'Passwords do not match'); return; }
-    if (!username.includes('@')) { setError(err, 'Please use a valid school email address'); return; }
-    try { await auth.signUp(username, can, nationality, password); setError(err, ''); checkSession(); }
+    if (!email.includes('@')) { setError(err, 'Please use a valid school email address'); return; }
+    try { await auth.signUp(username, email, can, password); setError(err, ''); checkSession(); }
     catch(e) { setError(err, e.message); }
   };
 
@@ -1123,7 +1124,7 @@
   };
 
   // ============================================================
-  // ADMIN – USERS
+  // ADMIN – USERS (updated to show email)
   // ============================================================
   let allUsers = [];
 
@@ -1152,8 +1153,8 @@
     container.innerHTML = users.map(user => `
       <div class="lost-item-card" style="background:#f8fafc;">
         <div><strong>${escapeHtml(user.username)}</strong></div>
+        <div>📧 ${escapeHtml(user.email || 'N/A')}</div>
         <div>📇 CAN: ${escapeHtml(user.can || 'N/A')}</div>
-        <div>🌍 Nationality: ${escapeHtml(user.nationality || 'Not specified')}</div>
         <div>📅 Joined: ${new Date(user.createdAt).toLocaleString()}</div>
         <div style="margin-top:6px; font-size:0.8rem; color:#64748b;">User ID: ${user.id}</div>
       </div>
@@ -1165,9 +1166,9 @@
     if (!query) { renderUserList(allUsers); return; }
     const filtered = allUsers.filter(user => {
       const username = (user.username || '').toLowerCase();
+      const email = (user.email || '').toLowerCase();
       const can = (user.can || '').toLowerCase();
-      const nationality = (user.nationality || '').toLowerCase();
-      return username.includes(query) || can.includes(query) || nationality.includes(query);
+      return username.includes(query) || email.includes(query) || can.includes(query);
     });
     renderUserList(filtered);
   });
