@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>🏫 School Lost & Found System</title>
+  <title>🏫 Nan Chiau High School Lost & Found</title>
   <style>
     /* === Reset & Base === */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(145deg, #f6f9fc 0%, #e6edf5 100%);
+      background: linear-gradient(145deg, #fef9f0 0%, #fce4d6 100%);
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -19,26 +19,43 @@
     .app-container {
       width: 100%;
       max-width: 480px;
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(8px);
+      background: #ffffff;
       border-radius: 32px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.10), 0 8px 20px rgba(0,0,0,0.05);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.06);
       padding: 24px 20px;
       margin: 10px 0;
-      transition: all 0.2s ease;
+      border: 3px solid #c0392b;
+      position: relative;
+      overflow: hidden;
+    }
+    /* === Header with three interlocking circles (Venn diagram) === */
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .logo-svg {
+      flex-shrink: 0;
+      width: 56px;
+      height: 56px;
+    }
+    .app-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #c0392b;
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+    }
+    .app-header h2 small {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 400;
+      color: #b85a3a;
+      letter-spacing: 0.4px;
     }
     .hidden { display: none !important; }
     .page { display: flex; flex-direction: column; gap: 1.2rem; }
-    h2 {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #1a2b4c;
-      letter-spacing: -0.3px;
-    }
-    .emoji-icon { font-size: 1.5rem; }
     input, select, textarea, button {
       width: 100%;
       padding: 14px 16px;
@@ -52,12 +69,12 @@
     }
     input:focus, select:focus, textarea:focus {
       outline: none;
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 4px rgba(59,130,246,0.15);
+      border-color: #f1c40f;
+      box-shadow: 0 0 0 4px rgba(241,196,15,0.25);
     }
     textarea { resize: vertical; min-height: 70px; }
     button {
-      background: #1e3a5f;
+      background: #c0392b;
       color: white;
       font-weight: 600;
       border: none;
@@ -65,21 +82,21 @@
       transition: all 0.15s ease;
     }
     button:hover {
-      background: #0f2a44;
+      background: #a93226;
       transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(30,58,95,0.25);
+      box-shadow: 0 8px 20px rgba(192,57,43,0.30);
     }
     button:active { transform: translateY(0); }
-    .primary-btn { background: #3b82f6; }
-    .primary-btn:hover { background: #2563eb; box-shadow: 0 8px 20px rgba(59,130,246,0.30); }
+    .primary-btn { background: #f1c40f; color: #1e293b; }
+    .primary-btn:hover { background: #f39c12; box-shadow: 0 8px 20px rgba(241,196,15,0.35); }
     .outline-btn {
       background: transparent;
       border: 1.5px solid #cbd5e1;
       color: #1e293b;
     }
     .outline-btn:hover {
-      background: #f1f5f9;
-      border-color: #94a3b8;
+      background: #fef9f0;
+      border-color: #c0392b;
       transform: none;
       box-shadow: none;
     }
@@ -94,15 +111,15 @@
       transform: none;
     }
     .logout-btn {
-      background: #dc2626;
+      background: #c0392b;
       color: white;
       border: none;
       font-weight: 700;
     }
     .logout-btn:hover {
-      background: #b91c1c;
+      background: #a93226;
       transform: translateY(-1px);
-      box-shadow: 0 8px 20px rgba(220,38,38,0.30);
+      box-shadow: 0 8px 20px rgba(192,57,43,0.30);
     }
     .card {
       background: #ffffff;
@@ -112,7 +129,7 @@
       flex-direction: column;
       gap: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-      border: 1px solid rgba(226,232,240,0.6);
+      border: 1px solid #fde8d6;
     }
     .lost-item-card {
       background: #ffffff;
@@ -120,7 +137,7 @@
       padding: 18px 16px;
       margin-bottom: 14px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-      border: 1px solid #eef2f6;
+      border: 1px solid #fde8d6;
     }
     .item-photo {
       max-width: 100%;
@@ -128,13 +145,13 @@
       margin-top: 8px;
       max-height: 200px;
       object-fit: cover;
-      border: 2px solid #f1f5f9;
+      border: 2px solid #fde8d6;
     }
     .auth-card {
-      background: #f8fafc;
+      background: #fef9f0;
       border-radius: 24px;
       padding: 24px 20px;
-      border: 1px solid #e2e8f0;
+      border: 1px solid #fce4d6;
     }
     .admin-badge {
       display: inline-block;
@@ -185,6 +202,7 @@
       gap: 16px;
       box-shadow: 0 30px 60px rgba(0,0,0,0.15);
       animation: slideUp 0.2s ease;
+      border-top: 6px solid #f1c40f;
     }
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .back-arrow-circle {
@@ -207,7 +225,8 @@
       color: #000000;
     }
     .back-arrow-circle:hover {
-      background: #f1f5f9;
+      background: #fef9f0;
+      border-color: #c0392b;
       transform: scale(1.04);
     }
     .back-arrow-circle .arrow-text {
@@ -245,19 +264,20 @@
       transition: all 0.15s ease;
     }
     .tab-switch button.active {
-      background: #1e3a5f;
+      background: #c0392b;
       color: white;
     }
     .tab-switch button:hover:not(.active) { background: #e2e8f0; }
     .user-welcome {
-      background: #f1f5f9;
+      background: #fef9f0;
       border-radius: 16px;
       padding: 12px 16px;
       font-size: 0.95rem;
       color: #1e293b;
       text-align: center;
+      border: 1px solid #fde8d6;
     }
-    .user-welcome strong { color: #1e3a5f; }
+    .user-welcome strong { color: #c0392b; }
     .code-display {
       display: flex;
       align-items: center;
@@ -285,8 +305,8 @@
       color: #1e293b;
     }
     .copy-btn:hover {
-      background: #f1f5f9;
-      border-color: #94a3b8;
+      background: #fef9f0;
+      border-color: #c0392b;
       transform: none;
       box-shadow: none;
     }
@@ -297,7 +317,8 @@
     }
     @media (max-width: 480px) {
       .app-container { padding: 16px 14px; }
-      h2 { font-size: 1.4rem; }
+      .app-header h2 { font-size: 1.2rem; }
+      .logo-svg { width: 44px; height: 44px; }
     }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
@@ -305,9 +326,26 @@
 <body>
 <div class="app-container" id="appContainer">
 
+  <!-- ========== HEADER with LOGO ========== -->
+  <div class="app-header">
+    <!-- Three interlocking circles (Venn diagram) SVG -->
+    <svg class="logo-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="22" cy="30" r="16" fill="none" stroke="#c0392b" stroke-width="3" />
+      <circle cx="38" cy="30" r="16" fill="none" stroke="#c0392b" stroke-width="3" />
+      <circle cx="30" cy="20" r="16" fill="none" stroke="#c0392b" stroke-width="3" />
+      <!-- Golden fill in the overlapping centre (intersection) -->
+      <circle cx="30" cy="27" r="8" fill="#f1c40f" opacity="0.9" />
+      <circle cx="26" cy="30" r="8" fill="#f1c40f" opacity="0.6" />
+      <circle cx="34" cy="30" r="8" fill="#f1c40f" opacity="0.6" />
+    </svg>
+    <h2>
+      Nan Chiau High School
+      <small>Lost & Found</small>
+    </h2>
+  </div>
+
   <!-- ========== LOGIN PAGE ========== -->
   <div id="loginPage" class="page">
-    <h2>🏫 School Lost & Found</h2>
     <div id="loginCard" class="auth-card">
       <h3 style="margin-bottom:12px;">Sign In</h3>
       <input type="text" id="loginUsername" placeholder="Username">
@@ -344,7 +382,7 @@
 
   <!-- ========== USER HOME ========== -->
   <div id="homePage" class="page hidden">
-    <h2>🏠 Home</h2>
+    <h2 style="color:#c0392b;">🏠 Home</h2>
     <div class="user-welcome">Welcome, <strong id="displayUsername"></strong></div>
     <button id="goLostBtn" class="outline-btn">🔍 I lost something</button>
     <button id="goFoundBtn" class="outline-btn">📦 I found an item</button>
@@ -355,7 +393,7 @@
   <!-- ========== LOST PAGE ========== -->
   <div id="lostPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromLost"><span class="arrow-text">←</span></button>
-    <h2>🔍 I lost an item</h2>
+    <h2 style="color:#c0392b;">🔍 I lost an item</h2>
     <p style="color:#475569; text-align: left;">Describe your lost item – we'll show matching found items.</p>
     <div class="card">
       <select id="lostType"><option value="">Select type</option></select>
@@ -378,7 +416,7 @@
   <!-- ========== FOUND PAGE ========== -->
   <div id="foundPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToHomeFromFound"><span class="arrow-text">←</span></button>
-    <h2>📦 Report Found Item</h2>
+    <h2 style="color:#c0392b;">📦 Report Found Item</h2>
     <div class="card">
       <select id="foundType"><option value="electronic">📱 Electronic</option></select>
       <select id="foundSubcategory" class="hidden"><option value="">Select sub‑category</option></select>
@@ -445,7 +483,7 @@
   <!-- ========== ADMIN PANEL ========== -->
   <div id="adminPage" class="page hidden has-back-arrow">
     <button class="back-arrow-circle" id="backToLoginFromAdmin"><span class="arrow-text">←</span></button>
-    <h2>🛠️ Host Panel</h2>
+    <h2 style="color:#c0392b;">🛠️ Host Panel</h2>
     <div class="tab-switch">
       <button id="adminItemsTabBtn" class="active">📦 Items</button>
       <button id="adminUsersTabBtn">👥 Users</button>
@@ -508,8 +546,7 @@
     "ISH": [1,2],
     "Canteen": [],
     "Foyer": [],
-     "Outdoor basketball court": [],
-    
+    "Outdoor basketball court": [],
   };
 
   function buildRoomList() {
@@ -775,7 +812,6 @@
       user.set("email", email.trim());
       user.set("password", password);
       user.set("can", can.trim());
-      // nationality removed
       return user.signUp();
     },
     logIn: async (username, password) => Parse.User.logIn(username, password),
