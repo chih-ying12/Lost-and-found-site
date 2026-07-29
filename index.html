@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>🏫 Nan Chiau High School – Lost & Found</title>
+  <title>:D Nan Chiau High School – Lost & Found</title>
   <style>
     /* === Reset & Base === */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -399,29 +399,36 @@
       border: 2px solid #333;
       touch-action: none;
     }
-    .game-footer {
-      color: #888;
-      text-align: center;
-      font-size: 0.8rem;
-      margin-top: 10px;
-    }
-    .game-footer kbd {
-      background: #222;
-      padding: 2px 8px;
-      border-radius: 4px;
-      border: 1px solid #444;
-      color: #eee;
-    }
 
-    /* Touch control buttons */
+    /* Touch controls outside the canvas */
+    .touch-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 16px;
+      padding: 0 4px;
+    }
+    .touch-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .touch-group .label {
+      color: #999;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
     .touch-btn {
-      width: 50px;
-      height: 50px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
-      background: rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.12);
       border: 2px solid #f1c40f;
       color: #f1c40f;
-      font-size: 24px;
+      font-size: 28px;
       touch-action: none;
       cursor: pointer;
       display: flex;
@@ -429,44 +436,41 @@
       justify-content: center;
       user-select: none;
       -webkit-user-select: none;
+      transition: background 0.1s ease;
     }
-    .touch-btn:active {
-      background: rgba(255,255,255,0.4);
-    }
+    .touch-btn:active,
     .touch-btn.pressed {
-      background: rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.35);
     }
-    .controls-wrapper {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      touch-action: none;
+    .touch-btn:hover {
+      background: rgba(255,255,255,0.2);
     }
-    .controls-wrapper .left-controls,
-    .controls-wrapper .right-controls {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      z-index: 10;
-    }
-    .controls-wrapper .left-controls {
-      left: 8px;
-    }
-    .controls-wrapper .right-controls {
-      right: 8px;
+    .touch-btn .arrow {
+      pointer-events: none;
     }
     @media (max-width: 500px) {
       .touch-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
+        width: 48px;
+        height: 48px;
+        font-size: 24px;
       }
-      .controls-wrapper .left-controls { left: 4px; }
-      .controls-wrapper .right-controls { right: 4px; }
+      .touch-controls {
+        gap: 8px;
+      }
+    }
+
+    .game-footer {
+      color: #888;
+      text-align: center;
+      font-size: 0.8rem;
+      margin-top: 12px;
+    }
+    .game-footer kbd {
+      background: #222;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      color: #eee;
     }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
@@ -622,21 +626,26 @@
         <button class="close-game" id="closeGameBtn">✕</button>
       </div>
     </div>
-    <div class="controls-wrapper">
-      <canvas id="pongCanvas" width="600" height="400"></canvas>
-      <!-- Left controls (P1) -->
-      <div class="left-controls" id="leftControls">
+
+    <!-- Canvas -->
+    <canvas id="pongCanvas" width="600" height="400"></canvas>
+
+    <!-- Touch controls – outside the canvas -->
+    <div class="touch-controls">
+      <div class="touch-group">
+        <span class="label">P1</span>
         <button class="touch-btn" id="p1Up">▲</button>
         <button class="touch-btn" id="p1Down">▼</button>
       </div>
-      <!-- Right controls (P2) -->
-      <div class="right-controls" id="rightControls">
+      <div class="touch-group">
+        <span class="label">P2</span>
         <button class="touch-btn" id="p2Up">▲</button>
         <button class="touch-btn" id="p2Down">▼</button>
       </div>
     </div>
+
     <div class="game-footer">
-      <kbd>W</kbd> <kbd>S</kbd> move left paddle &nbsp;|&nbsp; <kbd>↑</kbd> <kbd>↓</kbd> move right paddle (2P mode) &nbsp;|&nbsp; 📱 Tap buttons
+      <kbd>W</kbd> <kbd>S</kbd> P1 &nbsp;|&nbsp; <kbd>↑</kbd> <kbd>↓</kbd> P2 &nbsp;|&nbsp; 📱 Tap below
     </div>
   </div>
 </div>
@@ -779,7 +788,7 @@
     if (key === 'arrowdown') { keys.arrowdown = false; e.preventDefault(); }
   });
 
-  // Touch controls – helper to attach events
+  // Touch controls – helper to attach events (using new button IDs)
   function setupTouchButton(btnId, touchKey) {
     const btn = document.getElementById(btnId);
     if (!btn) return;
