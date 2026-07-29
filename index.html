@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>🏫 Nan Chiau High School Lost & Found</title>
+  <title>:D Nan Chiau High School – Lost & Found</title>
   <style>
     /* === Reset & Base === */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -27,32 +27,6 @@
       border: 3px solid #c0392b;
       position: relative;
       overflow: hidden;
-    }
-    /* === Header with three interlocking circles (Venn diagram) === */
-    .app-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .logo-svg {
-      flex-shrink: 0;
-      width: 56px;
-      height: 56px;
-    }
-    .app-header h2 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #c0392b;
-      letter-spacing: -0.3px;
-      line-height: 1.2;
-    }
-    .app-header h2 small {
-      display: block;
-      font-size: 0.7rem;
-      font-weight: 400;
-      color: #b85a3a;
-      letter-spacing: 0.4px;
     }
     .hidden { display: none !important; }
     .page { display: flex; flex-direction: column; gap: 1.2rem; }
@@ -176,7 +150,7 @@
       color: #1e293b;
       margin-top: 4px;
     }
-    .verify-popup, .popup-overlay {
+    .verify-popup {
       position: fixed;
       top: 0;
       left: 0;
@@ -229,45 +203,10 @@
       border-color: #c0392b;
       transform: scale(1.04);
     }
-    .back-arrow-circle .arrow-text {
-      color: #000000;
-      font-weight: 700;
-    }
+    .back-arrow-circle .arrow-text { color: #000000; font-weight: 700; }
     .page.has-back-arrow { padding-top: 60px; position: relative; }
     .required-asterisk { color: #b91c1c; margin-left: 2px; }
     .custom-input { margin-top: 4px; }
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .filter-bar select, .filter-bar button {
-      width: auto;
-      flex: 1 0 auto;
-      padding: 8px 12px;
-      border-radius: 14px;
-    }
-    .tab-switch {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-    .tab-switch button {
-      flex: 1;
-      padding: 10px;
-      border-radius: 16px;
-      background: #f1f5f9;
-      color: #334155;
-      border: none;
-      font-weight: 600;
-      transition: all 0.15s ease;
-    }
-    .tab-switch button.active {
-      background: #c0392b;
-      color: white;
-    }
-    .tab-switch button:hover:not(.active) { background: #e2e8f0; }
     .user-welcome {
       background: #fef9f0;
       border-radius: 16px;
@@ -328,12 +267,10 @@
 
   <!-- ========== HEADER with LOGO ========== -->
   <div class="app-header">
-    <!-- Three interlocking circles (Venn diagram) SVG -->
     <svg class="logo-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
       <circle cx="22" cy="30" r="16" fill="none" stroke="#c0392b" stroke-width="3" />
       <circle cx="38" cy="30" r="16" fill="none" stroke="#c0392b" stroke-width="3" />
       <circle cx="30" cy="20" r="16" fill="none" stroke="#c0392b" stroke-width="3" />
-      <!-- Golden fill in the overlapping centre (intersection) -->
       <circle cx="30" cy="27" r="8" fill="#f1c40f" opacity="0.9" />
       <circle cx="26" cy="30" r="8" fill="#f1c40f" opacity="0.6" />
       <circle cx="34" cy="30" r="8" fill="#f1c40f" opacity="0.6" />
@@ -354,7 +291,6 @@
       <p class="error-msg" id="loginError"></p>
       <p class="info-text">Don't have an account? Please create one below.</p>
       <button class="outline-btn" id="showSignUpCard">Create Account</button>
-      <button class="outline-btn" id="goHostAccessFromLogin">🛠️ Host Panel</button>
     </div>
     <div id="signUpCard" class="auth-card hidden">
       <h3 style="margin-bottom:12px;">Sign Up</h3>
@@ -371,16 +307,7 @@
     </div>
   </div>
 
-  <!-- ========== HOST PASSWORD ========== -->
-  <div id="hostPasswordPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToLoginFromHost"><span class="arrow-text">←</span></button>
-    <h2>Host Password</h2>
-    <input type="password" id="hostPasswordInput" placeholder="Enter host password">
-    <button id="submitHostPasswordBtn" class="primary-btn">Unlock Panel</button>
-    <p id="hostPasswordMessage" class="error-msg"></p>
-  </div>
-
-  <!-- ========== USER HOME ========== -->
+  <!-- ========== HOME PAGE ========== -->
   <div id="homePage" class="page hidden">
     <h2 style="color:#c0392b;">🏠 Home</h2>
     <div class="user-welcome">Welcome, <strong id="displayUsername"></strong></div>
@@ -433,26 +360,28 @@
       <input type="text" id="foundNationality" placeholder="Nationality / Passport" style="text-align: left;">
       <input type="datetime-local" id="foundTime" required>
       <input type="text" id="foundContactInfo" placeholder="Your contact (phone/email)" style="text-align: left;">
+      <input type="text" id="verificationQuestion" placeholder="Verification question (e.g., 'What colour is the case?')" style="text-align: left;">
+      <input type="text" id="verificationAnswer" placeholder="Answer to verification question" style="text-align: left;">
       <input type="file" id="foundPhoto" accept="image/*">
       <button id="submitFoundBtn" class="primary-btn">✅ Submit found item</button>
     </div>
   </div>
 
   <!-- ========== MODALS ========== -->
-  <div id="ezlinkAppointmentModal" class="verify-popup hidden">
+
+  <!-- Verification modal (ask the question) -->
+  <div id="verifyModal" class="verify-popup hidden">
     <div class="popup-content">
-      <h3>📇 Finalise Claim</h3>
-      <p>To collect your item:</p>
-      <label>📸 Upload a photo of your EZ‑Link / NRIC / Photo ID <span class="required-asterisk">*</span></label>
-      <input type="file" id="ezlinkPhotoInput" accept="image/*" required>
-      <label>📅 Book appointment at General Office</label>
-      <input type="datetime-local" id="appointmentTime" required>
-      <button id="finaliseClaimBtn" class="primary-btn">✅ Confirm & Get Claim Code</button>
-      <button id="cancelFinaliseBtn" class="outline-btn">Cancel</button>
-      <p id="finaliseMessage" style="color:#b91c1c;"></p>
+      <h3>🔐 Verify your identity</h3>
+      <p id="verifyQuestionText">Loading question...</p>
+      <input type="text" id="verifyAnswerInput" placeholder="Your answer">
+      <button id="submitVerifyBtn" class="primary-btn">✅ Verify & Claim</button>
+      <button id="cancelVerifyBtn" class="outline-btn">Cancel</button>
+      <p id="verifyMessage" style="color:#b91c1c;"></p>
     </div>
   </div>
 
+  <!-- Claim code popup -->
   <div id="claimCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>✅ Claim Successful</h3>
@@ -461,12 +390,12 @@
         <span class="code-text" id="finalClaimCode"></span>
         <button id="copyClaimCodeBtn" class="copy-btn">📋 Copy</button>
       </div>
-      <p><strong>📇 Remember to bring your registered EZ‑Link card and this claim code to your appointment.</strong></p>
-      <p>Appointment: <span id="finalAppointment"></span></p>
+      <p><strong>📇 Remember to bring your registered EZ‑Link card and this claim code to the General Office.</strong></p>
       <button id="closeClaimCodePopupBtn" class="primary-btn">Close</button>
     </div>
   </div>
 
+  <!-- Check code popup -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
@@ -477,56 +406,161 @@
     </div>
   </div>
 
+  <!-- Success/Error popups -->
   <div id="successPopup" class="verify-popup hidden"><div class="popup-content"><p>✅ Item reported!</p><button id="closeSuccessPopup">OK</button></div></div>
   <div id="errorPopup" class="verify-popup hidden"><div class="popup-content"><p id="errorPopupMessage"></p><button id="closeErrorPopup">OK</button></div></div>
 
-  <!-- ========== ADMIN PANEL ========== -->
-  <div id="adminPage" class="page hidden has-back-arrow">
-    <button class="back-arrow-circle" id="backToLoginFromAdmin"><span class="arrow-text">←</span></button>
-    <h2 style="color:#c0392b;">🛠️ Host Panel</h2>
-    <div class="tab-switch">
-      <button id="adminItemsTabBtn" class="active">📦 Items</button>
-      <button id="adminUsersTabBtn">👥 Users</button>
-    </div>
-    <div id="adminItemsTab" class="tab-content">
-      <div class="filter-bar">
-        <select id="adminTypeFilter"><option value="">All Types</option></select>
-        <select id="adminStatusFilter">
-          <option value="all">All Status</option>
-          <option value="claimed">✅ Claimed</option>
-          <option value="unclaimed">⏳ Not Claimed</option>
-        </select>
-        <button id="adminApplyFilterBtn" class="outline-btn">Apply</button>
-        <button id="adminResetFilterBtn" class="outline-btn">Reset</button>
-      </div>
-      <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
-        <button id="selectAllBtn" class="outline-btn">Select All</button>
-        <button id="selectClaimedBtn" class="outline-btn">Select Claimed</button>
-        <button id="deleteSelectedBtn" class="danger-btn">Delete Selected</button>
-      </div>
-      <div id="adminResults"></div>
-    </div>
-    <div id="adminUsersTab" class="tab-content hidden">
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <input type="text" id="adminUserSearch" placeholder="🔍 Search by username, email, CAN..." style="flex:1; text-align: left;">
-        <button id="refreshUsersBtn" class="outline-btn" style="width:auto; padding:10px 16px;">🔄 Refresh</button>
-      </div>
-      <div id="adminUsersList"></div>
-    </div>
-  </div>
 </div>
 
 <script>
   // ============================================================
-  // PARSE INITIALISATION
+  // PARSE INITIALISATION (same as shared backend)
   // ============================================================
   Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
   Parse.serverURL = "https://parseapi.back4app.com/";
   const LostItem = Parse.Object.extend("LostItem");
-  const HOST_PASSWORD = "host123";
 
   // ============================================================
-  // ROOMS CONFIGURATION – flattened list
+  // DATA FUNCTIONS (shared with backend)
+  // ============================================================
+  function generateClaimCode(len = 6) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < len; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+  }
+
+  async function createFoundItem(data) {
+    const item = new LostItem();
+    item.set("type", data.type);
+    item.set("subcategory", data.subcategory);
+    item.set("color", data.color);
+    item.set("model", data.model);
+    item.set("appearance", data.appearance);
+    item.set("description", data.description);
+    item.set("timeFound", data.timeFound);
+    item.set("locationRoom", data.locationRoom);
+    item.set("locationFloor", "");
+    item.set("nationality", data.nationality || "");
+    item.set("isResolved", false);
+    item.set("contactInfo", data.contactInfo);
+    item.set("claimCode", "");
+    item.set("verificationQuestion", data.verificationQuestion);
+    item.set("verificationAnswer", data.verificationAnswer);
+    item.set("verificationAttempts", 0);
+    item.set("nextAttemptAllowedAt", new Date());
+    item.set("verificationBlocked", false);
+    if (data.photoBase64) {
+      const parseFile = new Parse.File(data.photoName, { base64: data.photoBase64.split(',')[1] });
+      item.set("photo", parseFile);
+    }
+    return item.save();
+  }
+
+  async function searchLostItems(criteria) {
+    let query = new Parse.Query(LostItem);
+    query.equalTo("isResolved", false);
+    query.equalTo("verificationBlocked", false);
+    if (criteria.type) query.equalTo("type", criteria.type);
+    if (criteria.subcategory) query.matches("subcategory", new RegExp(criteria.subcategory, "i"));
+    if (criteria.color) query.matches("color", new RegExp(criteria.color, "i"));
+    if (criteria.model) query.matches("model", new RegExp(criteria.model, "i"));
+    if (criteria.appearance) query.matches("appearance", new RegExp(criteria.appearance, "i"));
+    if (criteria.description) query.matches("description", new RegExp(criteria.description, "i"));
+    if (criteria.room) query.matches("locationRoom", new RegExp(criteria.room, "i"));
+    query.descending("createdAt");
+    return query.find();
+  }
+
+  async function getVerificationQuestion(itemId) {
+    const query = new Parse.Query(LostItem);
+    const item = await query.get(itemId);
+    return item ? item.get("verificationQuestion") || null : null;
+  }
+
+  async function verifyItem(itemId, userAnswer) {
+    const query = new Parse.Query(LostItem);
+    const item = await query.get(itemId);
+    if (!item) return { success: false, message: "Item not found." };
+    if (item.get("isResolved")) return { success: false, message: "Already claimed." };
+    if (item.get("verificationBlocked")) return { success: false, message: "Permanently blocked.", blocked: true };
+
+    const attempts = item.get("verificationAttempts") || 0;
+    const nextAllowed = item.get("nextAttemptAllowedAt");
+    if (nextAllowed && new Date() < new Date(nextAllowed)) {
+      const diff = new Date(nextAllowed) - new Date();
+      const hrs = Math.floor(diff / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      return { success: false, message: `Cooldown: try in ${hrs}h ${mins}m.`, cooldownEnd: nextAllowed };
+    }
+
+    const correct = (item.get("verificationAnswer") || "").trim().toLowerCase();
+    if (correct === userAnswer.trim().toLowerCase()) {
+      const code = generateClaimCode();
+      item.set("claimCode", code);
+      item.set("verificationAttempts", 0);
+      item.set("nextAttemptAllowedAt", new Date());
+      item.set("verificationBlocked", false);
+      item.set("isResolved", true);
+      await item.save();
+      return { success: true, message: `✅ Correct! Your claim code: ${code}`, claimCode: code };
+    }
+
+    const newAttempts = attempts + 1;
+    item.set("verificationAttempts", newAttempts);
+    if (newAttempts >= 9) {
+      item.set("verificationBlocked", true);
+      item.set("nextAttemptAllowedAt", null);
+      await item.save();
+      return { success: false, message: "Too many attempts. Permanently blocked.", blocked: true };
+    } else if (newAttempts >= 6) {
+      const cooldown = new Date(Date.now() + 5 * 3600 * 1000);
+      item.set("nextAttemptAllowedAt", cooldown);
+      await item.save();
+      return { success: false, message: "Wrong answer. Locked for 5 hours.", cooldownEnd: cooldown };
+    } else if (newAttempts >= 3) {
+      const cooldown = new Date(Date.now() + 3 * 3600 * 1000);
+      item.set("nextAttemptAllowedAt", cooldown);
+      await item.save();
+      return { success: false, message: "Wrong answer. Locked for 3 hours.", cooldownEnd: cooldown };
+    } else {
+      item.set("nextAttemptAllowedAt", new Date());
+      await item.save();
+      return { success: false, message: `Wrong answer. ${3 - newAttempts} attempts before cooldown.` };
+    }
+  }
+
+  async function checkClaimCode(code) {
+    const q = new Parse.Query(LostItem);
+    q.equalTo("claimCode", code.trim().toUpperCase());
+    q.equalTo("isResolved", true);
+    const res = await q.find();
+    if (res.length) {
+      const i = res[0];
+      return {
+        found: true,
+        type: i.get("type"),
+        color: i.get("color"),
+        model: i.get("model"),
+        subcategory: i.get("subcategory"),
+        locationFound: `${i.get("locationRoom")||''}`.trim(),
+        appointment: i.get("appointmentTime")
+      };
+    }
+    return { found: false };
+  }
+
+  async function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+    });
+  }
+
+  // ============================================================
+  // ROOMS CONFIGURATION
   // ============================================================
   const roomsConfig = {
     "Classroom Resilience": [1,2,3,4],
@@ -548,22 +582,18 @@
     "Foyer": [],
     "Outdoor basketball court": [],
   };
-
   function buildRoomList() {
     const list = [];
     for (const [room, numbers] of Object.entries(roomsConfig)) {
-      if (numbers.length === 0) {
-        list.push(room);
-      } else {
-        numbers.forEach(num => list.push(`${room} ${num}`));
-      }
+      if (numbers.length === 0) list.push(room);
+      else numbers.forEach(num => list.push(`${room} ${num}`));
     }
     return list;
   }
   const roomOptions = buildRoomList();
 
   // ============================================================
-  // SUBCATEGORY MAP & DROPDOWN HELPERS
+  // DROPDOWN HELPERS
   // ============================================================
   const subcategoryMap = {
     electronic: ['mouse', 'computer', 'laptop', 'phone', 'tablet', 'headphones', 'charger', 'cable', 'other'],
@@ -574,15 +604,12 @@
     bags: ['backpack', 'tote', 'handbag', 'suitcase', 'duffel', 'other'],
     other: []
   };
-
   const typeOptions = ['electronic', 'personal', 'clothing', 'documents', 'keys', 'bags', 'other'];
   const typeLabels = {
     electronic: '📱 Electronic', personal: '🎒 Personal', clothing: '👕 Clothing',
     documents: '🪪 Documents', keys: '🔑 Keys', bags: '👜 Bags', other: '📌 Other'
   };
-
   const colorOptions = ['Black', 'White', 'Red', 'Blue', 'Green', 'Yellow', 'Silver', 'Gold', 'Pink', 'Purple', 'Orange', 'Brown', 'Grey', 'Other'];
-
   const brandOptionsByType = {
     electronic: ['Lenovo', 'Dell', 'HP', 'Apple', 'Samsung', 'Sony', 'Asus', 'Acer', 'Other'],
     personal: ['Rolex', 'Casio', 'Fossil', 'Ray-Ban', 'Oakley', 'Other'],
@@ -590,7 +617,6 @@
     documents: ['Other'], keys: ['Other'], bags: ['Herschel', 'Samsonite', 'Jansport', 'Other'], other: ['Other']
   };
 
-  // ========== POPULATE HELPERS ==========
   function populateSelect(selectId, options, labelMap, firstOptionText) {
     const sel = document.getElementById(selectId);
     sel.innerHTML = '';
@@ -604,8 +630,7 @@
     sorted.forEach(opt => {
       const option = document.createElement('option');
       option.value = opt;
-      const label = labelMap ? labelMap[opt] : opt;
-      option.textContent = label || opt;
+      option.textContent = (labelMap && labelMap[opt]) ? labelMap[opt] : opt;
       sel.appendChild(option);
     });
   }
@@ -620,7 +645,7 @@
     if (customInput) customInput.placeholder = isElectronic ? 'Custom model' : 'Custom brand';
   }
 
-  // Initial static populations
+  // Initial populations
   populateSelect('lostType', typeOptions, typeLabels, 'Select type');
   populateSelect('foundType', typeOptions, typeLabels, 'Select type');
   populateSelect('lostColor', colorOptions);
@@ -628,9 +653,7 @@
   const roomOptionsWithOther = [...roomOptions, 'Other'];
   populateSelect('lostRoom', roomOptionsWithOther, null, 'Select Location');
   populateSelect('foundRoom', roomOptionsWithOther, null, 'Select Location');
-  populateSelect('adminTypeFilter', typeOptions, typeLabels, 'All Types');
 
-  // ========== GET/SET DROPDOWN VALUES ==========
   function getDropdownValue(selectId, customId) {
     const select = document.getElementById(selectId);
     const custom = document.getElementById(customId);
@@ -648,13 +671,6 @@
       custom.value = '';
     }
   }
-
-  function toggleRoomCustom(prefix) {
-    toggleCustom(prefix + 'Room', prefix + 'RoomCustom');
-  }
-
-  document.getElementById('lostRoom').addEventListener('change', () => toggleRoomCustom('lost'));
-  document.getElementById('foundRoom').addEventListener('change', () => toggleRoomCustom('found'));
 
   function updateSubcategory(selectTypeId, selectSubId, customSubId) {
     const type = document.getElementById(selectTypeId).value;
@@ -697,111 +713,19 @@
     }
   }
 
-  // Attach events
   document.getElementById('lostType').addEventListener('change', () => handleTypeChange('lost'));
   document.getElementById('foundType').addEventListener('change', () => handleTypeChange('found'));
   document.getElementById('lostSubcategory').addEventListener('change', () => toggleCustom('lostSubcategory', 'lostSubcategoryOther'));
   document.getElementById('foundSubcategory').addEventListener('change', () => toggleCustom('foundSubcategory', 'foundSubcategoryOther'));
-
   document.querySelectorAll('select[id$="Model"], select[id$="Color"]').forEach(sel => {
     const customId = sel.id + 'Custom';
     sel.addEventListener('change', () => toggleCustom(sel.id, customId));
   });
+  document.getElementById('lostRoom').addEventListener('change', () => toggleCustom('lostRoom', 'lostRoomCustom'));
+  document.getElementById('foundRoom').addEventListener('change', () => toggleCustom('foundRoom', 'foundRoomCustom'));
 
   // ============================================================
-  // CORE FUNCTIONS
-  // ============================================================
-  function generateClaimCode(len=6) {
-    const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code='';
-    for(let i=0;i<len;i++) code+=chars[Math.floor(Math.random()*chars.length)];
-    return code;
-  }
-
-  function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-    });
-  }
-
-  let isSubmitting = false;
-
-  async function createFoundItem(data) {
-    const item = new LostItem();
-    item.set("type", data.type);
-    item.set("subcategory", data.subcategory);
-    item.set("color", data.color);
-    item.set("model", data.model);
-    item.set("appearance", data.appearance);
-    item.set("description", data.description);
-    item.set("timeFound", data.timeFound);
-    item.set("locationRoom", data.locationRoom);
-    item.set("locationFloor", "");
-    item.set("nationality", data.nationality || "");
-    item.set("isResolved", false);
-    item.set("contactInfo", data.contactInfo);
-    item.set("claimCode", "");
-    if (data.photoBase64) {
-      const parseFile = new Parse.File(data.photoName, { base64: data.photoBase64.split(',')[1] });
-      item.set("photo", parseFile);
-    }
-    return item.save();
-  }
-
-  async function searchMatchingLostItems(criteria) {
-    let query = new Parse.Query(LostItem);
-    query.equalTo("isResolved", false);
-    if(criteria.type) query.equalTo("type", criteria.type);
-    if(criteria.subcategory) query.matches("subcategory", new RegExp(criteria.subcategory, "i"));
-    if(criteria.color) query.matches("color", new RegExp(criteria.color, "i"));
-    if(criteria.model) query.matches("model", new RegExp(criteria.model, "i"));
-    if(criteria.appearance) query.matches("appearance", new RegExp(criteria.appearance, "i"));
-    if(criteria.description) query.matches("description", new RegExp(criteria.description, "i"));
-    if(criteria.room) query.matches("locationRoom", new RegExp(criteria.room, "i"));
-    query.descending("createdAt");
-    return query.find();
-  }
-
-  async function finalizeClaim(itemId, ezlinkPhotoFile, appointmentDateTime) {
-    const query = new Parse.Query(LostItem);
-    const item = await query.get(itemId);
-    if(!item) throw new Error("Item not found");
-    if(item.get("isResolved")) throw new Error("Already claimed");
-    const code = generateClaimCode();
-    const base64 = await fileToBase64(ezlinkPhotoFile);
-    const parsePhoto = new Parse.File(ezlinkPhotoFile.name, { base64: base64.split(',')[1] });
-    item.set("ezlinkPhoto", parsePhoto);
-    item.set("appointmentTime", new Date(appointmentDateTime));
-    item.set("claimCode", code);
-    item.set("isResolved", true);
-    await item.save();
-    return code;
-  }
-
-  async function checkClaimCode(code) {
-    const q = new Parse.Query(LostItem);
-    q.equalTo("claimCode", code.trim().toUpperCase());
-    q.equalTo("isResolved", true);
-    const res = await q.find();
-    if(res.length) {
-      const i = res[0];
-      return { found: true, type:i.get("type"), color:i.get("color"), model:i.get("model"),
-               subcategory: i.get("subcategory"),
-               locationFound: `${i.get("locationRoom")||''}`.trim(),
-               appointment: i.get("appointmentTime") };
-    }
-    return { found: false };
-  }
-
-  async function adminGetAllItems() { const q = new Parse.Query(LostItem); q.descending("createdAt"); return q.find(); }
-  async function adminDeleteItem(id) { const q = new Parse.Query(LostItem); const i=await q.get(id); return i.destroy(); }
-  async function getAllUsers() { return Parse.Cloud.run('getAllUsers'); }
-
-  // ============================================================
-  // AUTH (UPDATED: username + email + CAN, no nationality)
+  // AUTH
   // ============================================================
   const auth = {
     signUp: async (username, email, can, password) => {
@@ -820,15 +744,13 @@
   };
 
   // ============================================================
-  // UI REFS & HELPERS
+  // UI HELPERS
   // ============================================================
   const loginPage = document.getElementById('loginPage');
   const homePage = document.getElementById('homePage');
   const lostPage = document.getElementById('lostPage');
   const foundPage = document.getElementById('foundPage');
-  const adminPage = document.getElementById('adminPage');
-  const hostPassPage = document.getElementById('hostPasswordPage');
-  const ezlinkModal = document.getElementById('ezlinkAppointmentModal');
+  const verifyModal = document.getElementById('verifyModal');
   const claimCodePopup = document.getElementById('claimCodePopup');
   const checkCodePopup = document.getElementById('checkCodePopup');
   const successPopup = document.getElementById('successPopup');
@@ -836,8 +758,15 @@
 
   let currentVerifyingItemId = null;
 
-  function showPage(page) { document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden')); page.classList.remove('hidden'); }
-  function setError(el, msg) { if(msg){ el.textContent=msg; el.classList.add('show'); } else { el.textContent=''; el.classList.remove('show'); } }
+  function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+    page.classList.remove('hidden');
+  }
+
+  function setError(el, msg) {
+    if (msg) { el.textContent = msg; el.classList.add('show'); }
+    else { el.textContent = ''; el.classList.remove('show'); }
+  }
 
   function checkSession() {
     const u = auth.getCurrentUser();
@@ -852,13 +781,13 @@
   // ============================================================
   // LOGIN / SIGNUP
   // ============================================================
-  document.getElementById('showSignUpCard').onclick = () => { 
-    document.getElementById('loginCard').classList.add('hidden'); 
+  document.getElementById('showSignUpCard').onclick = () => {
+    document.getElementById('loginCard').classList.add('hidden');
     document.getElementById('signUpCard').classList.remove('hidden');
     setError(document.getElementById('signUpError'),'');
   };
-  document.getElementById('showLoginCard').onclick = () => { 
-    document.getElementById('signUpCard').classList.add('hidden'); 
+  document.getElementById('showLoginCard').onclick = () => {
+    document.getElementById('signUpCard').classList.add('hidden');
     document.getElementById('loginCard').classList.remove('hidden');
     setError(document.getElementById('signUpError'),'');
   };
@@ -875,43 +804,25 @@
     const email = document.getElementById('signUpEmail').value.trim();
     const can = document.getElementById('signUpCan').value.trim();
     const password = document.getElementById('signUpPassword').value;
-    const confirmPassword = document.getElementById('signUpPasswordConfirm').value;
+    const confirm = document.getElementById('signUpPasswordConfirm').value;
     const err = document.getElementById('signUpError');
-    if(!username || !email || !can || !password || !confirmPassword) { setError(err, 'All required fields must be filled'); return; }
-    if (password !== confirmPassword) { setError(err, 'Passwords do not match'); return; }
-    if (!email.includes('@')) { setError(err, 'Please use a valid school email address'); return; }
-    try { await auth.signUp(username, email, can, password); setError(err, ''); checkSession(); }
+    if(!username||!email||!can||!password||!confirm) { setError(err,'All required'); return; }
+    if(password!==confirm) { setError(err,'Passwords do not match'); return; }
+    if(!email.includes('@')) { setError(err,'Valid email required'); return; }
+    try { await auth.signUp(username, email, can, password); setError(err,''); checkSession(); }
     catch(e) { setError(err, e.message); }
   };
 
   // ============================================================
   // NAVIGATION
   // ============================================================
-  document.getElementById('goHostAccessFromLogin').onclick = () => {
-    showPage(hostPassPage);
-  };
-
-  document.getElementById('backToLoginFromHost').onclick = () => {
-    showPage(loginPage);
-  };
-
-  document.getElementById('submitHostPasswordBtn').onclick = () => {
-    if(document.getElementById('hostPasswordInput').value === HOST_PASSWORD) {
-      loadAdminItems();
-      showPage(adminPage);
-    } else {
-      document.getElementById('hostPasswordMessage').classList.add('show');
-    }
-  };
-
   document.getElementById('backToHomeFromLost').onclick = () => showPage(homePage);
   document.getElementById('backToHomeFromFound').onclick = () => showPage(homePage);
-  document.getElementById('backToLoginFromAdmin').onclick = () => showPage(loginPage);
 
-  document.getElementById('goLostBtn').onclick = () => showPage(lostPage);
+  document.getElementById('goLostBtn').onclick = () => { document.getElementById('lostResults').innerHTML = ''; showPage(lostPage); };
   document.getElementById('goFoundBtn').onclick = () => showPage(foundPage);
-  document.getElementById('logoutFromHomeBtn').onclick = async () => { 
-    await auth.logOut(); 
+  document.getElementById('logoutFromHomeBtn').onclick = async () => {
+    await auth.logOut();
     currentVerifyingItemId = null;
     showPage(loginPage);
     document.getElementById('loginPassword').value = '';
@@ -920,7 +831,7 @@
   };
 
   // ============================================================
-  // SEARCH & CLAIM
+  // SEARCH & CLAIM FLOW
   // ============================================================
   document.getElementById('searchMatchingBtn').onclick = async () => {
     const subSelect = document.getElementById('lostSubcategory');
@@ -940,7 +851,7 @@
     const container = document.getElementById('lostResults');
     container.innerHTML = '<p style="color:#64748b;">🔍 Searching…</p>';
     try {
-      const items = await searchMatchingLostItems(criteria);
+      const items = await searchLostItems(criteria);
       if(!items.length) { container.innerHTML = '<p style="color:#64748b;">😔 No matching found items. Try different details.</p>'; return; }
       container.innerHTML = items.map(item => {
         const photo = item.get('photo');
@@ -956,38 +867,64 @@
           </div>
         `;
       }).join('');
-      document.querySelectorAll('.claim-btn').forEach(btn => btn.addEventListener('click', function() {
-        currentVerifyingItemId = this.dataset.id;
-        document.getElementById('ezlinkPhotoInput').value = '';
-        document.getElementById('appointmentTime').value = '';
-        document.getElementById('finaliseMessage').innerText = '';
-        ezlinkModal.classList.remove('hidden');
+      document.querySelectorAll('.claim-btn').forEach(btn => btn.addEventListener('click', async function() {
+        const itemId = this.dataset.id;
+        // Fetch verification question
+        try {
+          const question = await getVerificationQuestion(itemId);
+          if (!question) {
+            document.getElementById('errorPopupMessage').innerText = 'No verification question set for this item.';
+            errorPopup.classList.remove('hidden');
+            return;
+          }
+          currentVerifyingItemId = itemId;
+          document.getElementById('verifyQuestionText').innerText = question;
+          document.getElementById('verifyAnswerInput').value = '';
+          document.getElementById('verifyMessage').innerText = '';
+          verifyModal.classList.remove('hidden');
+        } catch (e) {
+          document.getElementById('errorPopupMessage').innerText = 'Error: ' + e.message;
+          errorPopup.classList.remove('hidden');
+        }
       }));
     } catch(e) { container.innerHTML = `<p style="color:#b91c1c;">Error: ${e.message}</p>`; }
   };
 
   // ============================================================
-  // FINALISE CLAIM
+  // VERIFY & CLAIM
   // ============================================================
-  document.getElementById('finaliseClaimBtn').onclick = async () => {
-    const photoFile = document.getElementById('ezlinkPhotoInput').files[0];
-    const appointment = document.getElementById('appointmentTime').value;
-    if(!photoFile || !appointment) {
-      document.getElementById('finaliseMessage').innerText = 'Please upload EZ-Link / NRIC / Photo ID and select appointment time.';
+  document.getElementById('submitVerifyBtn').onclick = async () => {
+    const answer = document.getElementById('verifyAnswerInput').value.trim();
+    if (!answer) {
+      document.getElementById('verifyMessage').innerText = 'Please enter an answer.';
       return;
     }
     try {
-      const claimCode = await finalizeClaim(currentVerifyingItemId, photoFile, appointment);
-      document.getElementById('finalClaimCode').innerText = claimCode;
-      const formattedAppt = new Date(appointment).toLocaleString();
-      document.getElementById('finalAppointment').innerText = formattedAppt;
-      ezlinkModal.classList.add('hidden');
-      claimCodePopup.classList.remove('hidden');
-    } catch(e) {
-      document.getElementById('finaliseMessage').innerText = e.message;
+      const result = await verifyItem(currentVerifyingItemId, answer);
+      if (result.success) {
+        verifyModal.classList.add('hidden');
+        document.getElementById('finalClaimCode').innerText = result.claimCode;
+        claimCodePopup.classList.remove('hidden');
+      } else {
+        document.getElementById('verifyMessage').innerText = result.message;
+        if (result.blocked) {
+          // Blocked permanently – close modal after showing message
+          setTimeout(() => {
+            verifyModal.classList.add('hidden');
+            document.getElementById('searchMatchingBtn').click();
+          }, 3000);
+        }
+      }
+    } catch (e) {
+      document.getElementById('verifyMessage').innerText = 'Error: ' + e.message;
     }
   };
-  document.getElementById('cancelFinaliseBtn').onclick = () => ezlinkModal.classList.add('hidden');
+
+  document.getElementById('cancelVerifyBtn').onclick = () => {
+    verifyModal.classList.add('hidden');
+    currentVerifyingItemId = null;
+  };
+
   document.getElementById('closeClaimCodePopupBtn').onclick = () => {
     claimCodePopup.classList.add('hidden');
     document.getElementById('searchMatchingBtn').click();
@@ -1046,6 +983,7 @@
   // ============================================================
   // SUBMIT FOUND ITEM
   // ============================================================
+  let isSubmitting = false;
   document.getElementById('submitFoundBtn').onclick = async () => {
     if (isSubmitting) return;
     isSubmitting = true;
@@ -1054,7 +992,7 @@
     btn.textContent = 'Submitting…';
 
     try {
-      const required = ['foundColor','foundModel','foundTime'];
+      const required = ['foundColor', 'foundModel', 'foundTime', 'verificationQuestion', 'verificationAnswer'];
       if(required.some(id => !document.getElementById(id).value.trim())) {
         document.getElementById('errorPopupMessage').innerText = 'Please fill all required fields (*).';
         errorPopup.classList.remove('hidden');
@@ -1082,6 +1020,8 @@
         locationRoom: getDropdownValue('foundRoom', 'foundRoomCustom'),
         nationality: document.getElementById('foundNationality').value.trim(),
         contactInfo: document.getElementById('foundContactInfo').value.trim(),
+        verificationQuestion: document.getElementById('verificationQuestion').value.trim(),
+        verificationAnswer: document.getElementById('verificationAnswer').value.trim(),
         photoBase64, photoName
       };
       await createFoundItem(data);
@@ -1097,147 +1037,11 @@
     }
   };
 
+  // ============================================================
+  // POPUP CLOSE HANDLERS
+  // ============================================================
   document.getElementById('closeSuccessPopup').onclick = () => { successPopup.classList.add('hidden'); showPage(homePage); };
   document.getElementById('closeErrorPopup').onclick = () => errorPopup.classList.add('hidden');
-
-  // ============================================================
-  // ADMIN – ITEMS
-  // ============================================================
-  async function loadAdminItems() {
-    const container = document.getElementById('adminResults');
-    container.innerHTML = 'Loading…';
-    try {
-      const items = await adminGetAllItems();
-      const typeFilter = document.getElementById('adminTypeFilter').value;
-      const statusFilter = document.getElementById('adminStatusFilter').value;
-      let filtered = items;
-      if (typeFilter) filtered = filtered.filter(item => item.get('type') === typeFilter);
-      if (statusFilter === 'claimed') filtered = filtered.filter(item => item.get('isResolved') === true);
-      if (statusFilter === 'unclaimed') filtered = filtered.filter(item => item.get('isResolved') === false);
-      if(!filtered.length) { container.innerHTML = '<p style="color:#64748b;">No items match filters.</p>'; return; }
-      container.innerHTML = filtered.map(item => {
-        const photo = item.get('photo');
-        const photoUrl = photo ? photo.url() : null;
-        const ezlinkPhoto = item.get('ezlinkPhoto');
-        const ezlinkUrl = ezlinkPhoto ? ezlinkPhoto.url() : null;
-        const loc = item.get('locationRoom') || 'Unknown';
-        const isClaimed = item.get('isResolved');
-        const statusBadge = isClaimed ? '<span class="admin-badge badge-claimed">✅ Claimed</span>' : '<span class="admin-badge badge-unclaimed">⏳ Not Claimed</span>';
-        const nationality = item.get('nationality') || 'Not specified';
-        return `
-          <div class="lost-item-card">
-            <div><input type="checkbox" class="admin-checkbox" data-id="${item.id}" data-resolved="${isClaimed}"> <strong>${item.get('type')}</strong> ${statusBadge}</div>
-            <div>${item.get('subcategory') ? item.get('subcategory') + ' · ' : ''}${item.get('color')} · ${item.get('model')}</div>
-            <div>📍 ${loc}</div>
-            <div>🌍 ${nationality}</div>
-            <div>📅 Appointment Time: ${item.get('appointmentTime') ? new Date(item.get('appointmentTime')).toLocaleString() : 'N/A'}</div>
-            ${photoUrl ? `<img src="${photoUrl}" class="item-photo" style="max-height:150px;" onerror="this.onerror=null;this.src='';">` : ''}
-            ${ezlinkUrl ? `<div><strong>📇 ID Upload:</strong><br><img src="${ezlinkUrl}" class="item-photo" style="max-height:150px;"></div>` : ''}
-            <div>
-              <button onclick="window.deleteAdminItem('${item.id}')" class="danger-btn" style="padding:6px 12px; font-size:0.8rem;">Delete</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-      document.getElementById('selectAllBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked=true); };
-      document.getElementById('selectClaimedBtn').onclick = () => { document.querySelectorAll('.admin-checkbox').forEach(c=>c.checked = c.dataset.resolved==='true'); };
-      document.getElementById('deleteSelectedBtn').onclick = async () => {
-        const ids = [...document.querySelectorAll('.admin-checkbox:checked')].map(c=>c.dataset.id);
-        if(!ids.length) return alert('None selected');
-        if(confirm(`Delete ${ids.length} items?`)) { await Promise.all(ids.map(id=>adminDeleteItem(id))); loadAdminItems(); }
-      };
-    } catch(e) {
-      container.innerHTML = `<p style="color:#b91c1c;">Error: ${e.message}</p>`;
-    }
-  }
-
-  window.deleteAdminItem = async (id) => { if(confirm('Delete?')){ await adminDeleteItem(id); loadAdminItems(); } };
-  document.getElementById('adminApplyFilterBtn').onclick = loadAdminItems;
-  document.getElementById('adminResetFilterBtn').onclick = () => {
-    document.getElementById('adminTypeFilter').value = '';
-    document.getElementById('adminStatusFilter').value = 'all';
-    loadAdminItems();
-  };
-
-  // ============================================================
-  // ADMIN – USERS (updated to show email)
-  // ============================================================
-  let allUsers = [];
-
-  async function loadAdminUsers() {
-    const container = document.getElementById('adminUsersList');
-    container.innerHTML = 'Loading…';
-    try {
-      const users = await getAllUsers();
-      allUsers = users || [];
-      if (!allUsers.length) {
-        container.innerHTML = '<p style="color:#64748b;">No users registered yet.</p>';
-        return;
-      }
-      renderUserList(allUsers);
-    } catch (error) {
-      container.innerHTML = `<p style="color:#b91c1c;">Error: ${error.message}</p>`;
-    }
-  }
-
-  function renderUserList(users) {
-    const container = document.getElementById('adminUsersList');
-    if (!users.length) {
-      container.innerHTML = '<p style="color:#64748b;">No users match your search.</p>';
-      return;
-    }
-    container.innerHTML = users.map(user => `
-      <div class="lost-item-card" style="background:#f8fafc;">
-        <div><strong>${escapeHtml(user.username)}</strong></div>
-        <div>📧 ${escapeHtml(user.email || 'N/A')}</div>
-        <div>📇 CAN: ${escapeHtml(user.can || 'N/A')}</div>
-        <div>📅 Joined: ${new Date(user.createdAt).toLocaleString()}</div>
-        <div style="margin-top:6px; font-size:0.8rem; color:#64748b;">User ID: ${user.id}</div>
-      </div>
-    `).join('');
-  }
-
-  document.getElementById('adminUserSearch').addEventListener('input', function() {
-    const query = this.value.trim().toLowerCase();
-    if (!query) { renderUserList(allUsers); return; }
-    const filtered = allUsers.filter(user => {
-      const username = (user.username || '').toLowerCase();
-      const email = (user.email || '').toLowerCase();
-      const can = (user.can || '').toLowerCase();
-      return username.includes(query) || email.includes(query) || can.includes(query);
-    });
-    renderUserList(filtered);
-  });
-
-  document.getElementById('refreshUsersBtn').onclick = function() {
-    document.getElementById('adminUserSearch').value = '';
-    loadAdminUsers();
-  };
-
-  function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  // ============================================================
-  // TAB SWITCHING
-  // ============================================================
-  document.getElementById('adminItemsTabBtn').onclick = () => {
-    document.getElementById('adminItemsTab').classList.remove('hidden');
-    document.getElementById('adminUsersTab').classList.add('hidden');
-    document.getElementById('adminItemsTabBtn').classList.add('active');
-    document.getElementById('adminUsersTabBtn').classList.remove('active');
-    loadAdminItems();
-  };
-  document.getElementById('adminUsersTabBtn').onclick = () => {
-    document.getElementById('adminUsersTab').classList.remove('hidden');
-    document.getElementById('adminItemsTab').classList.add('hidden');
-    document.getElementById('adminUsersTabBtn').classList.add('active');
-    document.getElementById('adminItemsTabBtn').classList.remove('active');
-    loadAdminUsers();
-  };
 
   // ============================================================
   // INIT
