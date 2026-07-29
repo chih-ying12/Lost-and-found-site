@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>:D Nan Chiau High School – Lost & Found</title>
+  <title>🏫 Nan Chiau High School – Lost & Found</title>
   <style>
     /* === Reset & Base === */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -15,6 +15,7 @@
       justify-content: center;
       align-items: center;
       padding: 16px;
+      transition: background 1.5s ease;
     }
     .app-container {
       width: 100%;
@@ -254,10 +255,41 @@
       font-size: 0.9rem;
       text-align: left;
     }
+    .logo-img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      flex-shrink: 0;
+      cursor: pointer;  /* makes it clear it's clickable */
+      transition: transform 0.2s ease;
+    }
+    .logo-img:hover {
+      transform: scale(1.05);
+    }
     @media (max-width: 480px) {
       .app-container { padding: 16px 14px; }
       .app-header h2 { font-size: 1.2rem; }
-      .logo-svg { width: 44px; height: 44px; }
+      .logo-img { width: 44px; height: 44px; }
+    }
+
+    /* ===== NEON MODE ===== */
+    body.neon-mode {
+      animation: neonPulse 4s ease-in-out infinite alternate;
+      background-attachment: fixed;
+    }
+    @keyframes neonPulse {
+      0%   { background: #ff00cc; }
+      20%  { background: #00ffcc; }
+      40%  { background: #00ccff; }
+      60%  { background: #cc00ff; }
+      80%  { background: #ff00aa; }
+      100% { background: #ffcc00; }
+    }
+    /* Ensure the container remains legible – you can also add a subtle overlay if you like */
+    body.neon-mode .app-container {
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(4px);
+      border-color: #ffffff;
     }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
@@ -267,14 +299,8 @@
 
   <!-- ========== HEADER with LOGO ========== -->
   <div class="app-header">
-    <svg class="logo-svg" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="22" cy="30" r="16" fill="none" stroke="#c0392b" stroke-width="3" />
-      <circle cx="38" cy="30" r="16" fill="none" stroke="#c0392b" stroke-width="3" />
-      <circle cx="30" cy="20" r="16" fill="none" stroke="#c0392b" stroke-width="3" />
-      <circle cx="30" cy="27" r="8" fill="#f1c40f" opacity="0.9" />
-      <circle cx="26" cy="30" r="8" fill="#f1c40f" opacity="0.6" />
-      <circle cx="34" cy="30" r="8" fill="#f1c40f" opacity="0.6" />
-    </svg>
+    <!-- School logo – click to toggle neon mode -->
+    <img src="https://i.postimg.cc/5tV8ffKb/Adobe-Express-file.png" alt="Nan Chiau High School Logo" class="logo-img" id="logo">
     <h2>
       Nan Chiau High School
       <small>Lost & Found</small>
@@ -369,7 +395,7 @@
 
   <!-- ========== MODALS ========== -->
 
-  <!-- Verification modal (ask the question) -->
+  <!-- Verification modal -->
   <div id="verifyModal" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verify your identity</h3>
@@ -419,6 +445,13 @@
   Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
   Parse.serverURL = "https://parseapi.back4app.com/";
   const LostItem = Parse.Object.extend("LostItem");
+
+  // ============================================================
+  // NEON MODE TOGGLE (tap the logo)
+  // ============================================================
+  document.getElementById('logo').addEventListener('click', function() {
+    document.body.classList.toggle('neon-mode');
+  });
 
   // ============================================================
   // DATA FUNCTIONS (shared with backend)
@@ -869,7 +902,6 @@
       }).join('');
       document.querySelectorAll('.claim-btn').forEach(btn => btn.addEventListener('click', async function() {
         const itemId = this.dataset.id;
-        // Fetch verification question
         try {
           const question = await getVerificationQuestion(itemId);
           if (!question) {
@@ -908,7 +940,6 @@
       } else {
         document.getElementById('verifyMessage').innerText = result.message;
         if (result.blocked) {
-          // Blocked permanently – close modal after showing message
           setTimeout(() => {
             verifyModal.classList.add('hidden');
             document.getElementById('searchMatchingBtn').click();
