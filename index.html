@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>:D Nan Chiau High School – Lost & Found</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🏫 Nan Chiau High School – Lost & Found</title>
   <style>
     /* === Reset & Base === */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -307,7 +307,7 @@
       cursor: pointer;
       z-index: 500;
       transition: all 0.3s ease;
-      display: none; /* hidden by default */
+      display: none;
       animation: pulse 1.5s infinite;
     }
     #secretGameBtn:hover {
@@ -349,9 +349,10 @@
       padding: 20px;
       border: 3px solid #f1c40f;
       box-shadow: 0 0 40px rgba(241,196,15,0.3);
-      max-width: 90%;
+      max-width: 95%;
       width: 600px;
       position: relative;
+      touch-action: none;
     }
     .game-header {
       display: flex;
@@ -410,6 +411,62 @@
       border-radius: 4px;
       border: 1px solid #444;
       color: #eee;
+    }
+
+    /* Touch control buttons */
+    .touch-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      border: 2px solid #f1c40f;
+      color: #f1c40f;
+      font-size: 24px;
+      touch-action: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .touch-btn:active {
+      background: rgba(255,255,255,0.4);
+    }
+    .touch-btn.pressed {
+      background: rgba(255,255,255,0.4);
+    }
+    .controls-wrapper {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      touch-action: none;
+    }
+    .controls-wrapper .left-controls,
+    .controls-wrapper .right-controls {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 10;
+    }
+    .controls-wrapper .left-controls {
+      left: 8px;
+    }
+    .controls-wrapper .right-controls {
+      right: 8px;
+    }
+    @media (max-width: 500px) {
+      .touch-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+      }
+      .controls-wrapper .left-controls { left: 4px; }
+      .controls-wrapper .right-controls { right: 4px; }
     }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
@@ -565,9 +622,21 @@
         <button class="close-game" id="closeGameBtn">✕</button>
       </div>
     </div>
-    <canvas id="pongCanvas" width="600" height="400"></canvas>
+    <div class="controls-wrapper">
+      <canvas id="pongCanvas" width="600" height="400"></canvas>
+      <!-- Left controls (P1) -->
+      <div class="left-controls" id="leftControls">
+        <button class="touch-btn" id="p1Up">▲</button>
+        <button class="touch-btn" id="p1Down">▼</button>
+      </div>
+      <!-- Right controls (P2) -->
+      <div class="right-controls" id="rightControls">
+        <button class="touch-btn" id="p2Up">▲</button>
+        <button class="touch-btn" id="p2Down">▼</button>
+      </div>
+    </div>
     <div class="game-footer">
-      <kbd>W</kbd> <kbd>S</kbd> move left paddle &nbsp;|&nbsp; <kbd>↑</kbd> <kbd>↓</kbd> move right paddle (2P mode)
+      <kbd>W</kbd> <kbd>S</kbd> move left paddle &nbsp;|&nbsp; <kbd>↑</kbd> <kbd>↓</kbd> move right paddle (2P mode) &nbsp;|&nbsp; 📱 Tap buttons
     </div>
   </div>
 </div>
@@ -594,11 +663,8 @@
   const gameOverlay = document.getElementById('gameOverlay');
   const closeGameBtn = document.getElementById('closeGameBtn');
 
-  // The button visibility is handled by CSS (neon-mode class)
-  // Click to open game
   gameBtn.addEventListener('click', function() {
     gameOverlay.classList.add('active');
-    // Start game loop if not already running
     if (!gameRunning) {
       gameRunning = true;
       gameLoop();
@@ -610,7 +676,6 @@
     gameRunning = false;
   });
 
-  // Also close when clicking outside the game container (on the overlay background)
   gameOverlay.addEventListener('click', function(e) {
     if (e.target === gameOverlay) {
       gameOverlay.classList.remove('active');
@@ -619,7 +684,7 @@
   });
 
   // ============================================================
-  // PONG GAME LOGIC
+  // PONG GAME LOGIC with touch controls
   // ============================================================
   const canvas = document.getElementById('pongCanvas');
   const ctx = canvas.getContext('2d');
@@ -628,21 +693,17 @@
   const modeToggleBtn = document.getElementById('modeToggleBtn');
   const resetBtn = document.getElementById('resetGameBtn');
 
-  // Game state
   let gameRunning = false;
   let mode = '1P'; // '1P' or '2P'
   let animationId = null;
 
-  // Dimensions
   const W = 600, H = 400;
   const PADDLE_WIDTH = 10, PADDLE_HEIGHT = 80;
   const BALL_SIZE = 10;
 
-  // Paddles
   let paddle1 = { x: 20, y: H/2 - PADDLE_HEIGHT/2, vy: 0 };
   let paddle2 = { x: W - 20 - PADDLE_WIDTH, y: H/2 - PADDLE_HEIGHT/2, vy: 0 };
 
-  // Ball
   let ball = {
     x: W/2,
     y: H/2,
@@ -651,15 +712,22 @@
     speed: 4
   };
 
-  // Scores
   let score1 = 0, score2 = 0;
 
-  // Keys
+  // Keyboard state
   const keys = {
     w: false,
     s: false,
     arrowup: false,
     arrowdown: false
+  };
+
+  // Touch state
+  const touch = {
+    p1Up: false,
+    p1Down: false,
+    p2Up: false,
+    p2Down: false
   };
 
   // Reset game
@@ -675,7 +743,6 @@
     paddle2.y = H/2 - PADDLE_HEIGHT/2;
     ball.x = W/2;
     ball.y = H/2;
-    // Random initial direction
     const angle = (Math.random() * 0.8 + 0.2) * (Math.random() > 0.5 ? 1 : -1);
     const speed = ball.speed;
     ball.vx = speed * (Math.random() > 0.5 ? 1 : -1);
@@ -712,6 +779,45 @@
     if (key === 'arrowdown') { keys.arrowdown = false; e.preventDefault(); }
   });
 
+  // Touch controls – helper to attach events
+  function setupTouchButton(btnId, touchKey) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    // Touch events
+    btn.addEventListener('touchstart', function(e) {
+      e.preventDefault();
+      touch[touchKey] = true;
+      this.classList.add('pressed');
+    });
+    btn.addEventListener('touchend', function(e) {
+      e.preventDefault();
+      touch[touchKey] = false;
+      this.classList.remove('pressed');
+    });
+    btn.addEventListener('touchcancel', function(e) {
+      touch[touchKey] = false;
+      this.classList.remove('pressed');
+    });
+    // Mouse events (for desktop testing)
+    btn.addEventListener('mousedown', function(e) {
+      touch[touchKey] = true;
+      this.classList.add('pressed');
+    });
+    btn.addEventListener('mouseup', function(e) {
+      touch[touchKey] = false;
+      this.classList.remove('pressed');
+    });
+    btn.addEventListener('mouseleave', function(e) {
+      touch[touchKey] = false;
+      this.classList.remove('pressed');
+    });
+  }
+
+  setupTouchButton('p1Up', 'p1Up');
+  setupTouchButton('p1Down', 'p1Down');
+  setupTouchButton('p2Up', 'p2Up');
+  setupTouchButton('p2Down', 'p2Down');
+
   // AI logic
   function moveAI() {
     const aiSpeed = 3.5;
@@ -723,35 +829,41 @@
     } else {
       paddle2.vy = 0;
     }
-    // Apply movement
     paddle2.y += paddle2.vy;
-    // Clamp
     paddle2.y = Math.max(0, Math.min(H - PADDLE_HEIGHT, paddle2.y));
   }
 
   // Update physics
   function update() {
-    // Move paddle1 (player)
-    if (keys.w) paddle1.vy = -5;
-    else if (keys.s) paddle1.vy = 5;
-    else paddle1.vy = 0;
+    // P1 movement: keyboard OR touch
+    let p1Dir = 0;
+    if (keys.w || touch.p1Up) p1Dir = -1;
+    if (keys.s || touch.p1Down) p1Dir = 1;
+    if (p1Dir !== 0) {
+      paddle1.vy = p1Dir * 5;
+    } else {
+      paddle1.vy = 0;
+    }
     paddle1.y += paddle1.vy;
     paddle1.y = Math.max(0, Math.min(H - PADDLE_HEIGHT, paddle1.y));
 
-    // Move paddle2
+    // P2 movement
     if (mode === '2P') {
-      // Player 2
-      if (keys.arrowup) paddle2.vy = -5;
-      else if (keys.arrowdown) paddle2.vy = 5;
-      else paddle2.vy = 0;
+      let p2Dir = 0;
+      if (keys.arrowup || touch.p2Up) p2Dir = -1;
+      if (keys.arrowdown || touch.p2Down) p2Dir = 1;
+      if (p2Dir !== 0) {
+        paddle2.vy = p2Dir * 5;
+      } else {
+        paddle2.vy = 0;
+      }
       paddle2.y += paddle2.vy;
       paddle2.y = Math.max(0, Math.min(H - PADDLE_HEIGHT, paddle2.y));
     } else {
-      // AI
       moveAI();
     }
 
-    // Move ball
+    // Ball movement
     ball.x += ball.vx;
     ball.y += ball.vy;
 
@@ -767,9 +879,7 @@
         ball.y + BALL_SIZE > paddle1.y &&
         ball.y < paddle1.y + PADDLE_HEIGHT) {
       ball.vx = -ball.vx;
-      // Add a little randomness
       ball.vy += (Math.random() - 0.5) * 1;
-      // Speed up slightly
       ball.vx *= 1.05;
       ball.vy *= 1.05;
       ball.x = paddle1.x + PADDLE_WIDTH;
@@ -790,11 +900,9 @@
 
     // Scoring
     if (ball.x < 0) {
-      // Right player scores
       score2++;
       updateScoreDisplay();
       resetPositions();
-      // Ball direction toward left player
       ball.vx = -ball.speed;
     } else if (ball.x > W) {
       score1++;
@@ -816,7 +924,7 @@
   function draw() {
     ctx.clearRect(0, 0, W, H);
 
-    // Draw dashed center line
+    // Dashed center line
     ctx.strokeStyle = '#333';
     ctx.lineWidth = 2;
     ctx.setLineDash([10, 15]);
@@ -826,7 +934,7 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Draw center circle
+    // Center circle
     ctx.beginPath();
     ctx.arc(W/2, H/2, 40, 0, Math.PI * 2);
     ctx.strokeStyle = '#333';
@@ -847,7 +955,6 @@
   // Game loop
   function gameLoop() {
     if (!gameRunning) {
-      // If gameOverlay is not active, stop the loop
       if (!gameOverlay.classList.contains('active')) {
         return;
       }
@@ -857,10 +964,7 @@
     animationId = requestAnimationFrame(gameLoop);
   }
 
-  // Start game loop when overlay opens (already handled)
-  // Stop when overlay closes (handled by setting gameRunning false)
-
-  // Handle window resize (canvas scaling)
+  // Resize canvas
   function resizeCanvas() {
     const container = canvas.parentElement;
     const containerWidth = container.clientWidth;
@@ -872,12 +976,11 @@
   }
   window.addEventListener('resize', resizeCanvas);
 
-  // Initial setup
   resetGame();
   resizeCanvas();
 
   // ============================================================
-  // DATA FUNCTIONS (same as before – keep everything else)
+  // DATA FUNCTIONS (unchanged)
   // ============================================================
   function generateClaimCode(len = 6) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
