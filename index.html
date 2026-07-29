@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-  <title>🏫 Nan Chiau High School – Lost & Found</title>
+  <title>:D Nan Chiau High School – Lost & Found</title>
   <style>
     /* === Reset & Base === */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -260,7 +260,7 @@
       height: 56px;
       object-fit: contain;
       flex-shrink: 0;
-      cursor: pointer;  /* makes it clear it's clickable */
+      cursor: pointer;
       transition: transform 0.2s ease;
     }
     .logo-img:hover {
@@ -285,11 +285,131 @@
       80%  { background: #ff00aa; }
       100% { background: #ffcc00; }
     }
-    /* Ensure the container remains legible – you can also add a subtle overlay if you like */
     body.neon-mode .app-container {
       background: rgba(255,255,255,0.92);
       backdrop-filter: blur(4px);
       border-color: #ffffff;
+    }
+
+    /* Secret game button – hidden by default, shown in neon mode */
+    #secretGameBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #f1c40f;
+      color: #1e293b;
+      font-size: 28px;
+      border: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      cursor: pointer;
+      z-index: 500;
+      transition: all 0.3s ease;
+      display: none; /* hidden by default */
+      animation: pulse 1.5s infinite;
+    }
+    #secretGameBtn:hover {
+      transform: scale(1.1);
+      background: #f39c12;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(241,196,15,0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(241,196,15,0); }
+      100% { box-shadow: 0 0 0 0 rgba(241,196,15,0); }
+    }
+    body.neon-mode #secretGameBtn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Game overlay */
+    #gameOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(6px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    #gameOverlay.active {
+      display: flex;
+    }
+    .game-container {
+      background: #111;
+      border-radius: 24px;
+      padding: 20px;
+      border: 3px solid #f1c40f;
+      box-shadow: 0 0 40px rgba(241,196,15,0.3);
+      max-width: 90%;
+      width: 600px;
+      position: relative;
+    }
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-weight: bold;
+      margin-bottom: 12px;
+      padding: 0 8px;
+    }
+    .game-header .score {
+      font-size: 1.5rem;
+      letter-spacing: 2px;
+    }
+    .game-header .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .game-header button {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      background: #333;
+      color: white;
+      border: 1px solid #555;
+      cursor: pointer;
+    }
+    .game-header button:hover {
+      background: #555;
+    }
+    .game-header .close-game {
+      background: #c0392b;
+      border-color: #a93226;
+    }
+    .game-header .close-game:hover {
+      background: #a93226;
+    }
+    #pongCanvas {
+      display: block;
+      width: 100%;
+      background: #000;
+      border-radius: 12px;
+      border: 2px solid #333;
+      touch-action: none;
+    }
+    .game-footer {
+      color: #888;
+      text-align: center;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+    .game-footer kbd {
+      background: #222;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #444;
+      color: #eee;
     }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
@@ -299,7 +419,6 @@
 
   <!-- ========== HEADER with LOGO ========== -->
   <div class="app-header">
-    <!-- School logo – click to toggle neon mode -->
     <img src="https://i.postimg.cc/5tV8ffKb/Adobe-Express-file.png" alt="Nan Chiau High School Logo" class="logo-img" id="logo">
     <h2>
       Nan Chiau High School
@@ -394,8 +513,6 @@
   </div>
 
   <!-- ========== MODALS ========== -->
-
-  <!-- Verification modal -->
   <div id="verifyModal" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔐 Verify your identity</h3>
@@ -407,7 +524,6 @@
     </div>
   </div>
 
-  <!-- Claim code popup -->
   <div id="claimCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>✅ Claim Successful</h3>
@@ -421,7 +537,6 @@
     </div>
   </div>
 
-  <!-- Check code popup -->
   <div id="checkCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>🔑 Check Claim Code</h3>
@@ -432,15 +547,34 @@
     </div>
   </div>
 
-  <!-- Success/Error popups -->
   <div id="successPopup" class="verify-popup hidden"><div class="popup-content"><p>✅ Item reported!</p><button id="closeSuccessPopup">OK</button></div></div>
   <div id="errorPopup" class="verify-popup hidden"><div class="popup-content"><p id="errorPopupMessage"></p><button id="closeErrorPopup">OK</button></div></div>
+</div>
 
+<!-- ========== SECRET GAME BUTTON ========== -->
+<button id="secretGameBtn">🎮</button>
+
+<!-- ========== GAME OVERLAY ========== -->
+<div id="gameOverlay">
+  <div class="game-container">
+    <div class="game-header">
+      <div class="score">⚪ <span id="scoreP1">0</span> – <span id="scoreP2">0</span></div>
+      <div class="controls">
+        <button id="modeToggleBtn">1P vs AI</button>
+        <button id="resetGameBtn">🔄 Reset</button>
+        <button class="close-game" id="closeGameBtn">✕</button>
+      </div>
+    </div>
+    <canvas id="pongCanvas" width="600" height="400"></canvas>
+    <div class="game-footer">
+      <kbd>W</kbd> <kbd>S</kbd> move left paddle &nbsp;|&nbsp; <kbd>↑</kbd> <kbd>↓</kbd> move right paddle (2P mode)
+    </div>
+  </div>
 </div>
 
 <script>
   // ============================================================
-  // PARSE INITIALISATION (same as shared backend)
+  // PARSE INITIALISATION (shared backend)
   // ============================================================
   Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
   Parse.serverURL = "https://parseapi.back4app.com/";
@@ -454,7 +588,296 @@
   });
 
   // ============================================================
-  // DATA FUNCTIONS (shared with backend)
+  // SECRET GAME BUTTON – show/hide with neon mode
+  // ============================================================
+  const gameBtn = document.getElementById('secretGameBtn');
+  const gameOverlay = document.getElementById('gameOverlay');
+  const closeGameBtn = document.getElementById('closeGameBtn');
+
+  // The button visibility is handled by CSS (neon-mode class)
+  // Click to open game
+  gameBtn.addEventListener('click', function() {
+    gameOverlay.classList.add('active');
+    // Start game loop if not already running
+    if (!gameRunning) {
+      gameRunning = true;
+      gameLoop();
+    }
+  });
+
+  closeGameBtn.addEventListener('click', function() {
+    gameOverlay.classList.remove('active');
+    gameRunning = false;
+  });
+
+  // Also close when clicking outside the game container (on the overlay background)
+  gameOverlay.addEventListener('click', function(e) {
+    if (e.target === gameOverlay) {
+      gameOverlay.classList.remove('active');
+      gameRunning = false;
+    }
+  });
+
+  // ============================================================
+  // PONG GAME LOGIC
+  // ============================================================
+  const canvas = document.getElementById('pongCanvas');
+  const ctx = canvas.getContext('2d');
+  const scoreP1El = document.getElementById('scoreP1');
+  const scoreP2El = document.getElementById('scoreP2');
+  const modeToggleBtn = document.getElementById('modeToggleBtn');
+  const resetBtn = document.getElementById('resetGameBtn');
+
+  // Game state
+  let gameRunning = false;
+  let mode = '1P'; // '1P' or '2P'
+  let animationId = null;
+
+  // Dimensions
+  const W = 600, H = 400;
+  const PADDLE_WIDTH = 10, PADDLE_HEIGHT = 80;
+  const BALL_SIZE = 10;
+
+  // Paddles
+  let paddle1 = { x: 20, y: H/2 - PADDLE_HEIGHT/2, vy: 0 };
+  let paddle2 = { x: W - 20 - PADDLE_WIDTH, y: H/2 - PADDLE_HEIGHT/2, vy: 0 };
+
+  // Ball
+  let ball = {
+    x: W/2,
+    y: H/2,
+    vx: 3,
+    vy: 2,
+    speed: 4
+  };
+
+  // Scores
+  let score1 = 0, score2 = 0;
+
+  // Keys
+  const keys = {
+    w: false,
+    s: false,
+    arrowup: false,
+    arrowdown: false
+  };
+
+  // Reset game
+  function resetGame() {
+    score1 = 0;
+    score2 = 0;
+    updateScoreDisplay();
+    resetPositions();
+  }
+
+  function resetPositions() {
+    paddle1.y = H/2 - PADDLE_HEIGHT/2;
+    paddle2.y = H/2 - PADDLE_HEIGHT/2;
+    ball.x = W/2;
+    ball.y = H/2;
+    // Random initial direction
+    const angle = (Math.random() * 0.8 + 0.2) * (Math.random() > 0.5 ? 1 : -1);
+    const speed = ball.speed;
+    ball.vx = speed * (Math.random() > 0.5 ? 1 : -1);
+    ball.vy = speed * Math.sin(angle);
+  }
+
+  function updateScoreDisplay() {
+    scoreP1El.textContent = score1;
+    scoreP2El.textContent = score2;
+  }
+
+  // Mode toggle
+  modeToggleBtn.addEventListener('click', function() {
+    mode = (mode === '1P') ? '2P' : '1P';
+    this.textContent = mode === '1P' ? '1P vs AI' : '2P vs Player';
+    resetGame();
+  });
+
+  resetBtn.addEventListener('click', resetGame);
+
+  // Keyboard events
+  document.addEventListener('keydown', function(e) {
+    const key = e.key.toLowerCase();
+    if (key === 'w') keys.w = true;
+    if (key === 's') keys.s = true;
+    if (key === 'arrowup') { keys.arrowup = true; e.preventDefault(); }
+    if (key === 'arrowdown') { keys.arrowdown = true; e.preventDefault(); }
+  });
+  document.addEventListener('keyup', function(e) {
+    const key = e.key.toLowerCase();
+    if (key === 'w') keys.w = false;
+    if (key === 's') keys.s = false;
+    if (key === 'arrowup') { keys.arrowup = false; e.preventDefault(); }
+    if (key === 'arrowdown') { keys.arrowdown = false; e.preventDefault(); }
+  });
+
+  // AI logic
+  function moveAI() {
+    const aiSpeed = 3.5;
+    const center = paddle2.y + PADDLE_HEIGHT/2;
+    if (ball.y < center - 10) {
+      paddle2.vy = -aiSpeed;
+    } else if (ball.y > center + 10) {
+      paddle2.vy = aiSpeed;
+    } else {
+      paddle2.vy = 0;
+    }
+    // Apply movement
+    paddle2.y += paddle2.vy;
+    // Clamp
+    paddle2.y = Math.max(0, Math.min(H - PADDLE_HEIGHT, paddle2.y));
+  }
+
+  // Update physics
+  function update() {
+    // Move paddle1 (player)
+    if (keys.w) paddle1.vy = -5;
+    else if (keys.s) paddle1.vy = 5;
+    else paddle1.vy = 0;
+    paddle1.y += paddle1.vy;
+    paddle1.y = Math.max(0, Math.min(H - PADDLE_HEIGHT, paddle1.y));
+
+    // Move paddle2
+    if (mode === '2P') {
+      // Player 2
+      if (keys.arrowup) paddle2.vy = -5;
+      else if (keys.arrowdown) paddle2.vy = 5;
+      else paddle2.vy = 0;
+      paddle2.y += paddle2.vy;
+      paddle2.y = Math.max(0, Math.min(H - PADDLE_HEIGHT, paddle2.y));
+    } else {
+      // AI
+      moveAI();
+    }
+
+    // Move ball
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    // Wall collision (top/bottom)
+    if (ball.y < 0 || ball.y > H - BALL_SIZE) {
+      ball.vy = -ball.vy;
+    }
+
+    // Paddle collision (left)
+    if (ball.vx < 0 &&
+        ball.x < paddle1.x + PADDLE_WIDTH &&
+        ball.x > paddle1.x &&
+        ball.y + BALL_SIZE > paddle1.y &&
+        ball.y < paddle1.y + PADDLE_HEIGHT) {
+      ball.vx = -ball.vx;
+      // Add a little randomness
+      ball.vy += (Math.random() - 0.5) * 1;
+      // Speed up slightly
+      ball.vx *= 1.05;
+      ball.vy *= 1.05;
+      ball.x = paddle1.x + PADDLE_WIDTH;
+    }
+
+    // Paddle collision (right)
+    if (ball.vx > 0 &&
+        ball.x + BALL_SIZE > paddle2.x &&
+        ball.x < paddle2.x + PADDLE_WIDTH &&
+        ball.y + BALL_SIZE > paddle2.y &&
+        ball.y < paddle2.y + PADDLE_HEIGHT) {
+      ball.vx = -ball.vx;
+      ball.vy += (Math.random() - 0.5) * 1;
+      ball.vx *= 1.05;
+      ball.vy *= 1.05;
+      ball.x = paddle2.x - BALL_SIZE;
+    }
+
+    // Scoring
+    if (ball.x < 0) {
+      // Right player scores
+      score2++;
+      updateScoreDisplay();
+      resetPositions();
+      // Ball direction toward left player
+      ball.vx = -ball.speed;
+    } else if (ball.x > W) {
+      score1++;
+      updateScoreDisplay();
+      resetPositions();
+      ball.vx = ball.speed;
+    }
+
+    // Clamp ball speed
+    const maxSpeed = 10;
+    const currentSpeed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+    if (currentSpeed > maxSpeed) {
+      ball.vx = (ball.vx / currentSpeed) * maxSpeed;
+      ball.vy = (ball.vy / currentSpeed) * maxSpeed;
+    }
+  }
+
+  // Draw everything
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Draw dashed center line
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 15]);
+    ctx.beginPath();
+    ctx.moveTo(W/2, 0);
+    ctx.lineTo(W/2, H);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw center circle
+    ctx.beginPath();
+    ctx.arc(W/2, H/2, 40, 0, Math.PI * 2);
+    ctx.strokeStyle = '#333';
+    ctx.stroke();
+
+    // Paddles
+    ctx.fillStyle = '#f1c40f';
+    ctx.fillRect(paddle1.x, paddle1.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+    ctx.fillRect(paddle2.x, paddle2.y, PADDLE_WIDTH, PADDLE_HEIGHT);
+
+    // Ball
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(ball.x + BALL_SIZE/2, ball.y + BALL_SIZE/2, BALL_SIZE/2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Game loop
+  function gameLoop() {
+    if (!gameRunning) {
+      // If gameOverlay is not active, stop the loop
+      if (!gameOverlay.classList.contains('active')) {
+        return;
+      }
+    }
+    update();
+    draw();
+    animationId = requestAnimationFrame(gameLoop);
+  }
+
+  // Start game loop when overlay opens (already handled)
+  // Stop when overlay closes (handled by setting gameRunning false)
+
+  // Handle window resize (canvas scaling)
+  function resizeCanvas() {
+    const container = canvas.parentElement;
+    const containerWidth = container.clientWidth;
+    const ratio = H / W;
+    const newWidth = Math.min(containerWidth - 40, 600);
+    const newHeight = newWidth * ratio;
+    canvas.style.width = newWidth + 'px';
+    canvas.style.height = newHeight + 'px';
+  }
+  window.addEventListener('resize', resizeCanvas);
+
+  // Initial setup
+  resetGame();
+  resizeCanvas();
+
+  // ============================================================
+  // DATA FUNCTIONS (same as before – keep everything else)
   // ============================================================
   function generateClaimCode(len = 6) {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -678,7 +1101,6 @@
     if (customInput) customInput.placeholder = isElectronic ? 'Custom model' : 'Custom brand';
   }
 
-  // Initial populations
   populateSelect('lostType', typeOptions, typeLabels, 'Select type');
   populateSelect('foundType', typeOptions, typeLabels, 'Select type');
   populateSelect('lostColor', colorOptions);
