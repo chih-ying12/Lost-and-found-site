@@ -487,6 +487,10 @@
       font-weight: 400;
       color: #64748b;
     }
+    /* conditional nationality wrapper */
+    #nationalityWrapper {
+      transition: all 0.2s ease;
+    }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
 </head>
@@ -578,8 +582,13 @@
       <div class="location-label">📍 Where was it found?</div>
       <select id="foundRoom"><option value="">Select Location</option></select>
       <input type="text" id="foundRoomCustom" placeholder="Custom location" class="hidden custom-input">
-      <!-- Nationality dropdown with all countries -->
-      <select id="foundNationality"><option value="">Select Nationality / Passport</option></select>
+      
+      <!-- Nationality dropdown – hidden by default, shown only when subcategory == 'passport' -->
+      <div id="nationalityWrapper" class="hidden">
+        <div class="location-label">🌍 Nationality / Passport</div>
+        <select id="foundNationality"><option value="">Select Nationality</option></select>
+      </div>
+
       <input type="datetime-local" id="foundTime" required>
       <input type="text" id="foundContactInfo" placeholder="Your contact (phone/email)" style="text-align: left;">
       <input type="text" id="verificationQuestion" placeholder="Verification question (e.g., 'What colour is the case?')" style="text-align: left;">
@@ -1156,8 +1165,8 @@
     electronic: ['mouse', 'computer', 'laptop', 'phone', 'tablet', 'headphones', 'charger', 'cable', 'other'],
     personal: ['wallet', 'backpack', 'purse', 'glasses', 'watch', 'jewelry', 'other'],
     clothing: ['jacket', 'shirt', 'pants', 'skirt', 'dress', 'shoes', 'hat', 'other'],
-    // Documents: includes 'nationality' and removes 'other'
-    documents: ['passport', 'id card', 'driver license', 'student card', 'work permit', 'nationality'],
+    // Documents: includes 'passport' and removes 'nationality' (we use a separate nationality dropdown)
+    documents: ['passport', 'id card', 'driver license', 'student card', 'work permit', 'other'],
     keys: ['keychain', 'car key', 'house key', 'office key', 'other'],
     bags: ['backpack', 'tote', 'handbag', 'suitcase', 'duffel', 'other'],
     other: []
@@ -1212,7 +1221,7 @@
     sel.innerHTML = '';
     const firstOpt = document.createElement('option');
     firstOpt.value = '';
-    firstOpt.textContent = 'Select Nationality / Passport';
+    firstOpt.textContent = 'Select Nationality';
     sel.appendChild(firstOpt);
     COUNTRIES.forEach(c => {
       const opt = document.createElement('option');
@@ -1255,17 +1264,9 @@
     const customSub = document.getElementById(customSubId);
     let options = subcategoryMap[type] || [];
     const sorted = [...options].sort((a,b) => a.localeCompare(b));
-    // For documents, ensure 'nationality' is present and 'other' is removed
-    if (type === 'documents') {
-      const natIdx = sorted.indexOf('nationality');
-      if (natIdx === -1) sorted.push('nationality');
-      const otherIdx2 = sorted.indexOf('other');
-      if (otherIdx2 > -1) sorted.splice(otherIdx2, 1);
-    } else {
-      // For other types, keep 'other' if present
-      const otherIdx = sorted.indexOf('other');
-      if (otherIdx > -1) { sorted.splice(otherIdx, 1); sorted.push('other'); }
-    }
+    // Keep 'other' for documents, but we handle nationality separately via dropdown
+    const otherIdx = sorted.indexOf('other');
+    if (otherIdx > -1) { sorted.splice(otherIdx, 1); sorted.push('other'); }
     subSelect.innerHTML = '<option value="">Select sub‑category</option>';
     if (sorted.length) {
       sorted.forEach(opt => {
@@ -1297,12 +1298,32 @@
       const modelCustom = document.getElementById(prefix + 'ModelCustom');
       if (modelCustom) modelCustom.placeholder = 'Custom brand/model';
     }
+    // For found page, also toggle nationality wrapper based on subcategory
+    if (prefix === 'found') {
+      toggleNationality();
+    }
+  }
+
+  // Toggle nationality wrapper based on found subcategory
+  function toggleNationality() {
+    const subSelect = document.getElementById('foundSubcategory');
+    const wrapper = document.getElementById('nationalityWrapper');
+    const nationalitySelect = document.getElementById('foundNationality');
+    if (subSelect.value === 'passport') {
+      wrapper.classList.remove('hidden');
+    } else {
+      wrapper.classList.add('hidden');
+      nationalitySelect.value = ''; // clear selection
+    }
   }
 
   document.getElementById('lostType').addEventListener('change', () => handleTypeChange('lost'));
   document.getElementById('foundType').addEventListener('change', () => handleTypeChange('found'));
   document.getElementById('lostSubcategory').addEventListener('change', () => toggleCustom('lostSubcategory', 'lostSubcategoryOther'));
-  document.getElementById('foundSubcategory').addEventListener('change', () => toggleCustom('foundSubcategory', 'foundSubcategoryOther'));
+  document.getElementById('foundSubcategory').addEventListener('change', function() {
+    toggleCustom('foundSubcategory', 'foundSubcategoryOther');
+    toggleNationality();
+  });
   document.querySelectorAll('select[id$="Model"], select[id$="Color"]').forEach(sel => {
     const customId = sel.id + 'Custom';
     sel.addEventListener('change', () => toggleCustom(sel.id, customId));
@@ -1406,7 +1427,11 @@
   document.getElementById('backToHomeFromFound').onclick = () => showPage(homePage);
 
   document.getElementById('goLostBtn').onclick = () => { document.getElementById('lostResults').innerHTML = ''; showPage(lostPage); };
-  document.getElementById('goFoundBtn').onclick = () => showPage(foundPage);
+  document.getElementById('goFoundBtn').onclick = () => { 
+    // Initialise the found form: hide nationality initially
+    document.getElementById('nationalityWrapper').classList.add('hidden');
+    showPage(foundPage);
+  };
   document.getElementById('logoutFromHomeBtn').onclick = async () => {
     await auth.logOut();
     currentVerifyingItemId = null;
@@ -1595,6 +1620,12 @@
       let subcategory = subSelect.value;
       if (subcategory === "Other") subcategory = document.getElementById('foundSubcategoryOther').value.trim();
 
+      // Get nationality only if subcategory is 'passport' and wrapper is visible
+      let nationality = '';
+      if (subcategory === 'passport') {
+        nationality = document.getElementById('foundNationality').value;
+      }
+
       const data = {
         type: document.getElementById('foundType').value,
         subcategory,
@@ -1604,7 +1635,7 @@
         description: document.getElementById('foundDescription').value.trim(),
         timeFound: new Date(document.getElementById('foundTime').value),
         locationRoom: getDropdownValue('foundRoom', 'foundRoomCustom'),
-        nationality: document.getElementById('foundNationality').value,
+        nationality: nationality,
         contactInfo: document.getElementById('foundContactInfo').value.trim(),
         verificationQuestion: document.getElementById('verificationQuestion').value.trim(),
         verificationAnswer: document.getElementById('verificationAnswer').value.trim(),
@@ -1635,6 +1666,8 @@
   window.addEventListener('DOMContentLoaded', function() {
     handleTypeChange('found');
     updateSubcategory('foundType', 'foundSubcategory', 'foundSubcategoryOther');
+    // Ensure nationality is hidden initially
+    document.getElementById('nationalityWrapper').classList.add('hidden');
   });
 
   checkSession();
