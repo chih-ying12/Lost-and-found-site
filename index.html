@@ -487,10 +487,6 @@
       font-weight: 400;
       color: #64748b;
     }
-    /* conditional nationality wrapper */
-    #nationalityWrapper {
-      transition: all 0.2s ease;
-    }
   </style>
   <script src="https://unpkg.com/parse@5.3.0/dist/parse.min.js"></script>
 </head>
@@ -582,13 +578,6 @@
       <div class="location-label">📍 Where was it found?</div>
       <select id="foundRoom"><option value="">Select Location</option></select>
       <input type="text" id="foundRoomCustom" placeholder="Custom location" class="hidden custom-input">
-      
-      <!-- Nationality dropdown – hidden by default, shown only when subcategory == 'passport' -->
-      <div id="nationalityWrapper" class="hidden">
-        <div class="location-label">🌍 Nationality / Passport</div>
-        <select id="foundNationality"><option value="">Select Nationality</option></select>
-      </div>
-
       <input type="datetime-local" id="foundTime" required>
       <input type="text" id="foundContactInfo" placeholder="Your contact (phone/email)" style="text-align: left;">
       <input type="text" id="verificationQuestion" placeholder="Verification question (e.g., 'What colour is the case?')" style="text-align: left;">
@@ -1001,13 +990,14 @@
     item.set("type", data.type);
     item.set("subcategory", data.subcategory);
     item.set("color", data.color);
+    // model will be nationality for passport, else brand/model
     item.set("model", data.model);
     item.set("appearance", data.appearance);
     item.set("description", data.description);
     item.set("timeFound", data.timeFound);
     item.set("locationRoom", data.locationRoom);
     item.set("locationFloor", "");
-    item.set("nationality", data.nationality || "");
+    item.set("nationality", data.nationality || ""); // store nationality separately too
     item.set("isResolved", false);
     item.set("contactInfo", data.contactInfo);
     item.set("claimCode", "");
@@ -1031,6 +1021,8 @@
     if (criteria.subcategory) query.matches("subcategory", new RegExp(criteria.subcategory, "i"));
     if (criteria.color) query.matches("color", new RegExp(criteria.color, "i"));
     if (criteria.model) query.matches("model", new RegExp(criteria.model, "i"));
+    // Also search nationality if provided (for passports)
+    if (criteria.nationality) query.matches("nationality", new RegExp(criteria.nationality, "i"));
     if (criteria.appearance) query.matches("appearance", new RegExp(criteria.appearance, "i"));
     if (criteria.description) query.matches("description", new RegExp(criteria.description, "i"));
     if (criteria.room) query.matches("locationRoom", new RegExp(criteria.room, "i"));
@@ -1165,7 +1157,6 @@
     electronic: ['mouse', 'computer', 'laptop', 'phone', 'tablet', 'headphones', 'charger', 'cable', 'other'],
     personal: ['wallet', 'backpack', 'purse', 'glasses', 'watch', 'jewelry', 'other'],
     clothing: ['jacket', 'shirt', 'pants', 'skirt', 'dress', 'shoes', 'hat', 'other'],
-    // Documents: includes 'passport' and removes 'nationality' (we use a separate nationality dropdown)
     documents: ['passport', 'id card', 'driver license', 'student card', 'work permit', 'other'],
     keys: ['keychain', 'car key', 'house key', 'office key', 'other'],
     bags: ['backpack', 'tote', 'handbag', 'suitcase', 'duffel', 'other'],
@@ -1205,19 +1196,9 @@
     });
   }
 
-  function populateModelSelect(selectId, type) {
-    const isElectronic = type === 'electronic';
-    const firstText = isElectronic ? 'Select Model' : 'Select Brand';
-    const brands = brandOptionsByType[type] || ['Other'];
-    populateSelect(selectId, brands, null, firstText);
-    const customId = selectId.replace('Model', 'ModelCustom');
-    const customInput = document.getElementById(customId);
-    if (customInput) customInput.placeholder = isElectronic ? 'Custom model' : 'Custom brand';
-  }
-
-  // Populate nationality dropdown with all countries
-  function populateNationality() {
-    const sel = document.getElementById('foundNationality');
+  // Populate model select with countries (for passport)
+  function populateModelWithCountries(selectId) {
+    const sel = document.getElementById(selectId);
     sel.innerHTML = '';
     const firstOpt = document.createElement('option');
     firstOpt.value = '';
@@ -1229,8 +1210,65 @@
       opt.textContent = c;
       sel.appendChild(opt);
     });
+    // Hide custom model input because we have all countries
+    const customId = selectId.replace('Model', 'ModelCustom');
+    const customInput = document.getElementById(customId);
+    if (customInput) {
+      customInput.classList.add('hidden');
+      customInput.value = '';
+      customInput.placeholder = 'Custom brand/model';
+    }
   }
-  populateNationality();
+
+  // Populate model with brands based on type
+  function populateModelWithBrands(selectId, type) {
+    const isElectronic = type === 'electronic';
+    const firstText = isElectronic ? 'Select Model' : 'Select Brand';
+    const brands = brandOptionsByType[type] || ['Other'];
+    populateSelect(selectId, brands, null, firstText);
+    const customId = selectId.replace('Model', 'ModelCustom');
+    const customInput = document.getElementById(customId);
+    if (customInput) {
+      // Show custom input only if 'Other' is present in options (it always is)
+      customInput.classList.remove('hidden');
+      customInput.placeholder = isElectronic ? 'Custom model' : 'Custom brand';
+    }
+  }
+
+  // Main function to update model select based on type and subcategory
+  function updateModelBasedOnSubcategory(prefix) {
+    const typeSelectId = prefix + 'Type';
+    const subSelectId = prefix + 'Subcategory';
+    const modelSelectId = prefix + 'Model';
+    const type = document.getElementById(typeSelectId).value;
+    const subcategory = document.getElementById(subSelectId).value;
+    // If type is documents and subcategory is passport, use countries
+    if (type === 'documents' && subcategory === 'passport') {
+      populateModelWithCountries(modelSelectId);
+    } else {
+      // Otherwise use brands based on type
+      if (type) {
+        populateModelWithBrands(modelSelectId, type);
+      } else {
+        // No type selected, show empty
+        populateSelect(modelSelectId, [], null, 'Select Brand / Model');
+        const customId = modelSelectId.replace('Model', 'ModelCustom');
+        const customInput = document.getElementById(customId);
+        if (customInput) {
+          customInput.classList.add('hidden');
+          customInput.value = '';
+        }
+      }
+    }
+  }
+
+  // Override the old populateModelSelect to call the new logic
+  // We'll keep the old function but use it inside the new one.
+
+  // Populate nationality dropdown (not used as separate now)
+  function populateNationality() {
+    // This is now integrated into model select, so we can leave it empty
+  }
 
   populateSelect('lostType', typeOptions, typeLabels, 'Select type');
   populateSelect('foundType', typeOptions, typeLabels, 'Select type');
@@ -1264,7 +1302,6 @@
     const customSub = document.getElementById(customSubId);
     let options = subcategoryMap[type] || [];
     const sorted = [...options].sort((a,b) => a.localeCompare(b));
-    // Keep 'other' for documents, but we handle nationality separately via dropdown
     const otherIdx = sorted.indexOf('other');
     if (otherIdx > -1) { sorted.splice(otherIdx, 1); sorted.push('other'); }
     subSelect.innerHTML = '<option value="">Select sub‑category</option>';
@@ -1290,46 +1327,58 @@
     const subCustomId = prefix + 'SubcategoryOther';
     const modelSelectId = prefix + 'Model';
     updateSubcategory(typeSelectId, subSelectId, subCustomId);
-    const type = document.getElementById(typeSelectId).value;
-    if (type) {
-      populateModelSelect(modelSelectId, type);
-    } else {
-      populateSelect(modelSelectId, [], null, 'Select Brand / Model');
-      const modelCustom = document.getElementById(prefix + 'ModelCustom');
-      if (modelCustom) modelCustom.placeholder = 'Custom brand/model';
-    }
-    // For found page, also toggle nationality wrapper based on subcategory
-    if (prefix === 'found') {
-      toggleNationality();
-    }
+    // After updating subcategory, update model based on current subcategory
+    // But we need to ensure subcategory is updated first, so call after a slight delay or directly
+    // We'll call updateModelBasedOnSubcategory after the subcategory options are populated
+    // However, we need to pass the new subcategory value.
+    // We'll call it after the DOM update.
+    setTimeout(() => {
+      updateModelBasedOnSubcategory(prefix);
+    }, 10);
   }
 
-  // Toggle nationality wrapper based on found subcategory
-  function toggleNationality() {
-    const subSelect = document.getElementById('foundSubcategory');
-    const wrapper = document.getElementById('nationalityWrapper');
-    const nationalitySelect = document.getElementById('foundNationality');
-    if (subSelect.value === 'passport') {
-      wrapper.classList.remove('hidden');
-    } else {
-      wrapper.classList.add('hidden');
-      nationalitySelect.value = ''; // clear selection
-    }
-  }
+  // Listen for subcategory change to update model
+  document.getElementById('lostSubcategory').addEventListener('change', function() {
+    updateModelBasedOnSubcategory('lost');
+    toggleCustom('lostSubcategory', 'lostSubcategoryOther');
+  });
+  document.getElementById('foundSubcategory').addEventListener('change', function() {
+    updateModelBasedOnSubcategory('found');
+    toggleCustom('foundSubcategory', 'foundSubcategoryOther');
+  });
 
   document.getElementById('lostType').addEventListener('change', () => handleTypeChange('lost'));
   document.getElementById('foundType').addEventListener('change', () => handleTypeChange('found'));
-  document.getElementById('lostSubcategory').addEventListener('change', () => toggleCustom('lostSubcategory', 'lostSubcategoryOther'));
-  document.getElementById('foundSubcategory').addEventListener('change', function() {
-    toggleCustom('foundSubcategory', 'foundSubcategoryOther');
-    toggleNationality();
-  });
-  document.querySelectorAll('select[id$="Model"], select[id$="Color"]').forEach(sel => {
+
+  document.querySelectorAll('select[id$="Color"]').forEach(sel => {
     const customId = sel.id + 'Custom';
     sel.addEventListener('change', () => toggleCustom(sel.id, customId));
   });
   document.getElementById('lostRoom').addEventListener('change', () => toggleCustom('lostRoom', 'lostRoomCustom'));
   document.getElementById('foundRoom').addEventListener('change', () => toggleCustom('foundRoom', 'foundRoomCustom'));
+
+  // Also when model select changes to "Other" we need to show custom input, but we don't have "Other" in country mode
+  // So we need to handle that only when not in country mode.
+  // We'll add a listener on model select to toggle custom input for brand/model, but only if it's not passport.
+  // We can add a generic listener but we need to know if it's in country mode.
+  // We'll add a class or check content. Simpler: we'll just handle it with a function.
+
+  // Override toggleCustom for model select to handle brand/model and country modes
+  // We'll add a separate listener for model select change.
+  document.querySelectorAll('select[id$="Model"]').forEach(sel => {
+    sel.addEventListener('change', function() {
+      const customId = this.id + 'Custom';
+      const customInput = document.getElementById(customId);
+      // Only show custom input if the select has an option "Other" (i.e., not country mode)
+      const hasOther = Array.from(this.options).some(opt => opt.value === 'Other');
+      if (hasOther && this.value === 'Other') {
+        customInput.classList.remove('hidden');
+      } else {
+        customInput.classList.add('hidden');
+        customInput.value = '';
+      }
+    });
+  });
 
   // ============================================================
   // AUTH
@@ -1426,10 +1475,15 @@
   document.getElementById('backToHomeFromLost').onclick = () => showPage(homePage);
   document.getElementById('backToHomeFromFound').onclick = () => showPage(homePage);
 
-  document.getElementById('goLostBtn').onclick = () => { document.getElementById('lostResults').innerHTML = ''; showPage(lostPage); };
-  document.getElementById('goFoundBtn').onclick = () => { 
-    // Initialise the found form: hide nationality initially
-    document.getElementById('nationalityWrapper').classList.add('hidden');
+  document.getElementById('goLostBtn').onclick = () => {
+    document.getElementById('lostResults').innerHTML = '';
+    // Initialise lost model based on current type/subcategory
+    setTimeout(() => updateModelBasedOnSubcategory('lost'), 10);
+    showPage(lostPage);
+  };
+  document.getElementById('goFoundBtn').onclick = () => {
+    // Initialise found model based on current type/subcategory
+    setTimeout(() => updateModelBasedOnSubcategory('found'), 10);
     showPage(foundPage);
   };
   document.getElementById('logoutFromHomeBtn').onclick = async () => {
@@ -1448,17 +1502,26 @@
     const subSelect = document.getElementById('lostSubcategory');
     let subcategory = subSelect.value;
     if (subcategory === "Other") subcategory = document.getElementById('lostSubcategoryOther').value.trim();
+    // For model, if subcategory is passport, the model select contains nationality
+    // We treat model as nationality in that case.
     const model = getDropdownValue('lostModel', 'lostModelCustom');
     const color = getDropdownValue('lostColor', 'lostColorCustom');
     const room = getDropdownValue('lostRoom', 'lostRoomCustom');
 
     const criteria = {
       type: document.getElementById('lostType').value,
-      subcategory, color, model,
+      subcategory,
+      color,
+      model, // this will be nationality if passport
       appearance: document.getElementById('lostAppearance').value,
       description: document.getElementById('lostDescription').value,
       room
     };
+    // If subcategory is passport, also set nationality for search
+    if (subcategory === 'passport' && model) {
+      criteria.nationality = model;
+    }
+
     const container = document.getElementById('lostResults');
     container.innerHTML = '<p style="color:#64748b;">🔍 Searching…</p>';
     try {
@@ -1469,9 +1532,11 @@
         const photoUrl = photo ? photo.url() : null;
         const loc = item.get('locationRoom') || 'Unknown location';
         const nat = item.get('nationality') || '';
+        // Show model as nationality if it's a passport
+        const modelDisplay = item.get('subcategory') === 'passport' ? nat : item.get('model');
         return `
           <div class="lost-item-card">
-            <div><strong>${item.get('type')}</strong> · ${item.get('subcategory')||''} · ${item.get('color')} · ${item.get('model')}</div>
+            <div><strong>${item.get('type')}</strong> · ${item.get('subcategory')||''} · ${item.get('color')} · ${modelDisplay}</div>
             ${nat ? `<div>🌍 ${nat}</div>` : ''}
             <div>📍 ${loc}</div>
             <div>✨ ${item.get('appearance')||''}</div>
@@ -1620,17 +1685,22 @@
       let subcategory = subSelect.value;
       if (subcategory === "Other") subcategory = document.getElementById('foundSubcategoryOther').value.trim();
 
-      // Get nationality only if subcategory is 'passport' and wrapper is visible
+      // Get model value (could be nationality if passport)
+      const modelValue = getDropdownValue('foundModel', 'foundModelCustom');
+      // If subcategory is passport, the model value is actually the nationality
       let nationality = '';
+      let finalModel = modelValue;
       if (subcategory === 'passport') {
-        nationality = document.getElementById('foundNationality').value;
+        nationality = modelValue; // store in nationality field
+        // Also store in model field for consistency
+        finalModel = modelValue;
       }
 
       const data = {
         type: document.getElementById('foundType').value,
         subcategory,
         color: getDropdownValue('foundColor', 'foundColorCustom'),
-        model: getDropdownValue('foundModel', 'foundModelCustom'),
+        model: finalModel,
         appearance: document.getElementById('foundAppearance').value.trim(),
         description: document.getElementById('foundDescription').value.trim(),
         timeFound: new Date(document.getElementById('foundTime').value),
@@ -1665,9 +1735,11 @@
   // ============================================================
   window.addEventListener('DOMContentLoaded', function() {
     handleTypeChange('found');
-    updateSubcategory('foundType', 'foundSubcategory', 'foundSubcategoryOther');
-    // Ensure nationality is hidden initially
-    document.getElementById('nationalityWrapper').classList.add('hidden');
+    // Initialize model for found page
+    setTimeout(() => updateModelBasedOnSubcategory('found'), 20);
+    // Initialize lost page model (hidden initially, but we can set it)
+    handleTypeChange('lost');
+    setTimeout(() => updateModelBasedOnSubcategory('lost'), 20);
   });
 
   checkSession();
