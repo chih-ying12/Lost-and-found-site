@@ -128,16 +128,6 @@
       padding: 24px 20px;
       border: 1px solid #fce4d6;
     }
-    .admin-badge {
-      display: inline-block;
-      padding: 2px 12px;
-      border-radius: 30px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      margin-left: 6px;
-    }
-    .badge-claimed { background: #dcfce7; color: #15803d; }
-    .badge-unclaimed { background: #fef3c7; color: #b45309; }
     .error-msg {
       color: #b91c1c;
       font-size: 0.85rem;
@@ -580,25 +570,13 @@
       <input type="text" id="foundRoomCustom" placeholder="Custom location" class="hidden custom-input">
       <input type="datetime-local" id="foundTime" required>
       <input type="text" id="foundContactInfo" placeholder="Your contact (phone/email)" style="text-align: left;">
-      <input type="text" id="verificationQuestion" placeholder="Verification question (e.g., 'What colour is the case?')" style="text-align: left;">
-      <input type="text" id="verificationAnswer" placeholder="Answer to verification question" style="text-align: left;">
       <input type="file" id="foundPhoto" accept="image/*">
       <button id="submitFoundBtn" class="primary-btn">✅ Submit found item</button>
     </div>
   </div>
 
   <!-- ========== MODALS ========== -->
-  <div id="verifyModal" class="verify-popup hidden">
-    <div class="popup-content">
-      <h3>🔐 Verify your identity</h3>
-      <p id="verifyQuestionText">Loading question...</p>
-      <input type="text" id="verifyAnswerInput" placeholder="Your answer">
-      <button id="submitVerifyBtn" class="primary-btn">✅ Verify & Claim</button>
-      <button id="cancelVerifyBtn" class="outline-btn">Cancel</button>
-      <p id="verifyMessage" style="color:#b91c1c;"></p>
-    </div>
-  </div>
-
+  <!-- Claim code popup (no verification) -->
   <div id="claimCodePopup" class="verify-popup hidden">
     <div class="popup-content">
       <h3>✅ Claim Successful</h3>
@@ -661,14 +639,14 @@
 
 <script>
   // ============================================================
-  // PARSE INITIALISATION (shared backend)
+  // PARSE INITIALISATION
   // ============================================================
   Parse.initialize("qknjxJVl86XMkFayCADjD7S61rW8VajE0QVg9XDm", "uAZAVjQWw3VHdnqPGKdV3JEh8uivvEN8leNJi3bp");
   Parse.serverURL = "https://parseapi.back4app.com/";
   const LostItem = Parse.Object.extend("LostItem");
 
   // ============================================================
-  // COUNTRIES LIST (for nationality dropdown)
+  // COUNTRIES LIST (for passport nationality)
   // ============================================================
   const COUNTRIES = [
     "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda",
@@ -990,22 +968,16 @@
     item.set("type", data.type);
     item.set("subcategory", data.subcategory);
     item.set("color", data.color);
-    // model will be nationality for passport, else brand/model
     item.set("model", data.model);
     item.set("appearance", data.appearance);
     item.set("description", data.description);
     item.set("timeFound", data.timeFound);
     item.set("locationRoom", data.locationRoom);
     item.set("locationFloor", "");
-    item.set("nationality", data.nationality || ""); // store nationality separately too
+    item.set("nationality", data.nationality || "");
     item.set("isResolved", false);
     item.set("contactInfo", data.contactInfo);
     item.set("claimCode", "");
-    item.set("verificationQuestion", data.verificationQuestion);
-    item.set("verificationAnswer", data.verificationAnswer);
-    item.set("verificationAttempts", 0);
-    item.set("nextAttemptAllowedAt", new Date());
-    item.set("verificationBlocked", false);
     if (data.photoBase64) {
       const parseFile = new Parse.File(data.photoName, { base64: data.photoBase64.split(',')[1] });
       item.set("photo", parseFile);
@@ -1016,12 +988,10 @@
   async function searchLostItems(criteria) {
     let query = new Parse.Query(LostItem);
     query.equalTo("isResolved", false);
-    query.equalTo("verificationBlocked", false);
     if (criteria.type) query.equalTo("type", criteria.type);
     if (criteria.subcategory) query.matches("subcategory", new RegExp(criteria.subcategory, "i"));
     if (criteria.color) query.matches("color", new RegExp(criteria.color, "i"));
     if (criteria.model) query.matches("model", new RegExp(criteria.model, "i"));
-    // Also search nationality if provided (for passports)
     if (criteria.nationality) query.matches("nationality", new RegExp(criteria.nationality, "i"));
     if (criteria.appearance) query.matches("appearance", new RegExp(criteria.appearance, "i"));
     if (criteria.description) query.matches("description", new RegExp(criteria.description, "i"));
@@ -1030,62 +1000,17 @@
     return query.find();
   }
 
-  async function getVerificationQuestion(itemId) {
+  // Direct claim without verification
+  async function claimItem(itemId) {
     const query = new Parse.Query(LostItem);
     const item = await query.get(itemId);
-    return item ? item.get("verificationQuestion") || null : null;
-  }
-
-  async function verifyItem(itemId, userAnswer) {
-    const query = new Parse.Query(LostItem);
-    const item = await query.get(itemId);
-    if (!item) return { success: false, message: "Item not found." };
-    if (item.get("isResolved")) return { success: false, message: "Already claimed." };
-    if (item.get("verificationBlocked")) return { success: false, message: "Permanently blocked.", blocked: true };
-
-    const attempts = item.get("verificationAttempts") || 0;
-    const nextAllowed = item.get("nextAttemptAllowedAt");
-    if (nextAllowed && new Date() < new Date(nextAllowed)) {
-      const diff = new Date(nextAllowed) - new Date();
-      const hrs = Math.floor(diff / 3600000);
-      const mins = Math.floor((diff % 3600000) / 60000);
-      return { success: false, message: `Cooldown: try in ${hrs}h ${mins}m.`, cooldownEnd: nextAllowed };
-    }
-
-    const correct = (item.get("verificationAnswer") || "").trim().toLowerCase();
-    if (correct === userAnswer.trim().toLowerCase()) {
-      const code = generateClaimCode();
-      item.set("claimCode", code);
-      item.set("verificationAttempts", 0);
-      item.set("nextAttemptAllowedAt", new Date());
-      item.set("verificationBlocked", false);
-      item.set("isResolved", true);
-      await item.save();
-      return { success: true, message: `✅ Correct! Your claim code: ${code}`, claimCode: code };
-    }
-
-    const newAttempts = attempts + 1;
-    item.set("verificationAttempts", newAttempts);
-    if (newAttempts >= 9) {
-      item.set("verificationBlocked", true);
-      item.set("nextAttemptAllowedAt", null);
-      await item.save();
-      return { success: false, message: "Too many attempts. Permanently blocked.", blocked: true };
-    } else if (newAttempts >= 6) {
-      const cooldown = new Date(Date.now() + 5 * 3600 * 1000);
-      item.set("nextAttemptAllowedAt", cooldown);
-      await item.save();
-      return { success: false, message: "Wrong answer. Locked for 5 hours.", cooldownEnd: cooldown };
-    } else if (newAttempts >= 3) {
-      const cooldown = new Date(Date.now() + 3 * 3600 * 1000);
-      item.set("nextAttemptAllowedAt", cooldown);
-      await item.save();
-      return { success: false, message: "Wrong answer. Locked for 3 hours.", cooldownEnd: cooldown };
-    } else {
-      item.set("nextAttemptAllowedAt", new Date());
-      await item.save();
-      return { success: false, message: `Wrong answer. ${3 - newAttempts} attempts before cooldown.` };
-    }
+    if (!item) throw new Error("Item not found.");
+    if (item.get("isResolved")) throw new Error("Item already claimed.");
+    const code = generateClaimCode();
+    item.set("claimCode", code);
+    item.set("isResolved", true);
+    await item.save();
+    return code;
   }
 
   async function checkClaimCode(code) {
@@ -1210,17 +1135,14 @@
       opt.textContent = c;
       sel.appendChild(opt);
     });
-    // Hide custom model input because we have all countries
     const customId = selectId.replace('Model', 'ModelCustom');
     const customInput = document.getElementById(customId);
     if (customInput) {
       customInput.classList.add('hidden');
       customInput.value = '';
-      customInput.placeholder = 'Custom brand/model';
     }
   }
 
-  // Populate model with brands based on type
   function populateModelWithBrands(selectId, type) {
     const isElectronic = type === 'electronic';
     const firstText = isElectronic ? 'Select Model' : 'Select Brand';
@@ -1229,45 +1151,44 @@
     const customId = selectId.replace('Model', 'ModelCustom');
     const customInput = document.getElementById(customId);
     if (customInput) {
-      // Show custom input only if 'Other' is present in options (it always is)
-      customInput.classList.remove('hidden');
-      customInput.placeholder = isElectronic ? 'Custom model' : 'Custom brand';
-    }
-  }
-
-  // Main function to update model select based on type and subcategory
-  function updateModelBasedOnSubcategory(prefix) {
-    const typeSelectId = prefix + 'Type';
-    const subSelectId = prefix + 'Subcategory';
-    const modelSelectId = prefix + 'Model';
-    const type = document.getElementById(typeSelectId).value;
-    const subcategory = document.getElementById(subSelectId).value;
-    // If type is documents and subcategory is passport, use countries
-    if (type === 'documents' && subcategory === 'passport') {
-      populateModelWithCountries(modelSelectId);
-    } else {
-      // Otherwise use brands based on type
-      if (type) {
-        populateModelWithBrands(modelSelectId, type);
+      const sel = document.getElementById(selectId);
+      if (sel && sel.value === 'Other') {
+        customInput.classList.remove('hidden');
       } else {
-        // No type selected, show empty
-        populateSelect(modelSelectId, [], null, 'Select Brand / Model');
-        const customId = modelSelectId.replace('Model', 'ModelCustom');
-        const customInput = document.getElementById(customId);
-        if (customInput) {
-          customInput.classList.add('hidden');
-          customInput.value = '';
-        }
+        customInput.classList.add('hidden');
+        customInput.value = '';
       }
     }
   }
 
-  // Override the old populateModelSelect to call the new logic
-  // We'll keep the old function but use it inside the new one.
+  function updateModelBasedOnSubcategory(prefix) {
+    const typeSelectId = prefix + 'Type';
+    const subSelectId = prefix + 'Subcategory';
+    const modelSelectId = prefix + 'Model';
+    const customId = modelSelectId + 'Custom';
 
-  // Populate nationality dropdown (not used as separate now)
-  function populateNationality() {
-    // This is now integrated into model select, so we can leave it empty
+    const type = document.getElementById(typeSelectId).value;
+    const subcategory = document.getElementById(subSelectId).value;
+    const customInput = document.getElementById(customId);
+
+    if (type === 'documents' && subcategory === 'passport') {
+      populateModelWithCountries(modelSelectId);
+      if (customInput) {
+        customInput.classList.add('hidden');
+        customInput.value = '';
+      }
+      return;
+    }
+
+    if (type) {
+      populateModelWithBrands(modelSelectId, type);
+    } else {
+      populateSelect(modelSelectId, [], null, 'Select Brand / Model');
+      if (customInput) {
+        customInput.classList.add('hidden');
+        customInput.value = '';
+      }
+    }
   }
 
   populateSelect('lostType', typeOptions, typeLabels, 'Select type');
@@ -1325,19 +1246,15 @@
     const typeSelectId = prefix + 'Type';
     const subSelectId = prefix + 'Subcategory';
     const subCustomId = prefix + 'SubcategoryOther';
-    const modelSelectId = prefix + 'Model';
     updateSubcategory(typeSelectId, subSelectId, subCustomId);
-    // After updating subcategory, update model based on current subcategory
-    // But we need to ensure subcategory is updated first, so call after a slight delay or directly
-    // We'll call updateModelBasedOnSubcategory after the subcategory options are populated
-    // However, we need to pass the new subcategory value.
-    // We'll call it after the DOM update.
     setTimeout(() => {
       updateModelBasedOnSubcategory(prefix);
-    }, 10);
+    }, 20);
   }
 
-  // Listen for subcategory change to update model
+  document.getElementById('lostType').addEventListener('change', () => handleTypeChange('lost'));
+  document.getElementById('foundType').addEventListener('change', () => handleTypeChange('found'));
+
   document.getElementById('lostSubcategory').addEventListener('change', function() {
     updateModelBasedOnSubcategory('lost');
     toggleCustom('lostSubcategory', 'lostSubcategoryOther');
@@ -1347,9 +1264,6 @@
     toggleCustom('foundSubcategory', 'foundSubcategoryOther');
   });
 
-  document.getElementById('lostType').addEventListener('change', () => handleTypeChange('lost'));
-  document.getElementById('foundType').addEventListener('change', () => handleTypeChange('found'));
-
   document.querySelectorAll('select[id$="Color"]').forEach(sel => {
     const customId = sel.id + 'Custom';
     sel.addEventListener('change', () => toggleCustom(sel.id, customId));
@@ -1357,19 +1271,10 @@
   document.getElementById('lostRoom').addEventListener('change', () => toggleCustom('lostRoom', 'lostRoomCustom'));
   document.getElementById('foundRoom').addEventListener('change', () => toggleCustom('foundRoom', 'foundRoomCustom'));
 
-  // Also when model select changes to "Other" we need to show custom input, but we don't have "Other" in country mode
-  // So we need to handle that only when not in country mode.
-  // We'll add a listener on model select to toggle custom input for brand/model, but only if it's not passport.
-  // We can add a generic listener but we need to know if it's in country mode.
-  // We'll add a class or check content. Simpler: we'll just handle it with a function.
-
-  // Override toggleCustom for model select to handle brand/model and country modes
-  // We'll add a separate listener for model select change.
   document.querySelectorAll('select[id$="Model"]').forEach(sel => {
     sel.addEventListener('change', function() {
       const customId = this.id + 'Custom';
       const customInput = document.getElementById(customId);
-      // Only show custom input if the select has an option "Other" (i.e., not country mode)
       const hasOther = Array.from(this.options).some(opt => opt.value === 'Other');
       if (hasOther && this.value === 'Other') {
         customInput.classList.remove('hidden');
@@ -1406,13 +1311,10 @@
   const homePage = document.getElementById('homePage');
   const lostPage = document.getElementById('lostPage');
   const foundPage = document.getElementById('foundPage');
-  const verifyModal = document.getElementById('verifyModal');
   const claimCodePopup = document.getElementById('claimCodePopup');
   const checkCodePopup = document.getElementById('checkCodePopup');
   const successPopup = document.getElementById('successPopup');
   const errorPopup = document.getElementById('errorPopup');
-
-  let currentVerifyingItemId = null;
 
   function showPage(page) {
     document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
@@ -1477,18 +1379,15 @@
 
   document.getElementById('goLostBtn').onclick = () => {
     document.getElementById('lostResults').innerHTML = '';
-    // Initialise lost model based on current type/subcategory
-    setTimeout(() => updateModelBasedOnSubcategory('lost'), 10);
+    setTimeout(() => updateModelBasedOnSubcategory('lost'), 30);
     showPage(lostPage);
   };
   document.getElementById('goFoundBtn').onclick = () => {
-    // Initialise found model based on current type/subcategory
-    setTimeout(() => updateModelBasedOnSubcategory('found'), 10);
+    setTimeout(() => updateModelBasedOnSubcategory('found'), 30);
     showPage(foundPage);
   };
   document.getElementById('logoutFromHomeBtn').onclick = async () => {
     await auth.logOut();
-    currentVerifyingItemId = null;
     showPage(loginPage);
     document.getElementById('loginPassword').value = '';
     document.getElementById('loginUsername').value = '';
@@ -1496,14 +1395,12 @@
   };
 
   // ============================================================
-  // SEARCH & CLAIM FLOW
+  // SEARCH & DIRECT CLAIM
   // ============================================================
   document.getElementById('searchMatchingBtn').onclick = async () => {
     const subSelect = document.getElementById('lostSubcategory');
     let subcategory = subSelect.value;
     if (subcategory === "Other") subcategory = document.getElementById('lostSubcategoryOther').value.trim();
-    // For model, if subcategory is passport, the model select contains nationality
-    // We treat model as nationality in that case.
     const model = getDropdownValue('lostModel', 'lostModelCustom');
     const color = getDropdownValue('lostColor', 'lostColorCustom');
     const room = getDropdownValue('lostRoom', 'lostRoomCustom');
@@ -1512,12 +1409,11 @@
       type: document.getElementById('lostType').value,
       subcategory,
       color,
-      model, // this will be nationality if passport
+      model,
       appearance: document.getElementById('lostAppearance').value,
       description: document.getElementById('lostDescription').value,
       room
     };
-    // If subcategory is passport, also set nationality for search
     if (subcategory === 'passport' && model) {
       criteria.nationality = model;
     }
@@ -1532,11 +1428,10 @@
         const photoUrl = photo ? photo.url() : null;
         const loc = item.get('locationRoom') || 'Unknown location';
         const nat = item.get('nationality') || '';
-        // Show model as nationality if it's a passport
-        const modelDisplay = item.get('subcategory') === 'passport' ? nat : item.get('model');
+        const displayModel = (item.get('subcategory') === 'passport' && nat) ? nat : item.get('model');
         return `
           <div class="lost-item-card">
-            <div><strong>${item.get('type')}</strong> · ${item.get('subcategory')||''} · ${item.get('color')} · ${modelDisplay}</div>
+            <div><strong>${item.get('type')}</strong> · ${item.get('subcategory')||''} · ${item.get('color')} · ${displayModel}</div>
             ${nat ? `<div>🌍 ${nat}</div>` : ''}
             <div>📍 ${loc}</div>
             <div>✨ ${item.get('appearance')||''}</div>
@@ -1545,70 +1440,32 @@
           </div>
         `;
       }).join('');
-      document.querySelectorAll('.claim-btn').forEach(btn => btn.addEventListener('click', async function() {
-        const itemId = this.dataset.id;
-        try {
-          const question = await getVerificationQuestion(itemId);
-          if (!question) {
-            document.getElementById('errorPopupMessage').innerText = 'No verification question set for this item.';
+      // Direct claim without verification
+      document.querySelectorAll('.claim-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+          const itemId = this.dataset.id;
+          try {
+            const code = await claimItem(itemId);
+            document.getElementById('finalClaimCode').innerText = code;
+            claimCodePopup.classList.remove('hidden');
+            // Refresh search results to remove the claimed item
+            document.getElementById('searchMatchingBtn').click();
+          } catch (e) {
+            document.getElementById('errorPopupMessage').innerText = e.message;
             errorPopup.classList.remove('hidden');
-            return;
           }
-          currentVerifyingItemId = itemId;
-          document.getElementById('verifyQuestionText').innerText = question;
-          document.getElementById('verifyAnswerInput').value = '';
-          document.getElementById('verifyMessage').innerText = '';
-          verifyModal.classList.remove('hidden');
-        } catch (e) {
-          document.getElementById('errorPopupMessage').innerText = 'Error: ' + e.message;
-          errorPopup.classList.remove('hidden');
-        }
-      }));
+        });
+      });
     } catch(e) { container.innerHTML = `<p style="color:#b91c1c;">Error: ${e.message}</p>`; }
   };
 
   // ============================================================
-  // VERIFY & CLAIM
+  // POPUP HANDLERS
   // ============================================================
-  document.getElementById('submitVerifyBtn').onclick = async () => {
-    const answer = document.getElementById('verifyAnswerInput').value.trim();
-    if (!answer) {
-      document.getElementById('verifyMessage').innerText = 'Please enter an answer.';
-      return;
-    }
-    try {
-      const result = await verifyItem(currentVerifyingItemId, answer);
-      if (result.success) {
-        verifyModal.classList.add('hidden');
-        document.getElementById('finalClaimCode').innerText = result.claimCode;
-        claimCodePopup.classList.remove('hidden');
-      } else {
-        document.getElementById('verifyMessage').innerText = result.message;
-        if (result.blocked) {
-          setTimeout(() => {
-            verifyModal.classList.add('hidden');
-            document.getElementById('searchMatchingBtn').click();
-          }, 3000);
-        }
-      }
-    } catch (e) {
-      document.getElementById('verifyMessage').innerText = 'Error: ' + e.message;
-    }
-  };
-
-  document.getElementById('cancelVerifyBtn').onclick = () => {
-    verifyModal.classList.add('hidden');
-    currentVerifyingItemId = null;
-  };
-
   document.getElementById('closeClaimCodePopupBtn').onclick = () => {
     claimCodePopup.classList.add('hidden');
-    document.getElementById('searchMatchingBtn').click();
   };
 
-  // ============================================================
-  // COPY CLAIM CODE
-  // ============================================================
   document.getElementById('copyClaimCodeBtn').addEventListener('click', function() {
     const code = document.getElementById('finalClaimCode').innerText;
     if (!code) return;
@@ -1668,7 +1525,7 @@
     btn.textContent = 'Submitting…';
 
     try {
-      const required = ['foundColor', 'foundModel', 'foundTime', 'verificationQuestion', 'verificationAnswer'];
+      const required = ['foundColor', 'foundModel', 'foundTime'];
       if(required.some(id => !document.getElementById(id).value.trim())) {
         document.getElementById('errorPopupMessage').innerText = 'Please fill all required fields (*).';
         errorPopup.classList.remove('hidden');
@@ -1685,14 +1542,11 @@
       let subcategory = subSelect.value;
       if (subcategory === "Other") subcategory = document.getElementById('foundSubcategoryOther').value.trim();
 
-      // Get model value (could be nationality if passport)
       const modelValue = getDropdownValue('foundModel', 'foundModelCustom');
-      // If subcategory is passport, the model value is actually the nationality
       let nationality = '';
       let finalModel = modelValue;
       if (subcategory === 'passport') {
-        nationality = modelValue; // store in nationality field
-        // Also store in model field for consistency
+        nationality = modelValue;
         finalModel = modelValue;
       }
 
@@ -1707,8 +1561,6 @@
         locationRoom: getDropdownValue('foundRoom', 'foundRoomCustom'),
         nationality: nationality,
         contactInfo: document.getElementById('foundContactInfo').value.trim(),
-        verificationQuestion: document.getElementById('verificationQuestion').value.trim(),
-        verificationAnswer: document.getElementById('verificationAnswer').value.trim(),
         photoBase64, photoName
       };
       await createFoundItem(data);
@@ -1735,11 +1587,9 @@
   // ============================================================
   window.addEventListener('DOMContentLoaded', function() {
     handleTypeChange('found');
-    // Initialize model for found page
-    setTimeout(() => updateModelBasedOnSubcategory('found'), 20);
-    // Initialize lost page model (hidden initially, but we can set it)
+    setTimeout(() => updateModelBasedOnSubcategory('found'), 30);
     handleTypeChange('lost');
-    setTimeout(() => updateModelBasedOnSubcategory('lost'), 20);
+    setTimeout(() => updateModelBasedOnSubcategory('lost'), 30);
   });
 
   checkSession();
